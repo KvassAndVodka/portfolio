@@ -11,6 +11,7 @@ export interface Project {
     githubUrl?: string;
     demoUrl?: string;
     blogSlug?: string;
+    category?: 'professional' | 'personal' | 'schoolwork';
 }
 
 const projectsDirectory = path.join(process.cwd(), 'content/projects');
@@ -37,6 +38,7 @@ export function getProjects(): Project[] {
             githubUrl: data.githubUrl,
             demoUrl: data.demoUrl,
             blogSlug: data.blogSlug,
+            category: data.category,
         };
     });
 
