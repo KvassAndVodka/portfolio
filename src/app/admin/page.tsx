@@ -1,5 +1,7 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
+import { getFiles } from "@/actions"; // Import the new action
+import Link from 'next/link';
 
 export default async function AdminPage() {
     const session = await auth();
@@ -7,6 +9,9 @@ export default async function AdminPage() {
     if (!session?.user) {
         redirect("/api/auth/signin");
     }
+
+    // Fetch the files
+    const { posts, projects } = await getFiles();
 
     return (
         <div className="max-w-4xl mx-auto p-8">
@@ -28,7 +33,8 @@ export default async function AdminPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="border border-stone-200 p-6 rounded bg-stone-50">
+                {/* STATUS CARD */}
+                <div className="border border-stone-200 p-6 rounded bg-stone-50 h-fit">
                     <h2 className="font-bold mb-2">System Status</h2>
                     <div className="flex items-center gap-2 text-green-600 text-sm">
                         <span className="relative flex h-3 w-3">
@@ -39,9 +45,35 @@ export default async function AdminPage() {
                     </div>
                 </div>
 
-                {/* Placeholder for future Content Editor */}
-                <div className="border border-dashed border-stone-300 p-6 rounded flex items-center justify-center text-stone-400">
-                    Content Editor (Coming Soon)
+                {/* CONTENT LIST */}
+                <div className="border border-stone-200 p-6 rounded">
+                    <h2 className="font-bold mb-4 text-xl">Content Manager</h2>
+                    
+                    <div className="mb-6">
+                        <h3 className="text-sm font-bold text-stone-400 uppercase mb-2">Projects</h3>
+                        <ul className="space-y-2">
+                        {projects.map(f => (
+                            <li key={f.path}>
+                                <Link href={`/admin/edit?file=${f.path}`} className="block p-2 hover:bg-stone-100 rounded text-sm font-mono">
+                                    {f.name}
+                                </Link>
+                            </li>
+                        ))}
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 className="text-sm font-bold text-stone-400 uppercase mb-2">Blog Posts</h3>
+                        <ul className="space-y-2">
+                        {posts.map(f => (
+                            <li key={f.path}>
+                                <Link href={`/admin/edit?file=${f.path}`} className="block p-2 hover:bg-stone-100 rounded text-sm font-mono">
+                                    {f.name}
+                                </Link>
+                            </li>
+                        ))}
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
