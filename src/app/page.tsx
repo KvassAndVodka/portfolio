@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { FaGithub, FaLinkedin, FaFacebook, FaInstagram, FaEnvelope, FaPython, FaDocker, FaLinux } from "react-icons/fa";
 import { SiNextdotjs, SiTypescript, SiPostgresql, SiOpencv, SiJavascript, SiSupabase, SiProxmox } from "react-icons/si";
 import HeroBackground from "@/components/HeroBackground";
+import ProjectCard from "@/components/ProjectCard";
 import ScrollReveal from "@/components/ScrollReveal";
 
 // Reusable Section Header Component
@@ -74,8 +75,6 @@ export default function Home() {
                   priority
                 />
               </div>
-              {/* Decorative Ring */}
-              <div className="absolute inset-0 border border-[var(--accent)]/30 rounded-full scale-125 animate-pulse-slow pointer-events-none"></div>
             </div>
           </div>
         </div>
@@ -202,30 +201,8 @@ export default function Home() {
           />
           <div className="grid md:grid-cols-2 gap-6">
             {projects.map((project, index) => (
-              <Link key={project.slug} href={`/projects`} className="group block">
-                <div className="bg-white dark:bg-[#111] border border-stone-200 dark:border-white/10 rounded-2xl overflow-hidden hover:border-[var(--accent)] hover:shadow-[0_0_20px_-5px_var(--accent)] transition-all duration-300 h-full">
-                  <div className="p-8 h-full flex flex-col">
-                    {/* Category Badge */}
-                    {project.category && (
-                      <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded-full w-fit mb-4 ${
-                        project.category === 'professional' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                        project.category === 'personal' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                        'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                      }`}>
-                        {project.category}
-                      </span>
-                    )}
-                    <h3 className="text-xl font-bold mb-3 text-stone-900 dark:text-stone-100 group-hover:text-[var(--accent)] transition-colors">{project.title}</h3>
-                    <p className="text-stone-500 text-sm leading-relaxed mb-6 flex-1">{project.summary}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {project.techStack.slice(0, 3).map(tech => (
-                        <span key={tech} className="text-[10px] uppercase tracking-wider px-2 py-1 bg-stone-100 dark:bg-white/5 rounded text-stone-500">
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+              <Link key={project.slug} href={`/projects`} className="block h-full">
+                <ProjectCard project={project} className="h-full" />
               </Link>
             ))}
           </div>
@@ -245,19 +222,21 @@ export default function Home() {
             
             <div className="flex justify-center gap-4 flex-wrap pt-4">
               <a href="mailto:javier.raut@gmail.com" className="flex items-center gap-2 bg-[var(--accent)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-80 transition">
-                <FaEnvelope size={18} /> Email Me
+                <FaEnvelope size={18} /> javier.raut@gmail.com
               </a>
-              <a href="https://github.com/KvassAndVodka" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-stone-300 dark:border-white/20 px-6 py-3 rounded-lg font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition">
-                <FaGithub size={18} /> GitHub
+            </div>
+            <div className="flex justify-center gap-4 flex-wrap pt-4">
+              <a href="https://github.com/KvassAndVodka" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-stone-300 dark:border-white/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition">
+                <FaGithub size={16} /> @KvassAndVodka
               </a>
-              <a href="https://linkedin.com/in/raut-javier-m" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-stone-300 dark:border-white/20 px-6 py-3 rounded-lg font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition">
-                <FaLinkedin size={18} /> LinkedIn
+              <a href="https://linkedin.com/in/raut-javier-m" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-stone-300 dark:border-white/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition">
+                <FaLinkedin size={16} /> @raut-javier-m
               </a>
-              <a href="https://facebook.com/j.m.raut.29" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-stone-300 dark:border-white/20 px-6 py-3 rounded-lg font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition">
-                <FaFacebook size={18} /> Facebook
+              <a href="https://facebook.com/j.m.raut.29" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-stone-300 dark:border-white/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition">
+                <FaFacebook size={16} /> @j.m.raut.29
               </a>
-              <a href="https://instagram.com/raut_javier" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-stone-300 dark:border-white/20 px-6 py-3 rounded-lg font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition">
-                <FaInstagram size={18} /> Instagram
+              <a href="https://instagram.com/raut_javier" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-stone-300 dark:border-white/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition">
+                <FaInstagram size={16} /> @raut_javier
               </a>
             </div>
             

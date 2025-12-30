@@ -26,7 +26,7 @@ export default function Header() {
             Projects
           </Link>
           <Link href="/blog" className="text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white transition">
-            Blog
+            Archives
           </Link>
           <a href="mailto:javier.raut@gmail.com" className="text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white transition">
             Contact
@@ -52,7 +52,7 @@ export default function Header() {
               Projects
             </Link>
             <Link href="/blog" onClick={closeMenu} className="text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] transition">
-              Blog
+              Archives
             </Link>
             <a href="mailto:javier.raut@gmail.com" onClick={closeMenu} className="text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] transition">
               Contact
