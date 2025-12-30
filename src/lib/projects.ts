@@ -10,6 +10,7 @@ export interface Project {
     techStack: string[];
     githubUrl?: string;
     demoUrl?: string;
+    projectUrl?: string;
     blogSlug?: string;
     category?: 'professional' | 'personal' | 'schoolwork';
 }
@@ -37,6 +38,7 @@ export function getProjects(): Project[] {
             techStack: data.techStack || [],
             githubUrl: data.githubUrl,
             demoUrl: data.demoUrl,
+            projectUrl: data.projectUrl,
             blogSlug: data.blogSlug,
             category: data.category,
         };

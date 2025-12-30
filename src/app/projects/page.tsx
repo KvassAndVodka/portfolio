@@ -12,10 +12,9 @@ export default function WorkPage() {
              {/* Simple Hero */}
              <section className="relative py-32 border-b border-stone-200 dark:border-white/10 overflow-hidden bg-stone-100 dark:bg-[#111]">
                  <HeroBackground />
-                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
                  <div className="max-w-5xl mx-auto px-6 relative z-10 pointer-events-none">
                      <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 text-stone-950 dark:text-stone-50">
-                        Selected Work
+                        Projects
                      </h1>
                      <p className="text-lg text-stone-600 dark:text-stone-400 max-w-xl">
                         A collection of professional and personal projects exploring AI, Systems Engineering, and Full-stack Development.
@@ -32,7 +31,9 @@ export default function WorkPage() {
                                 The homepage linked to /projects, so maybe we want to keep it simple. 
                                 The Wrapper had a modal. For now, let's just show the card. 
                               */
-                            <ProjectCard key={project.slug} project={project} className="h-full" />
+                            <Link key={project.slug} href={`/projects/${project.slug}`} className="block h-full">
+                                <ProjectCard project={project} className="h-full" />
+                            </Link>
                         ))}
                     </div>
                 </ScrollReveal>

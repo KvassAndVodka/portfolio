@@ -12,7 +12,6 @@ export default function BlogIndex() {
              {/* Simple Hero */}
              <section className="relative py-32 border-b border-stone-200 dark:border-white/10 overflow-hidden bg-stone-100 dark:bg-[#111]">
                  <HeroBackground />
-                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
                  <div className="max-w-5xl mx-auto px-6 relative z-10 pointer-events-none">
                      <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 text-stone-950 dark:text-stone-50">
                         Archives

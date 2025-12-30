@@ -1,8 +1,8 @@
 import { getProjects } from "@/lib/projects";
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaGithub, FaLinkedin, FaFacebook, FaInstagram, FaEnvelope, FaPython, FaDocker, FaLinux } from "react-icons/fa";
-import { SiNextdotjs, SiTypescript, SiPostgresql, SiOpencv, SiJavascript, SiSupabase, SiProxmox } from "react-icons/si";
+import { FaGithub, FaLinkedin, FaFacebook, FaInstagram, FaEnvelope, FaPython, FaDocker, FaLinux, FaGitAlt } from "react-icons/fa";
+import { SiNextdotjs, SiTypescript, SiPostgresql, SiOpencv, SiJavascript, SiSupabase, SiProxmox, SiGnubash } from "react-icons/si";
 import HeroBackground from "@/components/HeroBackground";
 import ProjectCard from "@/components/ProjectCard";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -44,7 +44,8 @@ export default function Home() {
                 </h1>
                 
                 <p className="text-lg text-stone-600 dark:text-stone-400 max-w-xl leading-relaxed mx-auto md:mx-0">
-                  <span className="text-stone-950 dark:text-stone-200 font-semibold">CS Student & AI Intern</span> with hands-on experience building real-time ML pipelines with YOLO and OpenVINO. Currently exploring self-hosted infrastructure on bare metal.
+                  <span className="text-stone-950 dark:text-stone-200 font-semibold">Software Engineer</span> specializing in <span className="text-stone-950 dark:text-stone-200">Backend Systems</span> and <span className="text-stone-950 dark:text-stone-200">Infrastructure</span>.
+                  I aim for scalable and maintanable solutions, and conduct self-hosting as a hobby.
                 </p>
               </div>
               
@@ -71,6 +72,7 @@ export default function Home() {
                   src="/javier-raut-hero.png" 
                   alt="Javier Raut" 
                   fill 
+                  sizes="(max-width: 768px) 256px, 320px"
                   className="object-cover"
                   priority
                 />
@@ -141,27 +143,12 @@ export default function Home() {
           
           <div className="space-y-8">
             <div>
-              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">AI / Machine Learning</h3>
+              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">Backend & Infrastructure</h3>
               <div className="flex flex-wrap gap-3">
                 {[
                   { icon: FaPython, name: "Python" },
-                  { icon: SiOpencv, name: "OpenVINO" },
-                  { icon: SiOpencv, name: "YOLO" },
-                  { icon: SiOpencv, name: "PaddleOCR" },
-                ].map(tech => (
-                  <span key={tech.name} className="inline-flex items-center gap-2 px-4 py-2 bg-stone-100 dark:bg-white/5 rounded-full text-sm text-stone-700 dark:text-stone-300">
-                    <tech.icon size={16} /> {tech.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">Backend / Infrastructure</h3>
-              <div className="flex flex-wrap gap-3">
-                {[
-                  { icon: FaDocker, name: "Docker" },
                   { icon: FaLinux, name: "Linux" },
+                  { icon: FaDocker, name: "Docker" },
                   { icon: SiProxmox, name: "Proxmox" },
                   { icon: SiPostgresql, name: "PostgreSQL" },
                   { icon: SiSupabase, name: "Supabase" },
@@ -187,6 +174,24 @@ export default function Home() {
                 ))}
               </div>
             </div>
+
+            <div>
+              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">Specialized Tools & AI</h3>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { icon: SiOpencv, name: "OpenCV" },
+                  { icon: SiOpencv, name: "YOLO" },
+                  { icon: SiOpencv, name: "OpenVINO" },
+                  { icon: SiOpencv, name: "PaddleOCR" },
+                  { icon: FaGitAlt, name: "Git" },
+                  { icon: SiGnubash, name: "Bash Scripting" },
+                ].map(tech => (
+                  <span key={tech.name} className="inline-flex items-center gap-2 px-4 py-2 bg-stone-100 dark:bg-white/5 rounded-full text-sm text-stone-700 dark:text-stone-300">
+                    <tech.icon size={16} /> {tech.name}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </ScrollReveal>
       </section>
@@ -201,7 +206,7 @@ export default function Home() {
           />
           <div className="grid md:grid-cols-2 gap-6">
             {projects.map((project, index) => (
-              <Link key={project.slug} href={`/projects`} className="block h-full">
+              <Link key={project.slug} href={`/projects/${project.slug}`} className="block h-full">
                 <ProjectCard project={project} className="h-full" />
               </Link>
             ))}
@@ -210,7 +215,7 @@ export default function Home() {
       </section>
       
       {/* CONTACT SECTION */}
-      <section className="py-20">
+      <section id="contact" className="py-20">
         <ScrollReveal className="max-w-5xl mx-auto px-6">
           <div className="text-center space-y-8">
             <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-stone-950 dark:text-stone-50">

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaBars, FaTimes } from 'react-icons/fa';
 
 export default function Header() {
@@ -10,8 +10,21 @@ export default function Header() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
 
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isMenuOpen]);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md border-b border-stone-200 dark:border-white/10">
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${
+      isMenuOpen 
+        ? 'bg-transparent border-transparent' 
+        : 'bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md border-b border-stone-200 dark:border-white/10'
+    }`}>
       <div className="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
         <Link href="/" className="font-bold text-lg tracking-tight z-50 relative" onClick={closeMenu}>
           Javier Raut
@@ -28,9 +41,9 @@ export default function Header() {
           <Link href="/blog" className="text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white transition">
             Archives
           </Link>
-          <a href="mailto:javier.raut@gmail.com" className="text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white transition">
+          <Link href="/#contact" className="text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white transition">
             Contact
-          </a>
+          </Link>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -54,9 +67,9 @@ export default function Header() {
             <Link href="/blog" onClick={closeMenu} className="text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] transition">
               Archives
             </Link>
-            <a href="mailto:javier.raut@gmail.com" onClick={closeMenu} className="text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] transition">
+            <Link href="/#contact" onClick={closeMenu} className="text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] transition">
               Contact
-            </a>
+            </Link>
           </nav>
         </div>
       </div>
