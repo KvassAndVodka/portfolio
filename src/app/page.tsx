@@ -3,6 +3,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FaGithub, FaLinkedin, FaFacebook, FaInstagram, FaEnvelope, FaPython, FaDocker, FaLinux } from "react-icons/fa";
 import { SiNextdotjs, SiTypescript, SiPostgresql, SiOpencv, SiJavascript, SiSupabase, SiProxmox } from "react-icons/si";
+import HeroBackground from "@/components/HeroBackground";
+import ScrollReveal from "@/components/ScrollReveal";
 
 // Reusable Section Header Component
 function SectionHeader({ title, action }: { title: string; action?: React.ReactNode }) {
@@ -24,27 +26,29 @@ export default function Home() {
     <div>
       
       {/* HERO SECTION */}
-      <section className="min-h-[calc(100vh-4rem)] flex flex-col justify-center border-b border-stone-200 dark:border-white/10 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[var(--accent)]/5 rounded-full blur-[100px] pointer-events-none"></div>
+      <section className="min-h-[calc(100vh-4rem)] flex flex-col justify-center border-b border-stone-200 dark:border-white/10 relative overflow-hidden py-24 md:py-0">
+        <HeroBackground />
         
-        <div className="max-w-5xl mx-auto px-6 w-full">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-12 animate-fade-in-up relative z-10">
-            
-            <div className="space-y-6 flex-1">
-              <div className="inline-block px-3 py-1.5 border border-stone-300 dark:border-white/20 rounded-full text-xs font-mono text-stone-500 uppercase tracking-widest">
-                Open to Opportunities
+        <div className="max-w-5xl mx-auto px-6 w-full pointer-events-none">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-12 animate-fade-in-up relative z-10 pointer-events-auto bg-stone-100/80 dark:bg-[#0c0a09]/60 backdrop-blur-md p-8 md:p-12 rounded-3xl border border-stone-200/50 dark:border-white/5 shadow-2xl shadow-stone-200/50 dark:shadow-black/50">
+            {/* CONTENT */}
+            <div className="flex-1 space-y-8 text-center md:text-left">
+              <div className="space-y-6">
+                <div className="inline-block px-3 py-1.5 border border-stone-300 dark:border-white/20 rounded-full text-xs font-mono text-stone-500 uppercase tracking-widest bg-white/50 dark:bg-black/20">
+                  Open to Opportunities
+                </div>
+                
+                <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-stone-950 dark:text-stone-50">
+                  Javier Raut
+                </h1>
+                
+                <p className="text-lg text-stone-600 dark:text-stone-400 max-w-xl leading-relaxed mx-auto md:mx-0">
+                  <span className="text-stone-950 dark:text-stone-200 font-semibold">CS Student & AI Intern</span> with hands-on experience building real-time ML pipelines with YOLO and OpenVINO. Currently exploring self-hosted infrastructure on bare metal.
+                </p>
               </div>
               
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-stone-950 dark:text-stone-50">
-                Javier Raut
-              </h1>
-              
-              <p className="text-lg text-stone-600 dark:text-stone-400 max-w-xl leading-relaxed">
-                <span className="text-stone-950 dark:text-stone-200 font-semibold">CS Student & AI Intern</span> with hands-on experience building real-time ML pipelines with YOLO and OpenVINO. Currently exploring self-hosted infrastructure on bare metal.
-              </p>
-              
-              <div className="flex flex-wrap gap-4 pt-2">
-                <Link href="/work" className="bg-stone-950 text-white dark:bg-stone-50 dark:text-stone-950 px-6 py-3 rounded-lg font-medium hover:opacity-80 transition">
+              <div className="flex flex-wrap gap-4 pt-2 justify-center md:justify-start">
+                <Link href="/projects" className="bg-stone-950 text-white dark:bg-stone-50 dark:text-stone-950 px-6 py-3 rounded-lg font-medium hover:opacity-80 transition">
                   View My Projects
                 </Link>
                 <a href="mailto:javier.raut@gmail.com" className="bg-[var(--accent)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-80 transition">
@@ -59,22 +63,27 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="relative w-64 h-64 md:w-72 md:h-72 flex-shrink-0">
-              <Image
-                src="/javier-raut-hero.png"
-                alt="Javier Raut"
-                fill
-                className="object-cover rounded-full border-2 border-stone-200 dark:border-white/10"
-                priority
-              />
+            {/* PROFILE IMAGE */}
+            <div className="relative group mx-auto md:mx-0 shrink-0">
+              <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-stone-100 dark:border-[#1c1917] shadow-2xl grayscale hover:grayscale-0 transition-all duration-500 z-10">
+                <Image 
+                  src="/javier-raut-hero.png" 
+                  alt="Javier Raut" 
+                  fill 
+                  className="object-cover"
+                  priority
+                />
+              </div>
+              {/* Decorative Ring */}
+              <div className="absolute inset-0 border border-[var(--accent)]/30 rounded-full scale-125 animate-pulse-slow pointer-events-none"></div>
             </div>
           </div>
         </div>
       </section>
 
       {/* BACKGROUND SECTION */}
-      <section className="py-20 bg-stone-100 dark:bg-[#111]">
-        <div className="max-w-5xl mx-auto px-6">
+      <section className="py-20 bg-stone-100 dark:bg-[#111] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]">
+        <ScrollReveal className="max-w-5xl mx-auto px-6">
           <SectionHeader title="Background" />
           
           <div className="relative">
@@ -121,12 +130,14 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* SKILLS */}
-      <section className="py-20">
-        <div className="max-w-5xl mx-auto px-6">
+      <section className="py-20 relative overflow-hidden bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800">
+        {/* Power Core Gradient */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--accent)_0%,_transparent_70%)] opacity-5 pointer-events-none"></div>
+        <ScrollReveal className="max-w-5xl mx-auto px-6 relative z-10">
           <SectionHeader title="Tech Stack" />
           
           <div className="space-y-8">
@@ -178,51 +189,52 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* PROJECTS */}
-      <section className="py-20 bg-stone-100 dark:bg-[#111]">
-        <div className="max-w-5xl mx-auto px-6">
+      <section className="py-20 bg-stone-200 dark:bg-black relative">
+         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.03)_0%,_transparent_50%)] pointer-events-none"></div>
+        <ScrollReveal className="max-w-5xl mx-auto px-6 relative z-10">
           <SectionHeader 
             title="Projects" 
-            action={<Link href="/work" className="text-xs text-stone-500 hover:text-[var(--accent)] transition-colors uppercase tracking-wider">View All →</Link>}
+            action={<Link href="/projects" className="text-xs text-stone-500 hover:text-[var(--accent)] transition-colors uppercase tracking-wider">View All →</Link>}
           />
-<div className="grid md:grid-cols-2 gap-6">
-  {projects.map((project, index) => (
-    <Link key={project.slug} href={`/work`} className={`group block animate-fade-in-up animate-delay-${(index + 1) * 100}`}>
-      <div className="bg-white dark:bg-[#0a0a0a] border border-stone-200 dark:border-white/10 rounded-2xl overflow-hidden hover:border-stone-300 dark:hover:border-white/20 transition-all">
-        <div className="p-8 h-full flex flex-col">
-          {/* Category Badge */}
-          {project.category && (
-            <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded-full w-fit mb-4 ${
-              project.category === 'professional' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-              project.category === 'personal' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-              'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-            }`}>
-              {project.category}
-            </span>
-          )}
-          <h3 className="text-xl font-bold mb-3 text-stone-900 dark:text-stone-100 group-hover:text-[var(--accent)] transition-colors">{project.title}</h3>
-          <p className="text-stone-500 text-sm leading-relaxed mb-6 flex-1">{project.summary}</p>
-          <div className="flex flex-wrap gap-2">
-            {project.techStack.slice(0, 3).map(tech => (
-              <span key={tech} className="text-[10px] uppercase tracking-wider px-2 py-1 bg-stone-100 dark:bg-white/5 rounded text-stone-500">
-                {tech}
-              </span>
+          <div className="grid md:grid-cols-2 gap-6">
+            {projects.map((project, index) => (
+              <Link key={project.slug} href={`/projects`} className="group block">
+                <div className="bg-white dark:bg-[#111] border border-stone-200 dark:border-white/10 rounded-2xl overflow-hidden hover:border-[var(--accent)] hover:shadow-[0_0_20px_-5px_var(--accent)] transition-all duration-300 h-full">
+                  <div className="p-8 h-full flex flex-col">
+                    {/* Category Badge */}
+                    {project.category && (
+                      <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded-full w-fit mb-4 ${
+                        project.category === 'professional' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                        project.category === 'personal' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                        'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                      }`}>
+                        {project.category}
+                      </span>
+                    )}
+                    <h3 className="text-xl font-bold mb-3 text-stone-900 dark:text-stone-100 group-hover:text-[var(--accent)] transition-colors">{project.title}</h3>
+                    <p className="text-stone-500 text-sm leading-relaxed mb-6 flex-1">{project.summary}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {project.techStack.slice(0, 3).map(tech => (
+                        <span key={tech} className="text-[10px] uppercase tracking-wider px-2 py-1 bg-stone-100 dark:bg-white/5 rounded text-stone-500">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
-        </div>
-      </div>
-    </Link>
-  ))}
-</div>
-        </div>
+        </ScrollReveal>
       </section>
       
       {/* CONTACT SECTION */}
       <section className="py-20">
-        <div className="max-w-5xl mx-auto px-6">
+        <ScrollReveal className="max-w-5xl mx-auto px-6">
           <div className="text-center space-y-8">
             <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-stone-950 dark:text-stone-50">
               Let's Work Together
@@ -253,9 +265,8 @@ export default function Home() {
               © 2025 Javier Raut. Built with Next.js.
             </p>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
-      
     </div>
   );
 }
