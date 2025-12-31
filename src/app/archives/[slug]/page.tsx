@@ -24,7 +24,6 @@ export default async function BlogPost(props: { params: Params}) {
                     <time className="text-stone-500 font-mono text-sm">
                         {format(new Date(post.publishedAt), 'MMMM dd, yyyy')} • {post.readTime}
                     </time>
-                    <h1 className="text-4xl font-bold mt-2 tracking-tight">{post.title}</h1>
                 </header>
                 {}
                 <div className="prose prose-stone prose-lg dark:prose-invert">

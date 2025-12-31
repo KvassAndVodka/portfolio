@@ -44,24 +44,26 @@ export default function Home() {
                 </h1>
                 
                 <p className="text-lg text-stone-600 dark:text-stone-400 max-w-xl leading-relaxed mx-auto md:mx-0">
-                  <span className="text-stone-950 dark:text-stone-200 font-semibold">Software Engineer</span> specializing in <span className="text-stone-950 dark:text-stone-200">Backend Systems</span> and <span className="text-stone-950 dark:text-stone-200">Infrastructure</span>.
-                  I aim for scalable and maintanable solutions, and conduct self-hosting as a hobby.
+                  <span className="text-stone-950 dark:text-stone-200 font-semibold">Software Engineer</span> from the Philippines specializing in <span className="text-stone-950 dark:text-stone-200">Backend Systems</span> and <span className="text-stone-950 dark:text-stone-200">Infrastructure</span>.
+                  I aim for scalable and maintainable solutions, and conduct self-hosting as a hobby.
                 </p>
               </div>
               
-              <div className="flex flex-wrap gap-4 pt-2 justify-center md:justify-start">
-                <Link href="/projects" className="bg-stone-950 text-white dark:bg-stone-50 dark:text-stone-950 px-6 py-3 rounded-lg font-medium hover:opacity-80 transition">
+              <div className="flex flex-col md:flex-row gap-4 pt-2 w-full md:w-auto">
+                <Link href="/projects" className="bg-stone-950 text-white dark:bg-stone-50 dark:text-stone-950 px-6 py-3 rounded-lg font-medium hover:opacity-80 transition w-full md:w-auto text-center">
                   View My Projects
                 </Link>
-                <a href="mailto:javier.raut@gmail.com" className="bg-[var(--accent)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-80 transition">
+                <a href="mailto:javier.raut@gmail.com" className="bg-[var(--accent)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-80 transition w-full md:w-auto text-center">
                   Hire Me
                 </a>
-                <a href="https://github.com/KvassAndVodka" target="_blank" rel="noopener noreferrer" className="border border-stone-300 dark:border-white/20 px-4 py-3 rounded-lg font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition flex items-center gap-2">
-                  <FaGithub size={18} />
-                </a>
-                <a href="https://www.linkedin.com/in/raut-javier-m/" target="_blank" rel="noopener noreferrer" className="border border-stone-300 dark:border-white/20 px-4 py-3 rounded-lg font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition">
-                  <FaLinkedin size={18} />
-                </a>
+                <div className="flex gap-4 w-full md:w-auto">
+                    <a href="https://github.com/KvassAndVodka" target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none border border-stone-300 dark:border-white/20 px-4 py-3 rounded-lg font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition flex items-center justify-center gap-2">
+                      <FaGithub size={18} />
+                    </a>
+                    <a href="https://www.linkedin.com/in/raut-javier-m/" target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none border border-stone-300 dark:border-white/20 px-4 py-3 rounded-lg font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition flex items-center justify-center">
+                      <FaLinkedin size={18} />
+                    </a>
+                </div>
               </div>
             </div>
 
@@ -225,22 +227,25 @@ export default function Home() {
               I'm open to internships, freelance projects, and collaboration opportunities.
             </p>
             
-            <div className="flex justify-center gap-4 flex-wrap pt-4">
-              <a href="mailto:javier.raut@gmail.com" className="flex items-center gap-2 bg-[var(--accent)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-80 transition">
+            {/* Email - Full width mobile, Centered desktop */}
+            <div className="flex justify-center pt-8 w-full md:w-auto">
+              <a href="mailto:javier.raut@gmail.com" className="w-full md:w-auto flex items-center justify-center gap-2 bg-[var(--accent)] text-white px-8 py-3 rounded-lg font-medium hover:opacity-80 transition shadow-lg shadow-orange-500/20">
                 <FaEnvelope size={18} /> javier.raut@gmail.com
               </a>
             </div>
-            <div className="flex justify-center gap-4 flex-wrap pt-4">
-              <a href="https://github.com/KvassAndVodka" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-stone-300 dark:border-white/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition">
+
+            {/* Socials - Stacked mobile, Row desktop */}
+            <div className="flex flex-col md:flex-row justify-center gap-4 pt-4 w-full">
+              <a href="https://github.com/KvassAndVodka" target="_blank" rel="noopener noreferrer" className="w-full md:w-auto flex items-center justify-center gap-2 border border-stone-300 dark:border-white/20 px-6 py-3 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition bg-white dark:bg-transparent">
                 <FaGithub size={16} /> @KvassAndVodka
               </a>
-              <a href="https://linkedin.com/in/raut-javier-m" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-stone-300 dark:border-white/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition">
+              <a href="https://linkedin.com/in/raut-javier-m" target="_blank" rel="noopener noreferrer" className="w-full md:w-auto flex items-center justify-center gap-2 border border-stone-300 dark:border-white/20 px-6 py-3 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition bg-white dark:bg-transparent">
                 <FaLinkedin size={16} /> @raut-javier-m
               </a>
-              <a href="https://facebook.com/j.m.raut.29" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-stone-300 dark:border-white/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition">
+              <a href="https://facebook.com/j.m.raut.29" target="_blank" rel="noopener noreferrer" className="w-full md:w-auto flex items-center justify-center gap-2 border border-stone-300 dark:border-white/20 px-6 py-3 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition bg-white dark:bg-transparent">
                 <FaFacebook size={16} /> @j.m.raut.29
               </a>
-              <a href="https://instagram.com/raut_javier" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-stone-300 dark:border-white/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition">
+              <a href="https://instagram.com/raut_javier" target="_blank" rel="noopener noreferrer" className="w-full md:w-auto flex items-center justify-center gap-2 border border-stone-300 dark:border-white/20 px-6 py-3 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition bg-white dark:bg-transparent">
                 <FaInstagram size={16} /> @raut_javier
               </a>
             </div>

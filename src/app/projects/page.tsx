@@ -12,12 +12,12 @@ export default function WorkPage() {
              {/* Simple Hero */}
              <section className="relative py-32 border-b border-stone-200 dark:border-white/10 overflow-hidden bg-stone-100 dark:bg-[#111]">
                  <HeroBackground />
-                 <div className="max-w-5xl mx-auto px-6 relative z-10 pointer-events-none">
+                 <div className="max-w-5xl mx-auto px-6 relative z-10 pointer-events-none text-center md:text-left">
                      <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 text-stone-950 dark:text-stone-50">
                         Projects
                      </h1>
-                     <p className="text-lg text-stone-600 dark:text-stone-400 max-w-xl">
-                        A collection of professional and personal projects exploring AI, Systems Engineering, and Full-stack Development.
+                     <p className="text-lg text-stone-600 dark:text-stone-400 max-w-xl mx-auto md:mx-0">
+                        My collection of professional and personal projects that I have worked on from internships to personal projects.
                      </p>
                  </div>
              </section>
@@ -27,10 +27,6 @@ export default function WorkPage() {
                 <ScrollReveal className="max-w-5xl mx-auto px-6">
                     <div className="grid md:grid-cols-1 gap-8">
                         {projects.map((project, index) => (
-                             /* Note: We link to a hypothetical /projects/[slug] or just keep it as a card for now.
-                                The homepage linked to /projects, so maybe we want to keep it simple. 
-                                The Wrapper had a modal. For now, let's just show the card. 
-                              */
                             <Link key={project.slug} href={`/projects/${project.slug}`} className="block h-full">
                                 <ProjectCard project={project} className="h-full" />
                             </Link>

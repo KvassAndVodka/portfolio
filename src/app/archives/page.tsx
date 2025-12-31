@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import HeroBackground from '@/components/HeroBackground';
 import ScrollReveal from '@/components/ScrollReveal';
 
-export default function BlogIndex() {
+export default function ArchiveIndex() {
     const posts = getPosts();
 
     return (
@@ -12,12 +12,12 @@ export default function BlogIndex() {
              {/* Simple Hero */}
              <section className="relative py-32 border-b border-stone-200 dark:border-white/10 overflow-hidden bg-stone-100 dark:bg-[#111]">
                  <HeroBackground />
-                 <div className="max-w-5xl mx-auto px-6 relative z-10 pointer-events-none">
+                 <div className="max-w-5xl mx-auto px-6 relative z-10 pointer-events-none text-center md:text-left">
                      <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 text-stone-950 dark:text-stone-50">
                         Archives
                      </h1>
-                     <p className="text-lg text-stone-600 dark:text-stone-400 max-w-xl">
-                        Technical notes, research, and documentation of my journey in Systems Engineering.
+                     <p className="text-lg text-stone-600 dark:text-stone-400 max-w-xl mx-auto md:mx-0">
+                        Technical notes, research, and documentation of my journey in Computer Science and Software Engineering.
                      </p>
                  </div>
              </section>
@@ -33,13 +33,16 @@ export default function BlogIndex() {
                         </div>
 
                         {posts.map((post) => (
-                            <Link key={post.slug} href={`/blog/${post.slug}`} className="group block">
+                            <Link key={post.slug} href={`/archives/${post.slug}`} className="group block">
                                 <article className="md:grid grid-cols-12 gap-4 py-8 border-b border-stone-200 dark:border-white/5 items-baseline hover:bg-white dark:hover:bg-white/5 transition-colors -mx-4 px-4 rounded-lg">
-                                    {/* Date */}
-                                    <div className="col-span-2 mb-2 md:mb-0">
+                                    {/* Date & Meta - Combined on Mobile */}
+                                    <div className="col-span-2 mb-2 md:mb-0 flex flex-row md:flex-col items-center md:items-start gap-3 md:gap-0">
                                         <time className="text-sm font-mono text-[var(--accent)]">
                                             {format(new Date(post.publishedAt), 'MMM dd, yyyy')}
                                         </time>
+                                        <span className="md:hidden text-xs font-mono text-stone-400">
+                                            • {post.readTime}
+                                        </span>
                                     </div>
                                     
                                     {/* Title */}
@@ -52,7 +55,7 @@ export default function BlogIndex() {
                                         </p>
                                     </div>
 
-                                    {/* Meta/Action */}
+                                    {/* Meta/Action - Desktop Only */}
                                     <div className="col-span-2 text-right hidden md:block">
                                          <span className="text-xs font-mono text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors">
                                             {post.readTime}
