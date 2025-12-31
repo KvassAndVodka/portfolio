@@ -139,7 +139,7 @@ export default function Home() {
       {/* SKILLS */}
       <section className="py-20 relative overflow-hidden bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800">
         {/* Power Core Gradient */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--accent)_0%,_transparent_70%)] opacity-5 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--accent)_0%,_transparent_70%)] opacity-[0.12] dark:opacity-5 pointer-events-none"></div>
         <ScrollReveal className="max-w-5xl mx-auto px-6 relative z-10">
           <SectionHeader title="Tech Stack" />
           
@@ -155,7 +155,7 @@ export default function Home() {
                   { icon: SiPostgresql, name: "PostgreSQL" },
                   { icon: SiSupabase, name: "Supabase" },
                 ].map(tech => (
-                  <span key={tech.name} className="inline-flex items-center gap-2 px-4 py-2 bg-stone-100 dark:bg-white/5 rounded-full text-sm text-stone-700 dark:text-stone-300">
+                  <span key={tech.name} className="inline-flex items-center gap-2 px-4 py-2 bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-transparent rounded-full text-sm text-stone-800 dark:text-stone-300 font-medium">
                     <tech.icon size={16} /> {tech.name}
                   </span>
                 ))}
@@ -170,7 +170,7 @@ export default function Home() {
                   { icon: SiTypescript, name: "TypeScript" },
                   { icon: SiJavascript, name: "JavaScript" },
                 ].map(tech => (
-                  <span key={tech.name} className="inline-flex items-center gap-2 px-4 py-2 bg-stone-100 dark:bg-white/5 rounded-full text-sm text-stone-700 dark:text-stone-300">
+                  <span key={tech.name} className="inline-flex items-center gap-2 px-4 py-2 bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-transparent rounded-full text-sm text-stone-800 dark:text-stone-300 font-medium">
                     <tech.icon size={16} /> {tech.name}
                   </span>
                 ))}
@@ -188,7 +188,7 @@ export default function Home() {
                   { icon: FaGitAlt, name: "Git" },
                   { icon: SiGnubash, name: "Bash Scripting" },
                 ].map(tech => (
-                  <span key={tech.name} className="inline-flex items-center gap-2 px-4 py-2 bg-stone-100 dark:bg-white/5 rounded-full text-sm text-stone-700 dark:text-stone-300">
+                  <span key={tech.name} className="inline-flex items-center gap-2 px-4 py-2 bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-transparent rounded-full text-sm text-stone-800 dark:text-stone-300 font-medium">
                     <tech.icon size={16} /> {tech.name}
                   </span>
                 ))}
@@ -217,7 +217,7 @@ export default function Home() {
       </section>
       
       {/* CONTACT SECTION */}
-      <section id="contact" className="py-20">
+      <section id="contact" className="py-20 bg-stone-100 dark:bg-[#0c0a09]">
         <ScrollReveal className="max-w-5xl mx-auto px-6">
           <div className="text-center space-y-8">
             <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-stone-950 dark:text-stone-50">

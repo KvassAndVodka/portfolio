@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { FaBars, FaTimes } from 'react-icons/fa';
+import ThemeToggle from './ThemeToggle';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -34,7 +35,7 @@ export default function Header() {
         </Link>
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex gap-6 text-sm relative z-50">
+        <nav className="hidden md:flex items-center gap-6 text-sm relative z-50">
           <Link href="/" className="text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white transition">
             Home
           </Link>
@@ -47,16 +48,20 @@ export default function Header() {
           <Link href="/#contact" className="text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white transition">
             Contact
           </Link>
+          <ThemeToggle />
         </nav>
 
-        {/* Mobile Menu Button */}
-        <button 
-          className="md:hidden z-50 p-2 text-stone-900 dark:text-white relative"
-          onClick={toggleMenu}
-          aria-label="Toggle menu"
-        >
-          {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-        </button>
+        {/* Mobile: Theme Toggle + Menu Button */}
+        <div className="flex items-center gap-2 md:hidden z-50 relative">
+          <ThemeToggle />
+          <button 
+            className="p-2 text-stone-900 dark:text-white"
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Navigation Overlay */}

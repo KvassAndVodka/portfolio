@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@custom-variant dark (&:is(.dark *));
 
 :root {
   --background: #ffffff;
@@ -18,13 +19,22 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0c0a09;
-    --foreground: #fafaf9;
-    --grid-line: #1c1917;
-    --accent: #ff4f00;
-  }
+/* Light mode explicit - for browsers that need it */
+html.light,
+.light {
+  --background: #ffffff;
+  --foreground: #0c0a09;
+  --grid-line: #e7e5e4;
+  --accent: #ff4f00;
+}
+
+/* Dark mode via class - applied by next-themes */
+html.dark,
+.dark {
+  --background: #0c0a09;
+  --foreground: #fafaf9;
+  --grid-line: #1c1917;
+  --accent: #ff4f00;
 }
 
 @keyframes fadeInUp {

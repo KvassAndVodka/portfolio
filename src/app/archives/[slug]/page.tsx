@@ -2,6 +2,8 @@ import { getPost, getPosts } from '@/lib/posts';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
+import Link from 'next/link';
+import { FaArrowLeft } from 'react-icons/fa';
 
 type Params = Promise<{ slug: string }>;
 
@@ -21,7 +23,10 @@ export default async function BlogPost(props: { params: Params}) {
         return (
             <article className="max-w-3xl mx-auto p-8">
                 <header className="mb-10">
-                    <time className="text-stone-500 font-mono text-sm">
+                    <Link href="/archives" className="inline-flex items-center gap-2 text-sm font-mono text-stone-500 hover:text-[var(--accent)] mb-6 transition-colors">
+                        <FaArrowLeft /> Back to Archives
+                    </Link>
+                    <time className="block text-stone-500 font-mono text-sm">
                         {format(new Date(post.publishedAt), 'MMMM dd, yyyy')} • {post.readTime}
                     </time>
                 </header>
