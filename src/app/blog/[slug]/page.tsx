@@ -22,7 +22,7 @@ export default async function BlogPost(props: { params: Params}) {
             <article className="max-w-3xl mx-auto p-8">
                 <header className="mb-10">
                     <time className="text-stone-500 font-mono text-sm">
-                        {format(new Date(post.publishedAt), 'MMMM dd, yyyy')}
+                        {format(new Date(post.publishedAt), 'MMMM dd, yyyy')} • {post.readTime}
                     </time>
                     <h1 className="text-4xl font-bold mt-2 tracking-tight">{post.title}</h1>
                 </header>

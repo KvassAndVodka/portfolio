@@ -55,7 +55,7 @@ export default function BlogIndex() {
                                     {/* Meta/Action */}
                                     <div className="col-span-2 text-right hidden md:block">
                                          <span className="text-xs font-mono text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors">
-                                            Read Entry →
+                                            {post.readTime}
                                          </span>
                                     </div>
                                 </article>

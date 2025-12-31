@@ -8,9 +8,16 @@ export interface Post {
     publishedAt: string;
     summary: string;
     content: string;
+    readTime: string;
 }
 
 const postsDirectory = path.join(process.cwd(), 'content/posts');
+
+function calculateReadTime(content: string): string {
+    const words = content.trim().split(/\s+/).length;
+    const time = Math.ceil(words / 200);
+    return `${time} min read`;
+}
 
 export function getPosts(): Post[] {
     const fileNames = fs.readdirSync(postsDirectory);
@@ -28,6 +35,7 @@ export function getPosts(): Post[] {
             publishedAt: data.publishedAt,
             summary: data.summary,
             content,
+            readTime: calculateReadTime(content),
         };
     });
 
@@ -51,5 +59,6 @@ export function getPost(slug: string): Post {
         publishedAt: data.publishedAt,
         summary: data.summary,
         content,
+        readTime: calculateReadTime(content),
     };
 }
