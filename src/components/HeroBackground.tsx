@@ -45,9 +45,9 @@ export default function HeroBackground() {
     let frameId = 0;
 
     // Spawner
-    const spawnPulse = () => {
-      const x = Math.floor(Math.random() * cols);
-      const y = Math.floor(Math.random() * rows);
+    const spawnPulse = (targetX?: number, targetY?: number) => {
+      const x = targetX ?? Math.floor(Math.random() * cols);
+      const y = targetY ?? Math.floor(Math.random() * rows);
       pulses.push({ x, y, age: 0, life: 50 }); 
     };
 
@@ -59,7 +59,20 @@ export default function HeroBackground() {
        mouse.x = e.clientX - rect.left;
        mouse.y = e.clientY - rect.top;
     };
-    window.addEventListener("mousemove", handleMouseMove);
+    canvas.addEventListener("mousemove", handleMouseMove);
+
+    const handleClick = (e: MouseEvent) => {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        
+        // Convert to grid coordinates
+        const gridX = Math.round(clickX / gridSize);
+        const gridY = Math.round(clickY / gridSize);
+        
+        spawnPulse(gridX, gridY);
+    };
+    canvas.addEventListener("click", handleClick);
 
     // Draw Loop
     const draw = (timestamp: number) => {
@@ -97,7 +110,7 @@ export default function HeroBackground() {
             const dx = cx - p.x;
             const dy = cy - p.y;
             const dist = Math.sqrt(dx*dx + dy*dy);
-            const currentRadius = p.age * 10;
+            const currentRadius = p.age * 10;                                                                                                                       
             const diff = Math.abs(dist - currentRadius);
             
             if (diff < 2.0) { 
@@ -232,16 +245,18 @@ export default function HeroBackground() {
 
     return () => {
       window.removeEventListener("resize", resize);
+      canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("click", handleClick);
       cancelAnimationFrame(frameId);
     };
   }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden bg-stone-50/50 dark:bg-[#0c0a09] pointer-events-none">
+    <div className="absolute inset-0 overflow-hidden bg-stone-50/50 dark:bg-[#0c0a09] pointer-events-auto">
       <canvas ref={canvasRef} className="absolute inset-0" />
       
       {/* Overlay Gradient to soften edges */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-stone-100/80 dark:to-[#0c0a09] h-full"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-stone-100/80 dark:to-[#0c0a09] h-full pointer-events-none"></div>
     </div>
   );
 }
