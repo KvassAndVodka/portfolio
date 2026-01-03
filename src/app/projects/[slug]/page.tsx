@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from 'react-markdown';
 import HeroBackground from "@/components/HeroBackground";
-import ScrollReveal from "@/components/ScrollReveal";
 import { FaGithub, FaExternalLinkAlt, FaArrowLeft } from "react-icons/fa";
 
 export async function generateStaticParams() {
@@ -90,11 +89,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
       {/* CONTENT */}
       <section className="py-20">
-        <ScrollReveal className="max-w-3xl mx-auto px-6">
+        <div className="max-w-3xl mx-auto px-6">
             <article className="prose prose-stone dark:prose-invert prose-lg max-w-none">
                 <ReactMarkdown>{project.content}</ReactMarkdown>
             </article>
-        </ScrollReveal>
+        </div>
       </section>
     </div>
   );

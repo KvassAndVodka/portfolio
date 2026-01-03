@@ -17,7 +17,7 @@ export default function ProjectCard({ project, className = "", style = {} }: { p
                     </span>
                 )}
                 
-                <h3 className="text-xl font-bold mb-3 text-stone-900 dark:text-stone-100 group-hover:text-[var(--accent)] transition-colors">
+                <h3 className="text-xl font-bold mb-3 text-stone-900 dark:text-stone-100 group-hover:text-[var(--accent)] dark:group-hover:text-[var(--accent)] transition-colors">
                     {project.title}
                 </h3>
                 
