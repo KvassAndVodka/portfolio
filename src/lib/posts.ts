@@ -8,6 +8,7 @@ export interface Post {
     summary: string;
     content: string;
     readTime: string;
+    category?: string | null;
 }
 
 function calculateReadTime(content: string): string {
@@ -35,7 +36,8 @@ export async function getPosts(): Promise<Post[]> {
         publishedAt: post.publishedAt.toISOString(),
         summary: post.summary,
         content: post.content,
-        readTime: calculateReadTime(post.content)
+        readTime: calculateReadTime(post.content),
+        category: post.category
     }));
 }
 
@@ -52,6 +54,7 @@ export async function getPost(slug: string): Promise<Post | null> {
         publishedAt: post.publishedAt.toISOString(),
         summary: post.summary,
         content: post.content,
-        readTime: calculateReadTime(post.content)
+        readTime: calculateReadTime(post.content),
+        category: post.category
     };
 }

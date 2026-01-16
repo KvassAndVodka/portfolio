@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { FaBold, FaItalic, FaHeading, FaQuoteRight, FaList, FaLink, FaImage, FaCode, FaEye, FaEyeSlash, FaUndo, FaRedo } from 'react-icons/fa';
+import MediaPicker from './admin/MediaPicker';
 
 interface MarkdownEditorProps {
     defaultValue?: string;
@@ -14,6 +15,15 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
     const [history, setHistory] = useState<string[]>([defaultValue]);
     const [historyIndex, setHistoryIndex] = useState(0);
     
+    // Sync with prop changes (e.g. data loaded async)
+    useEffect(() => {
+        if (defaultValue && defaultValue !== content) {
+            setContent(defaultValue);
+            setHistory([defaultValue]);
+            setHistoryIndex(0);
+        }
+    }, [defaultValue]);
+
     const [isPreview, setIsPreview] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -159,8 +169,16 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
         }
     };
 
+    const [showMediaPicker, setShowMediaPicker] = useState(false);
+
+    const handleMediaSelect = (url: string, alt: string) => {
+        setShowMediaPicker(false);
+        const imgMarkdown = `![${alt}](${url})`;
+        insertText(imgMarkdown);
+    };
+
     const onImageBtnClick = () => {
-        fileInputRef.current?.click();
+        setShowMediaPicker(true);
     };
 
     const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,7 +219,10 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
                 </button>
             </div>
 
-            {/* Hidden File Input */}
+            {/* Top Toolbar */}
+            {/* ... toolbar buttons ... */}
+            
+            {/* Hidden File Input (keep for paste/drop support) */}
             <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -210,6 +231,14 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
                 onChange={onFileChange}
             />
 
+            {/* Media Picker Modal */}
+            {showMediaPicker && (
+                <MediaPicker 
+                    onSelect={handleMediaSelect} 
+                    onClose={() => setShowMediaPicker(false)} 
+                />
+            )}
+
             {/* Editor Area */}
             <div 
                 className="relative min-h-[500px]"
@@ -217,6 +246,7 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={onDrop}
             >
+                {/* ... existing upload/preview/textarea code ... */}
                 {isUploading && (
                      <div className="absolute inset-0 bg-white/80 dark:bg-black/80 z-20 flex items-center justify-center backdrop-blur-sm">
                         <div className="text-[var(--accent)] font-bold animate-pulse">Uploading Image...</div>

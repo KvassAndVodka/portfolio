@@ -19,12 +19,14 @@ model Post {
   category String?
 
   isPinned   Boolean @default(false)
+  pinnedOrder Int?   // For manual ordering of pinned items
   showAsBlog Boolean @default(false)
 
   techStack  String[]
   githubUrl  String?
   demoUrl    String?
   projectUrl String?
+  thumbnail  String?
 }
 
 enum PostType {
@@ -38,4 +40,27 @@ model Media {
   mimeType  String
   data      Bytes
   createdAt DateTime @default(now())
+}
+
+model Visit {
+  id        String   @id @default(cuid())
+  path      String
+  ipHash    String?  // Anonymized IP for unique visitor counting
+  userAgent String?
+  referer   String?
+  country   String?
+  city      String?
+  createdAt DateTime @default(now())
+
+  @@index([path])
+  @@index([createdAt])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Hashed password
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

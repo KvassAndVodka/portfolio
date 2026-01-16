@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   description: "High-performance infrastructure and AI solutions.",
 };
 
+import AnalyticsTracker from '@/components/AnalyticsTracker';
+
+import MainWrapper from '@/components/MainWrapper';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -18,11 +22,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
+        <AnalyticsTracker />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <Header />
-          <main className="pt-16">
+          <MainWrapper>
             {children}
-          </main>
+          </MainWrapper>
         </ThemeProvider>
       </body>
     </html>

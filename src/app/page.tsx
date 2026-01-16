@@ -21,7 +21,10 @@ function SectionHeader({ title, action }: { title: string; action?: React.ReactN
 }
 
 export default async function Home() {
-  const projects = (await getProjects()).slice(0, 2);
+  const allProjects = await getProjects();
+  // Show all pinned projects. If none are pinned, show the 3 most recent.
+  const pinnedProjects = allProjects.filter(p => p.isPinned);
+  const projects = pinnedProjects.length > 0 ? pinnedProjects : allProjects.slice(0, 3);
 
   return (
     <div>

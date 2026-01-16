@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import MarkdownEditor from '@/components/MarkdownEditor'; // Adjust path if needed
+import MarkdownEditor from '@/components/MarkdownEditor'; 
+import MediaPicker from './MediaPicker';
+import { FaImage } from 'react-icons/fa';
 
 interface PostFormProps {
+    // ... same props ...
     initialData?: {
         id?: string;
         title: string;
@@ -18,6 +21,7 @@ interface PostFormProps {
         projectUrl?: string;
         isPinned: boolean;
         showAsBlog: boolean;
+        thumbnail?: string;
     };
     action: (formData: FormData) => Promise<void>;
     submitLabel: string;
@@ -25,6 +29,8 @@ interface PostFormProps {
 
 export default function PostForm({ initialData, action, submitLabel }: PostFormProps) {
     const [type, setType] = useState<'BLOG' | 'PROJECT'>(initialData?.type || 'BLOG');
+    const [showThumbnailPicker, setShowThumbnailPicker] = useState(false);
+    const [thumbnail, setThumbnail] = useState(initialData?.thumbnail || '');
 
     return (
         <form action={action} className="space-y-6">
@@ -58,19 +64,64 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
                 <input type="hidden" name="type" value={type} />
             </div>
 
-            <div className="grid md:grid-cols-1 gap-6">
-                <div>
-                    <label className="block text-sm font-medium mb-2">Title</label>
-                    <input 
-                        name="title" 
-                        defaultValue={initialData?.title} 
-                        required 
-                        className="w-full p-3 rounded-lg bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10" 
-                    />
-                    {/* Hidden slug input to preserve existing slug on edit, or empty on create (triggering auto-gen) */}
-                    <input type="hidden" name="slug" defaultValue={initialData?.slug} />
+            <div className="grid md:grid-cols-3 gap-6">
+                <div className="md:col-span-1">
+                     <label className="block text-sm font-medium mb-2">Thumbnail</label>
+                     <div className="space-y-3">
+                         <input type="hidden" name="thumbnail" value={thumbnail} />
+                         
+                         {/* Preview Area */}
+                         <button 
+                            type="button"
+                            onClick={() => setShowThumbnailPicker(true)}
+                            className="w-full relative aspect-video bg-stone-100 dark:bg-white/5 rounded-lg border-2 border-dashed border-stone-200 dark:border-white/10 flex flex-col items-center justify-center overflow-hidden hover:border-[var(--accent)] transition-colors group"
+                         >
+                            {thumbnail ? (
+                                <>
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={thumbnail} alt="Thumbnail preview" className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <span className="text-white text-xs font-bold uppercase tracking-wider">Change Image</span>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="text-stone-400 text-center p-4">
+                                    <div className="mx-auto mb-2 opacity-50">
+                                        <FaImage size={32} />
+                                    </div>
+                                    <span className="text-xs font-medium">Select Image</span>
+                                </div>
+                            )}
+                         </button>
+                    </div>
+                </div>
+                <div className="md:col-span-2 space-y-6">
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Title</label>
+                        <input 
+                            name="title" 
+                            defaultValue={initialData?.title} 
+                            required 
+                            className="w-full p-3 rounded-lg bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10" 
+                        />
+                         {/* Hidden slug input to preserve existing slug on edit, or empty on create (triggering auto-gen) */}
+                        <input type="hidden" name="slug" defaultValue={initialData?.slug} />
+                    </div>
                 </div>
             </div>
+
+            {/* ... rest of form ... */}
+            
+            {showThumbnailPicker && (
+                <MediaPicker 
+                    onSelect={(url) => {
+                        setThumbnail(url);
+                        setShowThumbnailPicker(false);
+                    }} 
+                    onClose={() => setShowThumbnailPicker(false)} 
+                />
+            )}
+
 
             <div>
                 <label className="block text-sm font-medium mb-2">Summary</label>
@@ -184,3 +235,5 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
         </form>
     );
 }
+
+

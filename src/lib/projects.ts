@@ -11,6 +11,8 @@ export interface Project {
     demoUrl?: string;
     projectUrl?: string;
     category?: string;
+    isPinned?: boolean;
+    thumbnail?: string;
 }
 
 export async function getProjects(): Promise<Project[]> {
@@ -19,7 +21,8 @@ export async function getProjects(): Promise<Project[]> {
             type: PostType.PROJECT
         },
         orderBy: [
-            { isPinned: 'desc' }, // Pinned items first
+            { isPinned: 'desc' }, 
+            { pinnedOrder: 'asc' },
             { publishedAt: 'desc' }
         ]
     });
@@ -34,6 +37,8 @@ export async function getProjects(): Promise<Project[]> {
         demoUrl: p.demoUrl || undefined,
         projectUrl: p.projectUrl || undefined,
         category: p.category || undefined,
+        isPinned: p.isPinned,
+        thumbnail: p.thumbnail || undefined,
     }));
 }
 
@@ -54,5 +59,6 @@ export async function getProject(slug: string): Promise<Project | null> {
         demoUrl: p.demoUrl || undefined,
         projectUrl: p.projectUrl || undefined,
         category: p.category || undefined,
+        thumbnail: p.thumbnail || undefined,
     }
 }

@@ -5,8 +5,11 @@ import { useState, useEffect } from 'react';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import ThemeToggle from './ThemeToggle';
 
+import { usePathname } from 'next/navigation';
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
@@ -19,6 +22,11 @@ export default function Header() {
     }
     return () => { document.body.style.overflow = 'unset'; };
   }, [isMenuOpen]);
+
+  // Hide header on admin pages
+  if (pathname?.startsWith('/admin')) {
+      return null;
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">

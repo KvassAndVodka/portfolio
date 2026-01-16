@@ -42,6 +42,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
+
 COPY --from=builder /app/public ./public
 
 RUN mkdir .next
@@ -50,12 +53,16 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Copy Prisma schema for migrations
+COPY --chown=nextjs:nodejs prisma ./prisma
+# Copy entrypoint script
+COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
+
 USER nextjs
 
 EXPOSE 3000
 
 ENV PORT=3000
-
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
             data: {
                 filename: file.name,
                 mimeType: 'image/webp',
-                data: processedBuffer
+                data: processedBuffer as any
             }
         });
 
