@@ -1,4 +1,4 @@
-import { getProjects } from "@/lib/projects";
+import { getProject, getProjects } from "@/lib/projects";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from 'react-markdown';
@@ -12,10 +12,9 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const projects = await getProjects();
-  const project = projects.find((p) => p.slug === slug);
+export default async function ProjectPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
+  const project = await getProject(params.slug);
 
   if (!project) {
     notFound();

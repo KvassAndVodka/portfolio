@@ -31,3 +31,11 @@ enum PostType {
   BLOG
   PROJECT
 }
+
+model Media {
+  id        String   @id @default(cuid())
+  filename  String
+  mimeType  String
+  data      Bytes
+  createdAt DateTime @default(now())
+}
