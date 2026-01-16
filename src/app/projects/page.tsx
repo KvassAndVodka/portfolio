@@ -4,8 +4,8 @@ import ProjectCard from "@/components/ProjectCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import HeroBackground from "@/components/HeroBackground";
 
-export default function WorkPage() {
-    const projects = getProjects();
+export default async function WorkPage() {
+    const projects = await getProjects();
 
     return (
         <div className="min-h-screen">

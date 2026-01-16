@@ -20,8 +20,8 @@ function SectionHeader({ title, action }: { title: string; action?: React.ReactN
   );
 }
 
-export default function Home() {
-  const projects = getProjects().slice(0, 2);
+export default async function Home() {
+  const projects = (await getProjects()).slice(0, 2);
 
   return (
     <div>

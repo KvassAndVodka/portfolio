@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  summary     String
+  content     String   @db.Text
+  publishedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  type     PostType
+  category String?
+
+  isPinned   Boolean @default(false)
+  showAsBlog Boolean @default(false)
+
+  techStack  String[]
+  githubUrl  String?
+  demoUrl    String?
+  projectUrl String?
+}
+
+enum PostType {
+  BLOG
+  PROJECT
+}

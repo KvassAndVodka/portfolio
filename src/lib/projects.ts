@@ -1,6 +1,5 @@
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
+import { prisma } from '@/lib/prisma';
+import { PostType } from '@prisma/client';
 
 export interface Project {
     slug: string;
@@ -11,44 +10,49 @@ export interface Project {
     githubUrl?: string;
     demoUrl?: string;
     projectUrl?: string;
-    blogSlug?: string;
-    category?: 'professional' | 'personal' | 'schoolwork';
+    category?: string;
 }
 
-const projectsDirectory = path.join(process.cwd(), 'content/projects');
+export async function getProjects(): Promise<Project[]> {
+    const projects = await prisma.post.findMany({
+        where: {
+            type: PostType.PROJECT
+        },
+        orderBy: [
+            { isPinned: 'desc' }, // Pinned items first
+            { publishedAt: 'desc' }
+        ]
+    });
 
-export function getProjects(): Project[] {
-    if (!fs.existsSync(projectsDirectory)) {
-        return [];
+    return projects.map(p => ({
+        slug: p.slug,
+        title: p.title,
+        summary: p.summary,
+        content: p.content,
+        techStack: p.techStack,
+        githubUrl: p.githubUrl || undefined,
+        demoUrl: p.demoUrl || undefined,
+        projectUrl: p.projectUrl || undefined,
+        category: p.category || undefined,
+    }));
+}
+
+export async function getProject(slug: string): Promise<Project | null> {
+     const p = await prisma.post.findUnique({
+        where: { slug }
+    });
+    
+    if (!p || p.type !== PostType.PROJECT) return null;
+
+    return {
+        slug: p.slug,
+        title: p.title,
+        summary: p.summary,
+        content: p.content,
+        techStack: p.techStack,
+        githubUrl: p.githubUrl || undefined,
+        demoUrl: p.demoUrl || undefined,
+        projectUrl: p.projectUrl || undefined,
+        category: p.category || undefined,
     }
-
-    const fileNames = fs.readdirSync(projectsDirectory);
-
-    const allProjects = fileNames.map((fileName) => {
-        const slug = fileName.replace(/\.mdx$/, '');
-        const fullPath = path.join(projectsDirectory,fileName);
-        const fileContents = fs.readFileSync(fullPath, 'utf-8');
-        const { data, content } = matter(fileContents);
-
-        return {
-            slug,
-            title: data.title,
-            summary: data.summary,
-            content: content,
-            techStack: data.techStack || [],
-            githubUrl: data.githubUrl,
-            demoUrl: data.demoUrl,
-            projectUrl: data.projectUrl,
-            blogSlug: data.blogSlug,
-            category: data.category,
-        };
-    });
-
-    return allProjects.sort((a, b) => {
-        if(a.slug < b.slug) {
-            return 1;
-        } else {
-            return -1;
-        }
-    });
 }

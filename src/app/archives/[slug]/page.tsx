@@ -8,7 +8,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 type Params = Promise<{ slug: string }>;
 
 export async function generateStaticParams() {
-    const posts = getPosts();
+    const posts = await getPosts();
     return posts.map((post) => ({
         slug: post.slug,
     }));
@@ -18,7 +18,7 @@ export default async function BlogPost(props: { params: Params}) {
     const params = await props.params;
 
     try {
-        const post = getPost(params.slug);
+        const post = await getPost(params.slug);
 
         return (
             <article className="max-w-3xl mx-auto p-8">

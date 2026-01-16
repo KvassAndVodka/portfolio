@@ -4,8 +4,8 @@ import { format } from 'date-fns';
 import HeroBackground from '@/components/HeroBackground';
 import ScrollReveal from '@/components/ScrollReveal';
 
-export default function ArchiveIndex() {
-    const posts = getPosts();
+export default async function ArchiveIndex() {
+    const posts = await getPosts();
 
     return (
         <div className="min-h-screen">

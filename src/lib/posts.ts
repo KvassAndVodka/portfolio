@@ -1,6 +1,5 @@
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
+import { prisma } from '@/lib/prisma';
+import { PostType } from '@prisma/client';
 
 export interface Post {
     slug: string;
@@ -11,54 +10,48 @@ export interface Post {
     readTime: string;
 }
 
-const postsDirectory = path.join(process.cwd(), 'content/posts');
-
 function calculateReadTime(content: string): string {
     const words = content.trim().split(/\s+/).length;
     const time = Math.ceil(words / 200);
     return `${time} min read`;
 }
 
-export function getPosts(): Post[] {
-    const fileNames = fs.readdirSync(postsDirectory);
-
-    const allPostsData = fileNames.map((fileName) => {
-        const slug = fileName.replace(/\.mdx$/, '');
-        const fullPath = path.join(postsDirectory, fileName);
-        const fileContents = fs.readFileSync(fullPath, 'utf-8');
-        
-        const { data, content } = matter(fileContents);
-
-        return {
-            slug,
-            title: data.title,
-            publishedAt: data.publishedAt,
-            summary: data.summary,
-            content,
-            readTime: calculateReadTime(content),
-        };
-    });
-
-    return allPostsData.sort((a, b) => {
-        if(a.publishedAt < b.publishedAt) {
-            return 1;
-        } else {
-            return -1;
+export async function getPosts(): Promise<Post[]> {
+    const posts = await prisma.post.findMany({
+        where: {
+            OR: [
+                { type: PostType.BLOG },
+                { showAsBlog: true }
+            ]
+        },
+        orderBy: {
+            publishedAt: 'desc'
         }
     });
+
+    return posts.map(post => ({
+        slug: post.slug,
+        title: post.title,
+        publishedAt: post.publishedAt.toISOString(),
+        summary: post.summary,
+        content: post.content,
+        readTime: calculateReadTime(post.content)
+    }));
 }
 
-export function getPost(slug: string): Post {   
-    const fullPath = path.join(postsDirectory, `${slug}.mdx`);
-    const fileContents = fs.readFileSync(fullPath, 'utf-8');
-    const { data, content } = matter(fileContents);
+export async function getPost(slug: string): Promise<Post | null> {
+    const post = await prisma.post.findUnique({
+        where: { slug }
+    });
+
+    if (!post || (post.type !== PostType.BLOG && !post.showAsBlog)) return null;
 
     return {
-        slug,
-        title: data.title,
-        publishedAt: data.publishedAt,
-        summary: data.summary,
-        content,
-        readTime: calculateReadTime(content),
+        slug: post.slug,
+        title: post.title,
+        publishedAt: post.publishedAt.toISOString(),
+        summary: post.summary,
+        content: post.content,
+        readTime: calculateReadTime(post.content)
     };
 }
