@@ -12,11 +12,27 @@ export default function AnalyticsChart({ data }: { data: DailyVisit[] }) {
         <div className="bg-white dark:bg-[#0c0a09] p-6 rounded-2xl border border-stone-200 dark:border-white/5 shadow-sm h-full">
             <h3 className="text-lg font-bold text-stone-900 dark:text-stone-100 mb-6">Traffic Trend</h3>
             
-            <div className="flex h-64 w-full gap-2 items-stretch">
+            <div className="flex h-64 w-full gap-2 items-stretch pb-6">
                 {data.map((item, i) => {
                     const heightPercent = (item.count / max) * 100;
+                    
+                    // Logic: Show last 7 days on desktop, last 5 days on mobile.
+                    // Indices are 0..N-1. Oldest is 0.
+                    const cutoffDesktop = data.length - 7;
+                    const cutoffMobile = data.length - 5;
+                    
+                    const isVisibleDesktop = i >= cutoffDesktop;
+                    const isVisibleMobile = i >= cutoffMobile;
+
+                    let visibilityClass = 'flex';
+                    if (!isVisibleDesktop) {
+                        visibilityClass = 'hidden';
+                    } else if (!isVisibleMobile) {
+                        visibilityClass = 'hidden md:flex';
+                    }
+
                     return (
-                        <div key={i} className="flex-1 flex flex-col items-center justify-end gap-2 group">
+                        <div key={i} className={`flex-1 flex-col items-center justify-end gap-2 group ${visibilityClass}`}>
                             <div className="w-full relative flex-1 flex items-end">
                                 <div 
                                     className="w-full bg-orange-500/20 dark:bg-orange-500/60 hover:bg-orange-500 dark:hover:bg-orange-500 rounded-t transition-all relative group-hover:shadow-[0_0_20px_-5px_orange] group-hover:opacity-100"

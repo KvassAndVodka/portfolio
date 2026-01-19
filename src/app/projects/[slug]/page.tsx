@@ -12,6 +12,8 @@ export async function generateStaticParams() {
   }));
 }
 
+export const dynamicParams = true; // Allow new projects not generated at build time
+
 export default async function ProjectPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   const project = await getProject(params.slug);

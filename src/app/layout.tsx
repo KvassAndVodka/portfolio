@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 
 import MainWrapper from '@/components/MainWrapper';
+import NextLoader from '@/components/NextLoader';
 
 export default function RootLayout({
   children,
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
+        <NextLoader />
         <AnalyticsTracker />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <Header />

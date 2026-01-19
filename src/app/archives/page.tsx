@@ -1,4 +1,5 @@
 import Link from 'next/link';
+export const dynamic = 'force-dynamic';
 import { getPosts } from '@/lib/posts';
 import { format } from 'date-fns';
 import HeroBackground from '@/components/HeroBackground';

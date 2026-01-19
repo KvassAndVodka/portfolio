@@ -14,6 +14,8 @@ export async function generateStaticParams() {
     }));
 }
 
+export const dynamicParams = true; // Allow new posts not generated at build time
+
 export default async function BlogPost(props: { params: Params }) {
     const params = await props.params;
     const post = await getPost(params.slug);

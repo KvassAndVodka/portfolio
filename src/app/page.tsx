@@ -2,7 +2,7 @@ import { getProjects } from "@/lib/projects";
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaGithub, FaLinkedin, FaFacebook, FaInstagram, FaEnvelope, FaPython, FaDocker, FaLinux, FaGitAlt } from "react-icons/fa";
-import { SiNextdotjs, SiTypescript, SiPostgresql, SiOpencv, SiJavascript, SiSupabase, SiProxmox, SiGnubash } from "react-icons/si";
+import { SiNextdotjs, SiTypescript, SiPostgresql, SiOpencv, SiJavascript, SiSupabase, SiProxmox, SiGnubash, SiTailscale } from "react-icons/si";
 import HeroBackground from "@/components/HeroBackground";
 import ProjectCard from "@/components/ProjectCard";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -20,6 +20,8 @@ function SectionHeader({ title, action }: { title: string; action?: React.ReactN
   );
 }
 
+export const revalidate = 60;
+
 export default async function Home() {
   const allProjects = await getProjects();
   // Show all pinned projects. If none are pinned, show the 3 most recent.
@@ -34,7 +36,7 @@ export default async function Home() {
         <HeroBackground />
         
         <div className="max-w-5xl mx-auto px-6 w-full pointer-events-none">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-12 animate-fade-in-up relative z-10 pointer-events-auto bg-stone-100/80 dark:bg-[#0c0a09]/60 backdrop-blur-md p-8 md:p-12 rounded-3xl border border-stone-200/50 dark:border-white/5 shadow-2xl shadow-stone-200/50 dark:shadow-black/50">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-12 animate-fade-in-up relative z-20 pointer-events-auto bg-stone-100/80 dark:bg-[#0c0a09]/60 backdrop-blur-md p-8 md:p-12 rounded-3xl border border-stone-200/50 dark:border-white/5 shadow-2xl shadow-stone-200/50 dark:shadow-black/50">
             {/* CONTENT */}
             <div className="flex-1 space-y-8 text-center md:text-left">
               <div className="space-y-6">
@@ -155,6 +157,7 @@ export default async function Home() {
                   { icon: FaLinux, name: "Linux" },
                   { icon: FaDocker, name: "Docker" },
                   { icon: SiProxmox, name: "Proxmox" },
+                  { icon: SiTailscale, name: "Tailscale"},
                   { icon: SiPostgresql, name: "PostgreSQL" },
                   { icon: SiSupabase, name: "Supabase" },
                 ].map(tech => (

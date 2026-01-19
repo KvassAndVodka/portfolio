@@ -25,7 +25,7 @@ export default async function AdminDashboard() {
     <div className="space-y-8 pb-20">
       {/* Header & Stats */}
       <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                   <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">Dashboard</h1>
                   <p className="text-stone-500 dark:text-stone-400 mt-2">Overview of your portfolio's performance.</p>
@@ -45,11 +45,11 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Analytics Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[420px]">
-          <div className="lg:col-span-2 h-[350px] lg:h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-fr">
+          <div className="lg:col-span-2 min-h-[400px]">
               <AnalyticsChart data={dailyVisits} />
           </div>
-          <div className="h-[350px] lg:h-full">
+          <div className="min-h-[400px]">
               <TopPagesTable pages={topPages} />
           </div>
       </div>

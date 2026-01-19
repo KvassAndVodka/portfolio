@@ -73,7 +73,7 @@ export default function Header() {
       </div>
 
       {/* Mobile Navigation Overlay */}
-      <div className={`fixed inset-0 bg-stone-50/95 dark:bg-[#0c0a09]/95 backdrop-blur-xl z-40 flex flex-col items-center justify-center gap-8 transition-all duration-300 md:hidden ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+      <div className={`fixed inset-0 bg-stone-50/95 dark:bg-[#0c0a09]/95 backdrop-blur-xl z-40 flex flex-col items-center justify-center gap-8 transition-all duration-300 md:hidden ${isMenuOpen ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}`}>
         <nav className="flex flex-col items-center gap-8 text-xl font-medium">
           <Link href="/" onClick={closeMenu} className="text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] transition">
             Home

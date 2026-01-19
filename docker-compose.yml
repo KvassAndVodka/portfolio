@@ -5,12 +5,10 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
       POSTGRES_DB: portfolio
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -25,7 +23,7 @@ services:
   tailscale:
     image: tailscale/tailscale:latest
     container_name: tailscale
-    hostname: portfolio-server
+    hostname: portfolio
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
       - TS_STATE_DIR=/var/lib/tailscale
@@ -36,7 +34,7 @@ services:
     cap_add:
       - NET_ADMIN
       - NET_RAW
-    restart: unless-stopped
+    restart: always
 
   web:
     container_name: portfolio_web
@@ -45,14 +43,21 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: always
-    ports:
-      - "3000:3000"
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:postgres_password@postgres:5432/portfolio?schema=public
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-postgres_password}@postgres:5432/portfolio?schema=public
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_GITHUB_ID=${AUTH_GITHUB_ID}
+      - AUTH_GITHUB_SECRET=${AUTH_GITHUB_SECRET}
+      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
+      - AUTH_TRUST_HOST=true
     depends_on:
       postgres:
         condition: service_healthy
+      tailscale:
+        condition: service_started
     network_mode: service:tailscale
 
 volumes:

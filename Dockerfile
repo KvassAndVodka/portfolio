@@ -55,6 +55,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Copy Prisma schema for migrations
 COPY --chown=nextjs:nodejs prisma ./prisma
+COPY --chown=nextjs:nodejs prisma.config.ts ./
+# Install Prisma CLI for migrations (required for prisma.config.ts)
+RUN npm install prisma@7.2.0
+
 # Copy entrypoint script
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
 

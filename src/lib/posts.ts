@@ -18,27 +18,32 @@ function calculateReadTime(content: string): string {
 }
 
 export async function getPosts(): Promise<Post[]> {
-    const posts = await prisma.post.findMany({
-        where: {
-            OR: [
-                { type: PostType.BLOG },
-                { showAsBlog: true }
-            ]
-        },
-        orderBy: {
-            publishedAt: 'desc'
-        }
-    });
+    try {
+        const posts = await prisma.post.findMany({
+            where: {
+                OR: [
+                    { type: PostType.BLOG },
+                    { showAsBlog: true }
+                ]
+            },
+            orderBy: {
+                publishedAt: 'desc'
+            }
+        });
 
-    return posts.map(post => ({
-        slug: post.slug,
-        title: post.title,
-        publishedAt: post.publishedAt.toISOString(),
-        summary: post.summary,
-        content: post.content,
-        readTime: calculateReadTime(post.content),
-        category: post.category
-    }));
+        return posts.map(post => ({
+            slug: post.slug,
+            title: post.title,
+            publishedAt: post.publishedAt.toISOString(),
+            summary: post.summary,
+            content: post.content,
+            readTime: calculateReadTime(post.content),
+            category: post.category
+        }));
+    } catch (error) {
+         console.warn("Database unreachable during build (getPosts), returning empty list.");
+         return [];
+    }
 }
 
 export async function getPost(slug: string): Promise<Post | null> {

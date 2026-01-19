@@ -1,4 +1,5 @@
 import { getProjects } from "@/lib/projects";
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import ProjectCard from "@/components/ProjectCard";
 import ScrollReveal from "@/components/ScrollReveal";
