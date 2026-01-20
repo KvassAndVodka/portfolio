@@ -100,6 +100,3 @@ docker compose up -d --build
 └── Dockerfile
 ```
 
-## License
-
-This project is for personal use. Feel free to use it as inspiration for your own portfolio.
