@@ -13,17 +13,18 @@ jobs:
 
       - name: Create .env from Secrets
         run: |
-          echo "${{ secrets.PROD_ENV_FILE }}" > .env
+          # The name must match exactly what is in your GitHub settings
+          echo "${{ secrets.PORTFOLIO_ENV }}" > .env
 
       - name: Deploy with Docker Compose
         run: |
           docker compose down --remove-orphans
+          # Build and run using the newly created .env
           docker compose up -d --build
           docker image prune -f
 
       - name: Ensure Tailscale Funnel is Up
         run: |
-          # Wait for Tailscale socket to be ready (up to 30s)
           TIMEOUT=30
           until docker exec tailscale test -S /var/run/tailscale/tailscaled.sock || [ $TIMEOUT -eq 0 ]; do
             echo "Waiting for tailscale daemon socket... ($TIMEOUT s left)"
@@ -37,4 +38,5 @@ jobs:
             exit 1
           fi
 
+          # The funnel command to expose your web service
           docker exec tailscale tailscale funnel --bg --https=443 http://localhost:3000
