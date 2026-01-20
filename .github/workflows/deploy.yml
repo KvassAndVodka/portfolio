@@ -13,7 +13,10 @@ jobs:
 
       - name: Create .env from Secret
         run: |
-          echo "${{ secrets.PORTFOLIO_ENV }}" > .env
+          # The quotes around 'EOF' tell bash NOT to expand $ variables
+          cat << 'EOF' > .env
+          ${{ secrets.PORTFOLIO_ENV }}
+          EOF
 
       - name: Deploy with Docker Compose
         run: |
