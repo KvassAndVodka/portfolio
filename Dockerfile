@@ -26,7 +26,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Generate Prisma Client
 COPY prisma ./prisma
 COPY prisma.config.ts ./
-RUN npx prisma generate
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
 
 # FIX: Added spaces inside [ ]
 RUN \
