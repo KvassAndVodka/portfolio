@@ -52,9 +52,9 @@ RUN mkdir .next && chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Correctly copy ALL Prisma dependencies for migrations
+# Correctly copy ALL Prisma dependencies and binary engines
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=deps --chown=nextjs:nodejs /app/node_modules/.bin/prisma ./node_modules/.bin/
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
 COPY --chown=nextjs:nodejs prisma ./prisma
 
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./

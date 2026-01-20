@@ -13,7 +13,6 @@ jobs:
 
       - name: Create .env from Secret
         run: |
-          # Dumps your bulk secret into the file Docker Compose expects
           echo "${{ secrets.PORTFOLIO_ENV }}" > .env
 
       - name: Deploy with Docker Compose
@@ -24,7 +23,6 @@ jobs:
 
       - name: Ensure Tailscale Funnel is Up
         run: |
-          # Wait for Tailscale socket
           TIMEOUT=30
           until docker exec tailscale test -S /var/run/tailscale/tailscaled.sock || [ $TIMEOUT -eq 0 ]; do
             echo "Waiting for tailscale daemon socket... ($TIMEOUT s left)"
@@ -32,9 +30,7 @@ jobs:
             TIMEOUT=$((TIMEOUT-2))
           done
 
-          # Wait for Next.js to finish booting and migrations
           echo "Waiting 15s for app initialization..."
           sleep 15
 
-          # Expose the app to the internet
           docker exec tailscale tailscale funnel --bg --https=443 http://localhost:3000
