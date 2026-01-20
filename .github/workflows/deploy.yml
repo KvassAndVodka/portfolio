@@ -23,6 +23,18 @@ jobs:
 
       - name: Ensure Tailscale Funnel is Up
         run: |
-          # Wait a moment for the container to initialize
-          sleep 10
+          # Wait for Tailscale socket to be ready (up to 30s)
+          TIMEOUT=30
+          until docker exec tailscale test -S /var/run/tailscale/tailscaled.sock || [ $TIMEOUT -eq 0 ]; do
+            echo "Waiting for tailscale daemon socket... ($TIMEOUT s left)"
+            sleep 2
+            TIMEOUT=$((TIMEOUT-2))
+          done
+
+          if [ $TIMEOUT -eq 0 ]; then
+            echo "Timed out waiting for tailscale socket."
+            docker logs tailscale
+            exit 1
+          fi
+
           docker exec tailscale tailscale funnel --bg --https=443 http://localhost:3000
