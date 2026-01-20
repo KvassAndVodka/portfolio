@@ -58,6 +58,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 # 4. Copy schema and entrypoint
 COPY --chown=nextjs:nodejs prisma ./prisma
+COPY --chown=nextjs:nodejs prisma.config.ts ./
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
