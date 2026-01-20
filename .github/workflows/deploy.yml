@@ -19,3 +19,9 @@ jobs:
         run: |
           docker compose up -d --build
           docker image prune -f
+
+      - name: Ensure Tailscale Funnel is Up
+        run: |
+          # Wait a moment for the container to initialize
+          sleep 10
+          docker exec tailscale tailscale funnel --bg --https=443 http://localhost:3000
