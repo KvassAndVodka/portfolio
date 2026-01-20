@@ -23,6 +23,11 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Generate Prisma Client
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+RUN npx prisma generate
+
 # FIX: Added spaces inside [ ]
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
