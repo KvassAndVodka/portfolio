@@ -32,31 +32,32 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
-# 3. Runner Stage
+# Runner
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 RUN apk add --no-cache openssl
 
+# 1. Copy public and .next metadata
 COPY --from=builder /app/public ./public
 RUN mkdir .next && chown nextjs:nodejs .next
 
-# Copy standalone build
+# 2. Copy the standalone build
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Correctly copy ALL Prisma dependencies and binary engines
-COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=deps --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
-COPY --chown=nextjs:nodejs prisma ./prisma
+# 3. FIX: Copy ALL node_modules from the builder stage 
+# This ensures Prisma, engines, and .wasm files are all in the correct paths
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
+# 4. Copy schema and entrypoint
+COPY --chown=nextjs:nodejs prisma ./prisma
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 

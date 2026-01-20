@@ -2,8 +2,8 @@
 set -e
 
 echo "Running database migrations..."
-# Use direct path to binary to ensure engines are found
-./node_modules/.bin/prisma migrate deploy
+# npx will look in /app/node_modules/.bin automatically
+npx prisma migrate deploy
 
-echo "Starting Next.js server..."
+echo "Starting server..."
 exec node server.js

@@ -13,7 +13,7 @@ jobs:
 
       - name: Create .env from Secret
         run: |
-          # The quotes around 'EOF' tell bash NOT to expand $ variables
+          # The quotes around 'EOF' are mandatory to stop $ expansion
           cat << 'EOF' > .env
           ${{ secrets.PORTFOLIO_ENV }}
           EOF
