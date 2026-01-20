@@ -48,12 +48,12 @@ services:
       - AUTH_GITHUB_SECRET=${AUTH_GITHUB_SECRET}
       - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
       - AUTH_TRUST_HOST=true
+      - HOSTNAME=0.0.0.0
     depends_on:
       postgres:
         condition: service_healthy
       tailscale:
         condition: service_started
-    # This attaches the web container directly to Tailscale's network stack
     network_mode: service:tailscale
 
 volumes:
