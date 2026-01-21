@@ -22,7 +22,7 @@ export default function ScrollReveal({ children, className = "", threshold = 0.1
       },
       {
         threshold: threshold,
-        rootMargin: "0px 0px -50px 0px" // Trigger slightly before element is fully in view
+        rootMargin: "0px 0px 200px 0px" // Trigger before element enters view
       }
     );
 
