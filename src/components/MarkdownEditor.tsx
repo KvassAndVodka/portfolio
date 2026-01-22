@@ -170,14 +170,43 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
     };
 
     const [showMediaPicker, setShowMediaPicker] = useState(false);
+    const [savedCursorPosition, setSavedCursorPosition] = useState<{ start: number; end: number } | null>(null);
 
     const handleMediaSelect = (url: string, alt: string) => {
         setShowMediaPicker(false);
         const imgMarkdown = `![${alt}](${url})`;
-        insertText(imgMarkdown);
+        
+        // Use saved cursor position if available
+        if (savedCursorPosition !== null) {
+            const { start, end } = savedCursorPosition;
+            const selectedText = content.substring(start, end);
+            const newText = content.substring(0, start) + imgMarkdown + selectedText + content.substring(end);
+            addToHistory(newText, true);
+            setSavedCursorPosition(null);
+            
+            // Restore focus and cursor
+            setTimeout(() => {
+                const textarea = textareaRef.current;
+                if (textarea) {
+                    textarea.focus();
+                    const newPos = start + imgMarkdown.length;
+                    textarea.setSelectionRange(newPos, newPos);
+                }
+            }, 0);
+        } else {
+            insertText(imgMarkdown);
+        }
     };
 
     const onImageBtnClick = () => {
+        // Save cursor position before opening picker (textarea will lose focus)
+        const textarea = textareaRef.current;
+        if (textarea) {
+            setSavedCursorPosition({
+                start: textarea.selectionStart,
+                end: textarea.selectionEnd
+            });
+        }
         setShowMediaPicker(true);
     };
 
@@ -253,21 +282,20 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
                      </div>
                 )}
 
-                {isPreview ? (
+                {isPreview && (
                     <div className="prose prose-stone dark:prose-invert max-w-none p-4 min-h-[500px] overflow-y-auto">
                         <ReactMarkdown>{content}</ReactMarkdown>
                     </div>
-                ) : (
-                    <textarea
-                        ref={textareaRef}
-                        name={name}
-                        value={content}
-                        onChange={(e) => addToHistory(e.target.value, false)}
-                        onPaste={onPaste}
-                        className="w-full h-[500px] p-4 bg-transparent resize-y focus:outline-none font-mono text-sm leading-relaxed"
-                        placeholder="Write something amazing... (Drag & Drop images here)"
-                    />
                 )}
+                <textarea
+                    ref={textareaRef}
+                    name={name}
+                    value={content}
+                    onChange={(e) => addToHistory(e.target.value, false)}
+                    onPaste={onPaste}
+                    className={`w-full h-[500px] p-4 bg-transparent resize-y focus:outline-none font-mono text-sm leading-relaxed ${isPreview ? 'sr-only' : ''}`}
+                    placeholder="Write something amazing... (Drag & Drop images here)"
+                />
                 
                 {isDragging && (
                     <div className="absolute inset-0 bg-[var(--accent)]/10 z-10 flex items-center justify-center border-2 border-dashed border-[var(--accent)] m-2 rounded">
