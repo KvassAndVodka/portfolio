@@ -2,7 +2,7 @@ import { getProjects } from "@/lib/projects";
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaGithub, FaLinkedin, FaFacebook, FaInstagram, FaEnvelope, FaPython, FaDocker, FaLinux, FaGitAlt } from "react-icons/fa";
-import { SiNextdotjs, SiTypescript, SiPostgresql, SiOpencv, SiJavascript, SiSupabase, SiProxmox, SiGnubash, SiTailscale } from "react-icons/si";
+import { SiNextdotjs, SiTypescript, SiPostgresql, SiOpencv, SiJavascript, SiSupabase, SiProxmox, SiGnubash, SiTailscale, SiHtml5, SiCss3, SiTailwindcss, SiJupyter } from "react-icons/si";
 import HeroBackground from "@/components/HeroBackground";
 import ProjectCard from "@/components/ProjectCard";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -49,8 +49,8 @@ export default async function Home() {
                 </h1>
                 
                 <p className="text-lg text-stone-600 dark:text-stone-400 max-w-xl leading-relaxed mx-auto md:mx-0">
-                  <span className="text-stone-950 dark:text-stone-200 font-semibold">Software Engineer</span> from the Philippines specializing in <span className="text-stone-950 dark:text-stone-200">Backend Systems</span> and <span className="text-stone-950 dark:text-stone-200">Infrastructure</span>.
-                  I aim for scalable and maintainable solutions, and conduct self-hosting as a hobby.
+                  <span className="text-stone-950 dark:text-stone-200 font-semibold">CS Student | Backend & DevOps Enthusiast</span>. While others use the cloud, I build it. 
+                  Based in the Philippines, I specialize in <span className="text-stone-950 dark:text-stone-200 font-semibold">backend systems</span> and <span className="text-stone-950 dark:text-stone-200 font-semibold">infrastructure</span>, currently maintaining a production-grade home lab on repurposed hardware.
                 </p>
               </div>
               
@@ -58,7 +58,7 @@ export default async function Home() {
                 <Link href="/projects" className="bg-stone-950 text-white dark:bg-stone-50 dark:text-stone-950 px-6 py-3 rounded-lg font-medium hover:opacity-80 transition w-full md:w-auto text-center">
                   View My Projects
                 </Link>
-                <a href="mailto:javier.raut@gmail.com" className="bg-[var(--accent)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-80 transition w-full md:w-auto text-center">
+                <a href="mailto:javier.raut@gmail.com" className="bg-[var(--accent)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-80 transition w-full md:w-auto text-center ">
                   Hire Me
                 </a>
                 <div className="flex gap-4 w-full md:w-auto">
@@ -74,7 +74,7 @@ export default async function Home() {
 
             {/* PROFILE IMAGE */}
             <div className="relative group mx-auto md:mx-0 shrink-0">
-              <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-stone-100 dark:border-[#1c1917] shadow-2xl grayscale hover:grayscale-0 transition-all duration-500 z-10">
+              <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-stone-100 dark:border-[#1c1917] hover:border-accent hover:dark:border-accent shadow-2xl transition-all duration-500 z-10">
                 <Image 
                   src="/javier-raut-hero.png" 
                   alt="Javier Raut" 
@@ -175,6 +175,9 @@ export default async function Home() {
                   { icon: SiNextdotjs, name: "Next.js" },
                   { icon: SiTypescript, name: "TypeScript" },
                   { icon: SiJavascript, name: "JavaScript" },
+                  { icon: SiTailwindcss, name: "TailwindCSS"},
+                  { icon: SiHtml5, name: "HTML" },
+                  { icon: SiCss3, name: "CSS"},
                 ].map(tech => (
                   <span key={tech.name} className="inline-flex items-center gap-2 px-4 py-2 bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-transparent rounded-full text-sm text-stone-800 dark:text-stone-300 font-medium">
                     <tech.icon size={16} /> {tech.name}
@@ -191,6 +194,7 @@ export default async function Home() {
                   { icon: SiOpencv, name: "YOLO" },
                   { icon: SiOpencv, name: "OpenVINO" },
                   { icon: SiOpencv, name: "PaddleOCR" },
+                  { icon: SiJupyter, name: "Jupyter"},
                   { icon: FaGitAlt, name: "Git" },
                   { icon: SiGnubash, name: "Bash Scripting" },
                 ].map(tech => (
@@ -257,7 +261,7 @@ export default async function Home() {
             </div>
             
             <p className="text-xs text-stone-400 pt-16">
-              © 2025 Javier Raut. Built with Next.js.
+              © 2026 Javier Raut. Built with Next.js.
             </p>
           </div>
         </ScrollReveal>
