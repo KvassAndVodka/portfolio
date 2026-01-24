@@ -9,7 +9,7 @@ import SortableProjectList from '@/components/admin/SortableProjectList';
 
 export default async function AdminProjects() {
     const projects = await prisma.post.findMany({
-        where: { type: PostType.PROJECT },
+        where: { type: PostType.PROJECT, deletedAt: null },
         orderBy: [
             { isPinned: 'desc' }, 
             { pinnedOrder: 'asc' },

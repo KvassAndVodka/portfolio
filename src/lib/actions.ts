@@ -98,7 +98,14 @@ export async function deletePost(id: string) {
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post) return;
 
-    // If pinned, shift others down to close gap
+    // Soft delete: just set deletedAt
+    await prisma.post.update({
+        where: { id },
+        data: { deletedAt: new Date() }
+    });
+
+    // If pinned, we might want to unpin it so it doesn't leave a gap or stay in the pinned list?
+    // Let's unpin it to be safe and clean up order.
     if (post.isPinned && post.pinnedOrder) {
         await prisma.post.updateMany({
             where: {
@@ -109,12 +116,32 @@ export async function deletePost(id: string) {
                 pinnedOrder: { decrement: 1 }
             }
         });
+        // Also update the post itself to not be pinned anymore in the background
+        await prisma.post.update({
+            where: { id },
+            data: { isPinned: false, pinnedOrder: null }
+        });
     }
 
-    await prisma.post.delete({ where: { id } });
+    revalidatePath('/admin/projects');
+    revalidatePath('/admin/archives');
+    revalidatePath('/admin/trash');
+}
+
+export async function restorePost(id: string) {
+    await prisma.post.update({
+        where: { id },
+        data: { deletedAt: null }
+    });
 
     revalidatePath('/admin/projects');
-    revalidatePath('/archives');
+    revalidatePath('/admin/archives');
+    revalidatePath('/admin/trash');
+}
+
+export async function permanentDeletePost(id: string) {
+    await prisma.post.delete({ where: { id } });
+    revalidatePath('/admin/trash');
 }
 
 export async function toggleProjectPin(id: string) {

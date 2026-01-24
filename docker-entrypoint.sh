@@ -3,7 +3,8 @@ set -e
 
 echo "Running database migrations..."
 # npx will look in /app/node_modules/.bin automatically
-npx prisma migrate deploy
+# Use db push to sync schema without needing migration files
+npx prisma db push
 npx prisma db seed
 
 echo "Starting server..."

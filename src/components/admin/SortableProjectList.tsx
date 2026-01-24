@@ -21,7 +21,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { FaEdit, FaTrash, FaThumbtack, FaGripVertical, FaEye } from 'react-icons/fa';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { updateProjectOrder } from '@/lib/actions'; // We will need to create this
+import { updateProjectOrder, toggleProjectPin } from '@/lib/actions'; 
+import DeleteButton from '@/components/admin/DeleteButton';
 import { useEffect } from 'react';
 
 // Types matches prisma output roughly
@@ -159,13 +160,12 @@ function SortableProjectItem({ project }: { project: Project }) {
     );
 }
 
-import { deletePost, toggleProjectPin } from '@/lib/actions';
+
 
 // ... (other imports)
 
 // UI Card
 function ProjectItem({ project, isSortable, dragHandleProps }: { project: Project, isSortable: boolean, dragHandleProps?: any }) {
-    const deleteAction = deletePost.bind(null, project.id);
     
     return (
         <div className={`group flex flex-col md:flex-row items-start md:items-center gap-4 p-5 rounded-xl bg-white dark:bg-[#0c0a09] border border-stone-200 dark:border-white/5 hover:border-[var(--accent)]/30 transition-all ${project.isPinned ? 'ring-1 ring-[var(--accent)]/20 bg-[var(--accent)]/[0.02]' : ''}`}>
@@ -194,9 +194,12 @@ function ProjectItem({ project, isSortable, dragHandleProps }: { project: Projec
             {/* Main Content */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-bold text-stone-900 dark:text-stone-100 truncate group-hover:text-[var(--accent)] transition-colors">
+                    <Link 
+                        href={`/admin/projects/${project.slug}`}
+                        className="text-lg font-bold text-stone-900 dark:text-stone-100 truncate group-hover:text-[var(--accent)] transition-colors hover:underline"
+                    >
                         {project.title}
-                    </h3>
+                    </Link>
                 </div>
                 
                 <div className="flex flex-wrap gap-2 mt-2">
@@ -231,11 +234,7 @@ function ProjectItem({ project, isSortable, dragHandleProps }: { project: Projec
                         <FaEdit size={16} />
                     </Link>
                     
-                     <form action={deleteAction}>
-                        <button className="p-2 text-stone-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20" title="Delete">
-                            <FaTrash size={16} />
-                        </button>
-                    </form>
+                     <DeleteButton id={project.id} />
                 </div>
             </div>
         </div>

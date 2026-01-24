@@ -3,11 +3,12 @@ import { PostType } from '@prisma/client';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { FaEdit, FaTrash, FaPlus, FaEye, FaCalendar, FaSearch } from 'react-icons/fa';
-import { deletePost } from '@/lib/actions';
+
+import DeleteButton from '@/components/admin/DeleteButton';
 
 export default async function AdminBlogs() {
     const blogs = await prisma.post.findMany({
-        where: { type: PostType.BLOG },
+        where: { type: PostType.BLOG, deletedAt: null },
         orderBy: { publishedAt: 'desc' }
     });
 
@@ -60,9 +61,12 @@ export default async function AdminBlogs() {
 
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                    <h3 className="text-lg font-bold text-stone-900 dark:text-stone-100 truncate group-hover:text-[var(--accent)] transition-colors">
+                                    <Link 
+                                        href={`/admin/archives/${blog.slug}`}
+                                        className="text-lg font-bold text-stone-900 dark:text-stone-100 truncate group-hover:text-[var(--accent)] transition-colors hover:underline"
+                                    >
                                         {blog.title}
-                                    </h3>
+                                    </Link>
                                 </div>
                                 
                                 <div className="flex flex-wrap gap-2 mt-2">
@@ -94,6 +98,7 @@ export default async function AdminBlogs() {
                                 >
                                     <FaEdit size={16} />
                                 </Link>
+
                                 <DeleteButton id={blog.id} />
                             </div>
                         </div>
@@ -116,14 +121,4 @@ export default async function AdminBlogs() {
     );
 }
 
-function DeleteButton({ id }: { id: string }) {
-    // Explicitly casting to any to bypass strict type check for server action in this context
-    const deleteAction = deletePost.bind(null, id) as any;
-    return (
-        <form action={deleteAction}>
-            <button className="p-2 text-stone-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20" title="Delete">
-                <FaTrash size={18} />
-            </button>
-        </form>
-    )
-}
+
