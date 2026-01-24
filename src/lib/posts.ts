@@ -24,7 +24,8 @@ export async function getPosts(): Promise<Post[]> {
                 OR: [
                     { type: PostType.BLOG },
                     { showAsBlog: true }
-                ]
+                ],
+                deletedAt: null
             },
             orderBy: {
                 publishedAt: 'desc'
@@ -51,7 +52,7 @@ export async function getPost(slug: string): Promise<Post | null> {
         where: { slug }
     });
 
-    if (!post || (post.type !== PostType.BLOG && !post.showAsBlog)) return null;
+    if (!post || (post.type !== PostType.BLOG && !post.showAsBlog) || post.deletedAt) return null;
 
     return {
         slug: post.slug,

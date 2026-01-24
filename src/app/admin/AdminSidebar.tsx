@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaLayerGroup, FaBriefcase, FaFileAlt, FaImages, FaCog } from 'react-icons/fa';
+import { FaLayerGroup, FaBriefcase, FaFileAlt, FaImages, FaCog, FaTrash } from 'react-icons/fa';
 import SignOutButton from './SignOutButton';
 import { useMemo } from 'react';
 
@@ -14,6 +14,7 @@ export default function AdminSidebar() {
         { label: 'Projects', href: '/admin/projects', icon: <FaBriefcase /> },
         { label: 'Archives', href: '/admin/archives', icon: <FaFileAlt /> },
         { label: 'Media', href: '/admin/media', icon: <FaImages /> },
+        { label: 'Trash', href: '/admin/trash', icon: <FaTrash /> },
     ], []);
 
     return (

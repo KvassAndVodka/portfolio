@@ -23,7 +23,8 @@ export async function getProjects(): Promise<Project[]> {
              try {
                 const projects = await prisma.post.findMany({
                     where: {
-                        type: PostType.PROJECT
+                        type: PostType.PROJECT,
+                        deletedAt: null
                     },
                     orderBy: [
                         { isPinned: 'desc' }, 
@@ -63,7 +64,7 @@ export async function getProject(slug: string): Promise<Project | null> {
         where: { slug }
     });
     
-    if (!p || p.type !== PostType.PROJECT) return null;
+    if (!p || p.type !== PostType.PROJECT || p.deletedAt) return null;
 
     return {
         slug: p.slug,
