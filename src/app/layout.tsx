@@ -6,14 +6,14 @@ import "./globals.css";
 import Header from "@/components/Header";
 
 export const metadata: Metadata = {
-  title: "Javier Raut | Systems Engineer",
+  title: "Javier Raut | Portfolio",
   description: "High-performance infrastructure and AI solutions.",
 };
 
-import AnalyticsTracker from '@/components/AnalyticsTracker';
+import AnalyticsTracker from "@/components/AnalyticsTracker";
 
-import MainWrapper from '@/components/MainWrapper';
-import NextLoader from '@/components/NextLoader';
+import MainWrapper from "@/components/MainWrapper";
+import NextLoader from "@/components/NextLoader";
 
 export default function RootLayout({
   children,
@@ -22,14 +22,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
+      <body
+        className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}
+      >
         <NextLoader />
         <AnalyticsTracker />
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+        >
           <Header />
-          <MainWrapper>
-            {children}
-          </MainWrapper>
+          <MainWrapper>{children}</MainWrapper>
         </ThemeProvider>
       </body>
     </html>
