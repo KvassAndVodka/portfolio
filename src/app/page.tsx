@@ -43,22 +43,43 @@ export default async function Home() {
                 <div className="inline-block px-3 py-1.5 border border-stone-300 dark:border-white/20 rounded-full text-xs font-mono text-stone-500 uppercase tracking-widest bg-white/50 dark:bg-black/20">
                   Open to Opportunities
                 </div>
+
+                {/* MOBILE PROFILE IMAGE */}
+                <div className="relative group mx-auto md:hidden w-64 h-64 shrink-0">
+                  <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-stone-100 dark:border-[#1c1917] hover:border-accent hover:dark:border-accent shadow-2xl transition-all duration-500 z-10">
+                    <Image 
+                      src="/javier-raut-hero.png" 
+                      alt="Javier Raut" 
+                      fill 
+                      sizes="(max-width: 768px) 256px, 320px"
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
+                </div>
                 
-                <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-stone-950 dark:text-stone-50">
+                <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-stone-950 dark:text-stone-50">
                   Javier Raut
                 </h1>
                 
-                <p className="text-lg text-stone-600 dark:text-stone-400 max-w-xl leading-relaxed mx-auto md:mx-0">
-                  <span className="text-stone-950 dark:text-stone-200 font-semibold">CS Student | Backend & DevOps Enthusiast</span>. While others use the cloud, I build it. 
-                  Based in the Philippines, I specialize in <span className="text-stone-950 dark:text-stone-200 font-semibold">backend systems</span> and <span className="text-stone-950 dark:text-stone-200 font-semibold">infrastructure</span>, currently maintaining a production-grade home lab on repurposed hardware.
+                <div className="text-lg sm:text-xl font-medium text-stone-950 dark:text-stone-200 mb-4">
+                  CS Student | Backend & DevOps Enthusiast
+                </div>
+                
+                <p className="text-base sm:text-lg text-stone-600 dark:text-stone-400 max-w-xl leading-relaxed mx-auto md:mx-0">
+                  While others use the cloud, I build it. 
+                  Based in the Philippines, I specialize in 
+                  <span className="text-stone-950 dark:text-stone-200 font-semibold">
+                    Backend Systems and Infrastructure</span>
+                    , currently maintaining a production-grade home lab on repurposed hardware.
                 </p>
               </div>
               
               <div className="flex flex-col md:flex-row gap-4 pt-2 w-full md:w-auto">
-                <Link href="/projects" className="bg-stone-950 text-white dark:bg-stone-50 dark:text-stone-950 px-6 py-3 rounded-lg font-medium hover:opacity-80 transition w-full md:w-auto text-center">
+                <Link href="/projects" className="bg-stone-950 text-white dark:bg-stone-50 dark:text-stone-950 px-6 py-3 rounded-lg font-medium hover:opacity-80 transition w-full md:w-auto text-center flex items-center justify-center">
                   View My Projects
                 </Link>
-                <a href="mailto:javier.raut@gmail.com" className="bg-[var(--accent)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-80 transition w-full md:w-auto text-center ">
+                <a href="mailto:javier.raut@gmail.com" className="bg-[var(--accent)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-80 transition w-full md:w-auto text-center flex items-center justify-center">
                   Hire Me
                 </a>
                 <div className="flex gap-4 w-full md:w-auto">
@@ -72,8 +93,8 @@ export default async function Home() {
               </div>
             </div>
 
-            {/* PROFILE IMAGE */}
-            <div className="relative group mx-auto md:mx-0 shrink-0">
+            {/* PROFILE IMAGE (DESKTOP) */}
+            <div className="relative group mx-auto md:mx-0 shrink-0 hidden md:block">
               <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-stone-100 dark:border-[#1c1917] hover:border-accent hover:dark:border-accent shadow-2xl transition-all duration-500 z-10">
                 <Image 
                   src="/javier-raut-hero.png" 
@@ -230,7 +251,7 @@ export default async function Home() {
       <section id="contact" className="py-20 bg-stone-100 dark:bg-[#0c0a09]">
         <ScrollReveal className="max-w-5xl mx-auto px-6">
           <div className="text-center space-y-8">
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-stone-950 dark:text-stone-50">
+            <h2 className="text-3xl md:text-6xl font-bold tracking-tighter text-stone-950 dark:text-stone-50">
               Let's Work Together
             </h2>
             <p className="text-lg text-stone-600 dark:text-stone-400 max-w-md mx-auto">
