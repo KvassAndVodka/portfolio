@@ -50,13 +50,17 @@ jobs:
         id: healthcheck
         run: |
           echo "Waiting for app to initialize..."
-          RETRIES=10
+          RETRIES=15
           DELAY=5
           SUCCESS=false
 
+          # Install curl in the tailscale container for health checks
+          docker exec tailscale apk add --no-cache curl > /dev/null 2>&1 || true
+
           for i in $(seq 1 $RETRIES); do
             echo "Health check attempt $i/$RETRIES..."
-            if curl -sf --max-time 5 http://localhost:3000 > /dev/null 2>&1; then
+            # Curl from inside the tailscale container since web shares its network
+            if docker exec tailscale curl -sf --max-time 5 http://localhost:3000 > /dev/null 2>&1; then
               echo "App is healthy!"
               SUCCESS=true
               break
