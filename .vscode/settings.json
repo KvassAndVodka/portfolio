@@ -1,1 +1,6 @@
-{}
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "kvassandvodka",
+        "projectKey": "KvassAndVodka_portfolio"
+    }
+}

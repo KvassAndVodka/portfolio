@@ -18,13 +18,85 @@ jobs:
           ${{ secrets.PORTFOLIO_ENV }}
           EOF
 
-      - name: Deploy with Docker Compose
+      - name: Clean Docker Build Cache
+        run: |
+          echo "Pruning Docker build cache (keeping up to 5GB)..."
+          docker builder prune -f --keep-storage=5gb
+          echo "Pruning unused Docker images older than 72h..."
+          docker image prune -af --filter "until=72h"
+
+      - name: Tag Current Image as Rollback
+        run: |
+          if docker image inspect portfolio:latest >/dev/null 2>&1; then
+            docker tag portfolio:latest portfolio:rollback
+            echo "Tagged current image as portfolio:rollback"
+          else
+            echo "No existing portfolio image found, skipping rollback tag"
+          fi
+
+      - name: Build New Image
+        id: build
+        run: |
+          echo "Building new image while existing containers keep running..."
+          docker compose build
+
+      - name: Deploy New Containers
         run: |
           docker compose down --remove-orphans
-          docker compose up -d --build
+          docker compose up -d
           docker image prune -f
 
+      - name: Health Check
+        id: healthcheck
+        run: |
+          echo "Waiting for app to initialize..."
+          RETRIES=10
+          DELAY=5
+          SUCCESS=false
+
+          for i in $(seq 1 $RETRIES); do
+            echo "Health check attempt $i/$RETRIES..."
+            if curl -sf --max-time 5 http://localhost:3000 > /dev/null 2>&1; then
+              echo "App is healthy!"
+              SUCCESS=true
+              break
+            fi
+            echo "Not ready yet, retrying in ${DELAY}s..."
+            sleep $DELAY
+          done
+
+          if [ "$SUCCESS" = "false" ]; then
+            echo "::error::Health check failed after $RETRIES attempts"
+            exit 1
+          fi
+
+      - name: Rollback on Failure
+        if: failure() && steps.build.outcome == 'success'
+        run: |
+          echo "::warning::Deployment failed — rolling back to previous image..."
+          if docker image inspect portfolio:rollback >/dev/null 2>&1; then
+            docker tag portfolio:rollback portfolio:latest
+            docker compose down --remove-orphans
+            docker compose up -d
+            echo "Rollback complete. Previous version restored."
+
+            # Re-establish Tailscale Funnel after rollback
+            TIMEOUT=30
+            until docker exec tailscale test -S /var/run/tailscale/tailscaled.sock || [ $TIMEOUT -eq 0 ]; do
+              echo "Waiting for tailscale daemon socket... ($TIMEOUT s left)"
+              sleep 2
+              TIMEOUT=$((TIMEOUT-2))
+            done
+            sleep 15
+            docker exec tailscale tailscale funnel --bg --https=443 http://localhost:3000
+            echo "Tailscale Funnel re-established after rollback."
+          else
+            echo "::error::No rollback image found! Cannot restore previous version."
+            exit 1
+          fi
+
       - name: Ensure Tailscale Funnel is Up
+        if: success()
         run: |
           TIMEOUT=30
           until docker exec tailscale test -S /var/run/tailscale/tailscaled.sock || [ $TIMEOUT -eq 0 ]; do
