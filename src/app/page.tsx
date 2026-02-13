@@ -63,7 +63,7 @@ export default async function Home() {
                 </h1>
                 
                 <div className="text-lg sm:text-xl font-medium text-stone-950 dark:text-stone-200 mb-4">
-                  CS Student | Backend & DevOps Enthusiast
+                  Software Engineer | Backend & DevOps
                 </div>
                 
                 <p className="text-base sm:text-lg text-stone-600 dark:text-stone-400 max-w-xl leading-relaxed mx-auto md:mx-0">

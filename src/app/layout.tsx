@@ -7,7 +7,7 @@ import Header from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "Javier Raut | Portfolio",
-  description: "High-performance infrastructure and AI solutions.",
+  description: "Backend and DevOps Enthusiast",
 };
 
 import AnalyticsTracker from "@/components/AnalyticsTracker";
