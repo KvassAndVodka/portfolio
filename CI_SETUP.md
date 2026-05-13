@@ -5,7 +5,7 @@ This guide explains how to connect your Proxmox server to GitHub so it updates a
 ## 1. Create a GitHub Secret
 1.  Go to your GitHub Repository -> **Settings** -> **Secrets and variables** -> **Actions**.
 2.  Click **New repository secret**.
-3.  Name: `PROD_ENV_FILE`
+3.  Name: `PORTFOLIO_ENV`
 4.  Value: **Paste the entire content of your server's `.env` file here.**
     *   This ensures your server always has the correct secrets during deployment.
 
