@@ -2,7 +2,7 @@ import { getProjects } from "@/lib/projects";
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaGithub, FaLinkedin, FaFacebook, FaInstagram, FaEnvelope, FaPython, FaDocker, FaLinux, FaGitAlt } from "react-icons/fa";
-import { SiNextdotjs, SiTypescript, SiPostgresql, SiOpencv, SiJavascript, SiSupabase, SiProxmox, SiGnubash, SiTailscale, SiHtml5, SiCss3, SiTailwindcss, SiJupyter } from "react-icons/si";
+import { SiNextdotjs, SiTypescript, SiPostgresql, SiOpencv, SiJavascript, SiSupabase, SiProxmox, SiGnubash, SiTailscale, SiHtml5, SiCss, SiTailwindcss, SiJupyter } from "react-icons/si";
 import HeroBackground from "@/components/HeroBackground";
 import ProjectCard from "@/components/ProjectCard";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -195,7 +195,7 @@ export default async function Home() {
                   { icon: SiJavascript, name: "JavaScript" },
                   { icon: SiTailwindcss, name: "TailwindCSS"},
                   { icon: SiHtml5, name: "HTML" },
-                  { icon: SiCss3, name: "CSS"},
+                  { icon: SiCss, name: "CSS"},
                 ].map(tech => (
                   <span key={tech.name} className="inline-flex items-center gap-2 px-4 py-2 bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-transparent rounded-full text-sm text-stone-800 dark:text-stone-300 font-medium">
                     <tech.icon size={16} /> {tech.name}

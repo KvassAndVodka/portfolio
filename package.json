@@ -39,8 +39,7 @@
     "postcss": "^8.5.10",
     "geoip-lite": {
       "ip-address": "^10.2.0"
-    },
-    "@hono/node-server": "^1.19.13"
+    }
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
