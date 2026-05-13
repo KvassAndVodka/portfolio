@@ -20,10 +20,10 @@ jobs:
 
       - name: Clean Docker Build Cache
         run: |
-          echo "Pruning Docker build cache (keeping up to 5GB)..."
-          docker builder prune -f --keep-storage=5gb
-          echo "Pruning unused Docker images older than 72h..."
-          docker image prune -af --filter "until=72h"
+          echo "Pruning Docker build cache (keeping up to 1GB)..."
+          docker builder prune -f --keep-storage=1gb
+          echo "Pruning unused Docker images..."
+          docker image prune -af
 
       - name: Tag Current Image as Rollback
         run: |
