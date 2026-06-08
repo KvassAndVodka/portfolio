@@ -40,9 +40,6 @@ export default async function Home() {
             {/* CONTENT */}
             <div className="flex-1 space-y-8 text-center md:text-left">
               <div className="space-y-6">
-                <div className="inline-block px-3 py-1.5 border border-stone-300 dark:border-white/20 rounded-full text-xs font-mono text-stone-500 uppercase tracking-widest bg-white/50 dark:bg-black/20">
-                  Open to Opportunities
-                </div>
 
                 {/* MOBILE PROFILE IMAGE */}
                 <div className="relative group mx-auto md:hidden w-64 h-64 shrink-0">
@@ -77,7 +74,7 @@ export default async function Home() {
                   View My Projects
                 </Link>
                 <a href="mailto:javier.raut@gmail.com" className="bg-[var(--accent)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-80 transition w-full md:w-auto text-center flex items-center justify-center">
-                  Hire Me
+                  Get in Touch
                 </a>
                 <div className="flex gap-4 w-full md:w-auto">
                   <a href="https://github.com/KvassAndVodka" target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none border border-stone-300 dark:border-white/20 px-4 py-3 rounded-lg font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition flex items-center justify-center gap-2">
@@ -264,7 +261,7 @@ export default async function Home() {
               Let's Work Together
             </h2>
             <p className="text-lg text-stone-600 dark:text-stone-400 max-w-md mx-auto">
-              I'm open to internships, freelance projects, and collaboration opportunities.
+              I'm open to freelance projects, collaboration, and networking opportunities.
             </p>
 
             {/* Email - Full width mobile, Centered desktop */}
