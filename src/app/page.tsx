@@ -129,7 +129,7 @@ export default async function Home() {
               </div>
 
               <div className="relative pl-12">
-                <div className="absolute left-2.5 w-3 h-3 rounded-full bg-[var(--accent)] ring-4 ring-stone-100 dark:ring-[#111]"></div>
+                <div className="absolute left-2.5 w-3 h-3 rounded-full bg-stone-400 ring-4 ring-stone-100 dark:ring-[#111]"></div>
                 <span className="text-xs font-mono text-stone-400 block mb-2">Jun 2025 — Jul 2025</span>
                 <div className="p-6 bg-white dark:bg-[#0a0a0a] border border-stone-200 dark:border-white/10 rounded-xl">
                   <h3 className="font-bold text-stone-900 dark:text-stone-100">ML/AI Intern</h3>
