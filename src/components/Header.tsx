@@ -35,6 +35,16 @@ export default function Header() {
     };
   }, [isMenuOpen]);
 
+  useEffect(() => {
+    const desktopNavigation = window.matchMedia("(min-width: 768px)");
+    const closeAtDesktopWidth = (event: MediaQueryListEvent) => {
+      if (event.matches) setIsMenuOpen(false);
+    };
+
+    desktopNavigation.addEventListener("change", closeAtDesktopWidth);
+    return () => desktopNavigation.removeEventListener("change", closeAtDesktopWidth);
+  }, []);
+
   if (pathname?.startsWith("/admin")) return null;
 
   const closeMenu = () => setIsMenuOpen(false);
@@ -86,7 +96,7 @@ export default function Header() {
 
       <div
         id="mobile-navigation"
-        className={`fixed inset-x-0 top-[4.5rem] h-[calc(100dvh-4.5rem)] border-t site-rule bg-[var(--background)] px-4 py-10 md:hidden ${
+        className={`absolute inset-x-0 top-full h-[calc(100dvh-4.5rem)] overflow-y-auto border-t site-rule bg-[var(--background)] py-6 transition-[opacity,visibility] duration-200 md:hidden sm:py-10 ${
           isMenuOpen ? "visible opacity-100" : "invisible pointer-events-none opacity-0"
         }`}
       >

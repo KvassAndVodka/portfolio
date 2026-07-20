@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { FaBars, FaXmark } from "react-icons/fa6";
 import AdminSidebar from "@/app/admin/AdminSidebar";
+import ThemeToggle from "@/components/ThemeToggle";
 
 interface AdminUser {
   name?: string | null;
@@ -36,9 +37,12 @@ export default function AdminLayoutShell({ children, user }: { children: React.R
     <div className="admin-shell flex flex-col md:flex-row">
       <header className="admin-surface sticky top-0 z-30 flex min-h-16 items-center justify-between border-b px-4 md:hidden">
         <div><Link href="/admin" className="font-semibold tracking-[-0.025em]">Javier Raut</Link><p className="text-xs admin-muted">Portfolio admin</p></div>
-        <button ref={menuButtonRef} type="button" className="admin-icon-button" onClick={() => setIsSidebarOpen((open) => !open)} aria-label={isSidebarOpen ? "Close admin navigation" : "Open admin navigation"} aria-expanded={isSidebarOpen} aria-controls="admin-navigation">
-          {isSidebarOpen ? <FaXmark aria-hidden="true" /> : <FaBars aria-hidden="true" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button ref={menuButtonRef} type="button" className="admin-icon-button" onClick={() => setIsSidebarOpen((open) => !open)} aria-label={isSidebarOpen ? "Close admin navigation" : "Open admin navigation"} aria-expanded={isSidebarOpen} aria-controls="admin-navigation">
+            {isSidebarOpen ? <FaXmark aria-hidden="true" /> : <FaBars aria-hidden="true" />}
+          </button>
+        </div>
       </header>
 
       {isSidebarOpen && <button type="button" className="fixed inset-0 z-20 bg-black/55 md:hidden" onClick={() => setIsSidebarOpen(false)} aria-label="Close admin navigation" />}
@@ -52,7 +56,8 @@ export default function AdminLayoutShell({ children, user }: { children: React.R
         <div className="border-t border-[var(--admin-border)] p-4">
           <div className="flex items-center gap-3 rounded-lg p-2">
             {user?.image ? <Image src={user.image} alt="" width={36} height={36} className="rounded-full" /> : <div className="grid size-9 shrink-0 place-items-center rounded-full bg-[var(--accent)] text-sm font-bold text-[var(--accent-ink)]">{user?.name?.charAt(0) || "A"}</div>}
-            <div className="min-w-0"><p className="truncate text-sm font-medium">{user?.name || "Administrator"}</p><p className="truncate text-xs admin-muted">{user?.email}</p></div>
+            <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{user?.name || "Administrator"}</p><p className="truncate text-xs admin-muted">{user?.email}</p></div>
+            <ThemeToggle />
           </div>
         </div>
       </aside>

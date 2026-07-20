@@ -3,22 +3,22 @@ import Link from "next/link";
 import { FaArrowRight, FaArrowUpRightFromSquare, FaFileCirclePlus, FaFolderOpen } from "react-icons/fa6";
 import AnalyticsChart from "@/components/admin/AnalyticsChart";
 import TopPagesTable from "@/components/admin/TopPagesTable";
-import VisitorRegionMap from "@/components/admin/VisitorRegionMap";
+import VisitorCountryMap from "@/components/admin/VisitorCountryMap";
 import VisitorStatsCards from "@/components/admin/VisitorStatsCards";
 import { isAdminPreviewEnabled } from "@/lib/admin-preview";
-import { getContentHealth, getDailyVisits, getTopPages, getVisitorRegions, getVisitorStats } from "@/lib/analytics";
+import { getContentHealth, getDailyVisits, getTopPages, getVisitorCountries, getVisitorStats } from "@/lib/analytics";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminDashboard() {
   const isPreview = isAdminPreviewEnabled();
-  const [posts, stats, dailyVisits, topPages, regions, health] = isPreview
+  const [posts, stats, dailyVisits, topPages, countries, health] = isPreview
     ? [[], { days: 30, views: 0, visitors: 0, contactSubmissions: 0, viewsChange: 0, visitorsChange: 0 }, [], [], [], { drafts: 0, scheduled: 0, missingImages: 0, missingProjectLinks: 0 }]
     : await Promise.all([
         prisma.post.findMany({ where: { deletedAt: null }, orderBy: { updatedAt: "desc" }, take: 6 }),
         getVisitorStats(30),
         getDailyVisits(14),
         getTopPages(6, 30),
-        getVisitorRegions(30),
+        getVisitorCountries(30),
         getContentHealth(),
       ]);
 
@@ -50,7 +50,7 @@ export default async function AdminDashboard() {
         <TopPagesTable pages={topPages} />
       </div>
 
-      <VisitorRegionMap regions={regions} />
+      <VisitorCountryMap countries={countries} />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
         <section className="admin-panel" aria-labelledby="recent-content-heading">

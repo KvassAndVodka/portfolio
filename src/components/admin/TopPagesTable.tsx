@@ -17,13 +17,13 @@ export default function TopPagesTable({ pages }: { pages: PageStat[] }) {
       {pages.length > 0 ? (
         <ol className="mt-5 divide-y divide-[var(--admin-border)]">
           {pages.map((page, index) => (
-            <li key={page.path} className="flex min-h-14 items-center gap-3 py-2">
-              <span className="w-5 text-xs tabular-nums admin-muted">{index + 1}</span>
+            <li key={page.path} className="grid min-h-16 grid-cols-[1.25rem_minmax(0,1fr)_auto_auto] items-center gap-2 py-2 sm:gap-3">
+              <span className="text-xs tabular-nums admin-muted">{index + 1}</span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium capitalize">{pageLabel(page.path)}</p>
                 <p className="truncate text-xs admin-muted">{page.path}</p>
               </div>
-              <span className="text-sm font-semibold tabular-nums">{page.views}</span>
+              <span className="text-right"><strong className="block text-sm tabular-nums">{page.views}</strong><span className="text-[0.6875rem] admin-muted">views</span></span>
               <Link href={page.path} target="_blank" className="admin-icon-button" aria-label={`Open ${pageLabel(page.path)} in a new tab`}>
                 <FaArrowUpRightFromSquare aria-hidden="true" />
               </Link>

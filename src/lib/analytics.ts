@@ -87,49 +87,39 @@ export async function getTopPages(limit = 6, days = 30) {
   return pages.map((page) => ({ path: page.path, views: page._count.path }));
 }
 
-export async function getVisitorRegions(days = 30) {
+export async function getVisitorCountries(days = 30) {
   const rangeStart = startOfDay(subDays(new Date(), days - 1));
   const visits = await prisma.visit.findMany({
     where: {
       event: PAGE_VIEW,
       createdAt: { gte: rangeStart },
-      latitude: { not: null },
-      longitude: { not: null },
+      country: { not: null },
     },
-    select: { latitude: true, longitude: true, city: true, country: true, ipHash: true },
+    select: { country: true, ipHash: true },
   });
 
-  const regions = new Map<string, {
-    latitude: number;
-    longitude: number;
-    city: string | null;
-    country: string | null;
+  const countries = new Map<string, {
+    countryCode: string;
     views: number;
     visitors: Set<string>;
   }>();
 
   for (const visit of visits) {
-    if (visit.latitude === null || visit.longitude === null) continue;
-    const latitude = Math.round(visit.latitude * 10) / 10;
-    const longitude = Math.round(visit.longitude * 10) / 10;
-    const key = `${latitude}:${longitude}`;
-    const region = regions.get(key) ?? {
-      latitude,
-      longitude,
-      city: visit.city,
-      country: visit.country,
+    if (!visit.country) continue;
+    const countryCode = visit.country.toUpperCase();
+    const country = countries.get(countryCode) ?? {
+      countryCode,
       views: 0,
       visitors: new Set<string>(),
     };
-    region.views += 1;
-    if (visit.ipHash) region.visitors.add(visit.ipHash);
-    regions.set(key, region);
+    country.views += 1;
+    if (visit.ipHash) country.visitors.add(visit.ipHash);
+    countries.set(countryCode, country);
   }
 
-  return Array.from(regions.values())
-    .map((region) => ({ ...region, visitors: region.visitors.size }))
-    .sort((a, b) => b.visitors - a.visitors || b.views - a.views)
-    .slice(0, 40);
+  return Array.from(countries.values())
+    .map((country) => ({ ...country, visitors: country.visitors.size }))
+    .sort((a, b) => b.visitors - a.visitors || b.views - a.views);
 }
 
 export async function getContentHealth() {
