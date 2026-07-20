@@ -11,7 +11,7 @@ export default function MainWrapper({
   const isAdmin = pathname?.startsWith('/admin');
 
   return (
-    <main className={isAdmin ? "" : "pt-16"}>
+    <main id="main-content" className={isAdmin ? "" : "pt-[4.5rem]"} tabIndex={-1}>
       {children}
     </main>
   );

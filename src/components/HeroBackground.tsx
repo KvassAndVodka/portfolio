@@ -3,10 +3,11 @@
 import { useEffect, useRef } from "react";
 
 interface Pulse {
-  x: number; // Grid index X
-  y: number; // Grid index Y
-  age: number; // Frames since birth
-  life: number; // Total life frames
+  x: number;
+  y: number;
+  age: number;
+  life: number;
+  strength: number;
 }
 
 export default function HeroBackground() {
@@ -19,244 +20,254 @@ export default function HeroBackground() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Grid Configuration
-    const gridSize = 40; // px
+    const gridSize = 42;
     let cols = 0;
     let rows = 0;
-    
-    // Grid State for Collision Dampening
-    // Stores a value 0.0 -> 1.0 where 1.0 means fully dampened (invisible)
-    let dampeningMap: number[] = []; // 1D array representing 2D grid
+    let width = 0;
+    let height = 0;
+    let dampeningMap: number[] = [];
+    let accent = "201, 67, 18";
+    let grid = "98, 98, 94";
+    let baseAlpha = 0.1;
 
-    // Resize Handler
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      cols = Math.ceil(canvas.width / gridSize);
-      rows = Math.ceil(canvas.height / gridSize);
-      dampeningMap = new Array(cols * rows).fill(0);
+      const bounds = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = Math.max(1, bounds.width);
+      height = Math.max(1, bounds.height);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cols = Math.ceil(width / gridSize);
+      rows = Math.ceil(height / gridSize);
+      dampeningMap = new Array((cols + 1) * rows + (rows + 1) * cols).fill(0);
     };
-    
-    window.addEventListener("resize", resize);
-    resize();
 
-    // Animation State
+    const updatePalette = () => {
+      const styles = getComputedStyle(document.documentElement);
+      accent = styles.getPropertyValue("--canvas-accent-rgb").trim() || accent;
+      grid = styles.getPropertyValue("--canvas-grid-rgb").trim() || grid;
+      baseAlpha = Number.parseFloat(styles.getPropertyValue("--canvas-grid-alpha")) || 0.1;
+    };
+
     let pulses: Pulse[] = [];
     let frameId = 0;
+    let isVisible = true;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-    // Spawner
-    const spawnPulse = (targetX?: number, targetY?: number) => {
+    const spawnPulse = (targetX?: number, targetY?: number, strength = 1) => {
       const x = targetX ?? Math.floor(Math.random() * cols);
       const y = targetY ?? Math.floor(Math.random() * rows);
-      pulses.push({ x, y, age: 0, life: 50 }); 
+      pulses = [...pulses.slice(-4), { x, y, age: 0, life: 4.8, strength }];
     };
 
     let lastTime = 0;
     const mouse = { x: -1000, y: -1000 };
 
-    const handleMouseMove = (e: MouseEvent) => {
-       const rect = canvas.getBoundingClientRect();
-       mouse.x = e.clientX - rect.left;
-       mouse.y = e.clientY - rect.top;
+    const handlePointerMove = (event: PointerEvent) => {
+      if (reducedMotion.matches) return;
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = event.clientX - rect.left;
+      mouse.y = event.clientY - rect.top;
     };
-    canvas.addEventListener("mousemove", handleMouseMove);
 
-    const handleClick = (e: MouseEvent) => {
-        const rect = canvas.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const clickY = e.clientY - rect.top;
-        
-        // Convert to grid coordinates
-        const gridX = Math.round(clickX / gridSize);
-        const gridY = Math.round(clickY / gridSize);
-        
-        spawnPulse(gridX, gridY);
+    const handlePointerLeave = () => {
+      mouse.x = -1000;
+      mouse.y = -1000;
     };
-    canvas.addEventListener("click", handleClick);
 
-    // Draw Loop
+    const handlePointerDown = (event: PointerEvent) => {
+      if (reducedMotion.matches) return;
+      const rect = canvas.getBoundingClientRect();
+      spawnPulse(
+        Math.round((event.clientX - rect.left) / gridSize),
+        Math.round((event.clientY - rect.top) / gridSize),
+        1.35,
+      );
+    };
+
+    const handleVisibility = () => {
+      isVisible = !document.hidden;
+      if (!isVisible) {
+        cancelAnimationFrame(frameId);
+        frameId = 0;
+        return;
+      }
+
+      lastTime = performance.now();
+      if (reducedMotion.matches) {
+        drawGrid(0, false);
+      } else if (!frameId) {
+        frameId = requestAnimationFrame(draw);
+      }
+    };
+
+    canvas.addEventListener("pointermove", handlePointerMove);
+    canvas.addEventListener("pointerleave", handlePointerLeave);
+    canvas.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    const drawLine = (
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number,
+      intensity: number,
+    ) => {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+
+      if (intensity > 0.05) {
+        const alpha = Math.min(0.72, baseAlpha + intensity * 0.55);
+        const lineWidth = 1 + intensity * 0.55;
+        ctx.strokeStyle =
+          intensity > 1.08
+            ? `rgba(255, 247, 241, ${Math.min(alpha, 0.82)})`
+            : `rgba(${accent}, ${alpha})`;
+        ctx.lineWidth = intensity > 1.08 ? lineWidth * 1.25 : lineWidth;
+      } else {
+        ctx.strokeStyle = `rgba(${grid}, ${baseAlpha})`;
+        ctx.lineWidth = 1;
+      }
+
+      ctx.stroke();
+    };
+
+    const drawGrid = (deltaTime: number, animate: boolean) => {
+      ctx.clearRect(0, 0, width, height);
+
+      if (animate) {
+        pulses.forEach((pulse) => (pulse.age += deltaTime));
+        pulses = pulses.filter((pulse) => pulse.age < pulse.life);
+        if (Math.random() < 0.24 * deltaTime) spawnPulse();
+      }
+
+      const getIntensity = (cx: number, cy: number) => {
+        let intensity = 0;
+        let activeSources = 0;
+        const mouseDistance = Math.hypot(cx - mouse.x / gridSize, cy - mouse.y / gridSize);
+
+        if (animate && mouseDistance < 4.2) {
+          const mouseIntensity = (1 - mouseDistance / 4.2) * 0.92;
+          intensity += mouseIntensity;
+          if (mouseIntensity > 0.1) activeSources += 1;
+        }
+
+        for (const pulse of pulses) {
+          const distance = Math.hypot(cx - pulse.x, cy - pulse.y);
+          const radius = pulse.age * 10.5;
+          const difference = Math.abs(distance - radius);
+
+          if (difference < 1.8) {
+            const decay = Math.max(0, 1 - pulse.age / pulse.life);
+            const pulseIntensity = (1 - difference / 1.8) * decay * pulse.strength;
+            intensity += pulseIntensity;
+            if (pulseIntensity > 0.1) activeSources += 1;
+          }
+        }
+
+        return { activeSources, intensity };
+      };
+
+      for (let i = 0; i <= cols; i += 1) {
+        for (let j = 0; j < rows; j += 1) {
+          const { activeSources, intensity } = getIntensity(i, j + 0.5);
+          const mapIndex = i * rows + j;
+          dampeningMap[mapIndex] =
+            activeSources > 1 && intensity > 0.5
+              ? Math.min(dampeningMap[mapIndex] + 4.8 * deltaTime, 1)
+              : Math.max(dampeningMap[mapIndex] - 0.42 * deltaTime, 0);
+          drawLine(
+            i * gridSize,
+            j * gridSize,
+            i * gridSize,
+            (j + 1) * gridSize,
+            Math.max(0, intensity - dampeningMap[mapIndex]),
+          );
+        }
+      }
+
+      const horizontalOffset = (cols + 1) * rows;
+      for (let j = 0; j <= rows; j += 1) {
+        for (let i = 0; i < cols; i += 1) {
+          const { activeSources, intensity } = getIntensity(i + 0.5, j);
+          const mapIndex = horizontalOffset + j * cols + i;
+          dampeningMap[mapIndex] =
+            activeSources > 1 && intensity > 0.5
+              ? Math.min(dampeningMap[mapIndex] + 4.8 * deltaTime, 1)
+              : Math.max(dampeningMap[mapIndex] - 0.42 * deltaTime, 0);
+          drawLine(
+            i * gridSize,
+            j * gridSize,
+            (i + 1) * gridSize,
+            j * gridSize,
+            Math.max(0, intensity - dampeningMap[mapIndex]),
+          );
+        }
+      }
+    };
+
     const draw = (timestamp: number) => {
+      if (!isVisible || reducedMotion.matches) {
+        frameId = 0;
+        return;
+      }
+
       if (!lastTime) lastTime = timestamp;
-      const deltaTime = (timestamp - lastTime) / 1000;
+      const deltaTime = Math.min((timestamp - lastTime) / 1000, 0.05);
       lastTime = timestamp;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Update Pulses
-      pulses.forEach(p => p.age += deltaTime);
-      pulses = pulses.filter(p => p.age < p.life);
-
-      if (Math.random() < 0.3 * deltaTime) spawnPulse();
-
-      // Draw Vertical Lines
-      for (let i = 0; i <= cols; i++) {
-        for (let j = 0; j < rows; j++) {
-          let intensity = 0;
-          let activeSources = 0;
-          const cx = i;
-          const cy = j + 0.5;
-
-          // Mouse influence
-          const mx = (mouse.x / gridSize);
-          const my = (mouse.y / gridSize);
-          const mDist = Math.sqrt((cx - mx) ** 2 + (cy - my) ** 2);
-          if (mDist < 4) {
-             const mInt = (1 - mDist / 4) * 0.8;
-             intensity += mInt;
-             if (mInt > 0.1) activeSources++;
-          }
-
-          for (const p of pulses) {
-            const dx = cx - p.x;
-            const dy = cy - p.y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            const currentRadius = p.age * 10;                                                                                                                       
-            const diff = Math.abs(dist - currentRadius);
-            
-            if (diff < 2.0) { 
-              const decay = Math.max(0, 1 - (p.age / p.life));
-              const pulseInt = (1 - diff / 2.0) * decay;
-              intensity += pulseInt;
-              if (pulseInt > 0.1) activeSources++;
-            }
-          }
-
-          // DAMPENING LOGIC (Vertical)
-          // Map index logic: roughly map segment to a cell index (using i,j)
-          // We use simple mapping for vertical segments vertical-index = i * rows + j
-          const mapIdx = i * rows + j;
-          
-          if (dampeningMap[mapIdx] === undefined) dampeningMap[mapIdx] = 0;
-
-          // If collision (multiple sources > threshold), burn the spot
-          if (activeSources > 1 && intensity > 0.5) {
-             dampeningMap[mapIdx] = Math.min(dampeningMap[mapIdx] + 5 * deltaTime, 1.0); // Burn fast
-          } else {
-             dampeningMap[mapIdx] = Math.max(dampeningMap[mapIdx] - 0.5 * deltaTime, 0); // Recover slowly
-          }
-
-          // Apply dampening
-          // "Disappear slowly" -> High dampening reduces intensity
-          const displayedIntensity = Math.max(0, intensity - dampeningMap[mapIdx]);
-
-          const x = i * gridSize;
-          const y1 = j * gridSize;
-          const y2 = (j + 1) * gridSize;
-          
-          drawLine(ctx, x, y1, x, y2, displayedIntensity);
-        }
-      }
-
-      // Draw Horizontal Lines
-      for (let j = 0; j <= rows; j++) {
-        for (let i = 0; i < cols; i++) {
-          let intensity = 0;
-          let activeSources = 0;
-          const cx = i + 0.5;
-          const cy = j;
-
-          const mx = (mouse.x / gridSize);
-          const my = (mouse.y / gridSize);
-          const mDist = Math.sqrt((cx - mx) ** 2 + (cy - my) ** 2);
-          if (mDist < 4) {
-             const mInt = (1 - mDist / 4) * 0.8;
-             intensity += mInt;
-             if (mInt > 0.1) activeSources++;
-          }
-
-          for (const p of pulses) {
-            const dx = cx - p.x;
-            const dy = cy - p.y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            const currentRadius = p.age * 10;
-            const diff = Math.abs(dist - currentRadius);
-            if (diff < 2.0) {
-              const decay = Math.max(0, 1 - (p.age / p.life));
-              const pulseInt = (1 - diff / 2.0) * decay;
-              intensity += pulseInt;
-              if (pulseInt > 0.1) activeSources++;
-            }
-          }
-
-          // DAMPENING LOGIC (Horizontal)
-          // distinct index required compared to vertical? 
-          // Let's use an offset in the map: vertical count = (cols+1)*rows. Horizontal starts after.
-          // Horizontal Map Index
-          const hMapOffset = (cols + 1) * rows;
-          const mapIdx = hMapOffset + (j * cols + i);
-          
-          if (dampeningMap[mapIdx] === undefined) dampeningMap[mapIdx] = 0;
-
-          if (activeSources > 1 && intensity > 0.5) {
-             dampeningMap[mapIdx] = Math.min(dampeningMap[mapIdx] + 5 * deltaTime, 1.0); 
-          } else {
-             dampeningMap[mapIdx] = Math.max(dampeningMap[mapIdx] - 0.5 * deltaTime, 0); 
-          }
-
-          const displayedIntensity = Math.max(0, intensity - dampeningMap[mapIdx]);
-
-          const x1 = i * gridSize;
-          const x2 = (i + 1) * gridSize;
-          const y = j * gridSize;
-
-          drawLine(ctx, x1, y, x2, y, displayedIntensity);
-        }
-      }
-
+      drawGrid(deltaTime, true);
       frameId = requestAnimationFrame(draw);
     };
 
-    // Helper to draw a line with dynamic color
-    const drawLine = (c: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, intensity: number) => {
-      c.beginPath();
-      c.moveTo(x1, y1);
-      c.lineTo(x2, y2);
-      
-      // Base Grid Color (very dim) -> Accent Color (bright)
-      // Base: rgba(120, 113, 108, 0.1) -> stone-500 @ 10%
-      // Accent: var(--accent) (#ff4f00)
-      
-      if (intensity > 0.05) {
-        // Linear intensity boost
-        let alpha = 0.1 + intensity * 0.5; // Reduced max alpha (was 0.9)
-        let width = 1 + intensity * 0.5; // Reduced width expansion (was 1 + intensity)
-        
-        // COLLISION / OVERLOAD EFFECT
-        // If intensity > 1 (overlapping waves or mouse+wave), go WHITE/HOT
-        if (intensity > 1.0) {
-            c.strokeStyle = `rgba(255, 255, 255, ${Math.min(alpha, 0.8)})`; // Cap alpha at 0.8
-            c.lineWidth = width * 1.2; 
-        } else {
-            // Standard Accent
-            const r = 255, g = 79, b = 0; 
-            c.strokeStyle = `rgba(${r}, ${g}, ${b}, ${Math.min(alpha, 0.6)})`; // Cap alpha at 0.6
-            c.lineWidth = width;
-        }
-      } else {
-        // Base Line
-        c.strokeStyle = "rgba(120, 113, 108, 0.05)"; // Halved base opacity (was 0.1)
-        c.lineWidth = 1;
+    const resizeObserver = new ResizeObserver(() => {
+      resize();
+      if (reducedMotion.matches) drawGrid(0, false);
+    });
+    const themeObserver = new MutationObserver(() => {
+      updatePalette();
+      if (reducedMotion.matches) drawGrid(0, false);
+    });
+    const handleMotionPreference = () => {
+      cancelAnimationFrame(frameId);
+      frameId = 0;
+      pulses = [];
+      lastTime = performance.now();
+
+      if (reducedMotion.matches) {
+        drawGrid(0, false);
+      } else if (isVisible) {
+        frameId = requestAnimationFrame(draw);
       }
-      
-      c.stroke();
     };
 
-    frameId = requestAnimationFrame(draw);
+    resizeObserver.observe(canvas);
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    reducedMotion.addEventListener("change", handleMotionPreference);
+    updatePalette();
+    resize();
+    handleMotionPreference();
 
     return () => {
-      window.removeEventListener("resize", resize);
-      canvas.removeEventListener("mousemove", handleMouseMove);
-      canvas.removeEventListener("click", handleClick);
+      resizeObserver.disconnect();
+      themeObserver.disconnect();
+      canvas.removeEventListener("pointermove", handlePointerMove);
+      canvas.removeEventListener("pointerleave", handlePointerLeave);
+      canvas.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      reducedMotion.removeEventListener("change", handleMotionPreference);
       cancelAnimationFrame(frameId);
     };
   }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden bg-stone-50/50 dark:bg-[#0c0a09] pointer-events-auto">
-      <canvas ref={canvasRef} className="absolute inset-0" />
-      
-      {/* Overlay Gradient to soften edges */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-stone-100/80 dark:to-[#0c0a09] h-full pointer-events-none"></div>
+    <div className="hero-field" aria-hidden="true">
+      <canvas ref={canvasRef} className="hero-field-canvas" />
+      <div className="hero-field-vignette" />
     </div>
   );
 }

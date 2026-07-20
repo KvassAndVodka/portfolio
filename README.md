@@ -62,6 +62,59 @@ A self-hosted personal portfolio and blog platform built with Next.js 16, featur
 
 Open [http://localhost:3000](http://localhost:3000) to view your portfolio.
 
+### One-switch local deployment
+
+The tracked [`deployment.env`](./deployment.env) file contains the only deployment switch:
+
+```dotenv
+DEPLOY_TARGET=production
+```
+
+Change `production` to `local`, then launch the complete local stack:
+
+```bash
+npm run deploy:up
+```
+
+The first launch generates a gitignored `.env.local.deploy` containing random PostgreSQL, Auth.js, and admin credentials. The command prints the local URLs and admin login. The site is available at `http://localhost:3000` and at port 3000 on your LAN address.
+
+Useful commands:
+
+```bash
+npm run deploy:status
+npm run deploy:logs
+npm run deploy:down
+```
+
+Populate the running local database with clearly labeled demo projects and notes, or remove them again:
+
+```bash
+npm run local:seed
+npm run local:clear
+```
+
+These commands refuse to run unless `deployment.env` is set to `DEPLOY_TARGET=local`. Seeding is idempotent, so rerunning it does not create duplicates or overwrite edited placeholders.
+
+Before pushing, change the line back to `DEPLOY_TARGET=production`. Install the repository guardrail once after cloning:
+
+```bash
+npm run guardrails:install
+```
+
+The pre-push hook blocks local targets, and the production workflow repeats the same check so a bypassed hook cannot deploy local configuration.
+
+### Contact form email delivery
+
+The public contact form sends email through Resend. Create a Resend API key, verify the sender domain, then set:
+
+```bash
+RESEND_API_KEY=re_xxxxxxxxx
+CONTACT_TO_EMAIL=javier.raut@gmail.com
+CONTACT_FROM_EMAIL=Portfolio <contact@your-verified-domain.com>
+```
+
+Without `RESEND_API_KEY`, the form remains visible but returns a configuration message and the direct email link remains available.
+
 ## Deployment
 
 This project is designed for self-hosting on servers like Proxmox LXC containers.
@@ -92,11 +145,10 @@ docker compose up -d --build
 │   │   ├── admin/       # Admin dashboard pages
 │   │   ├── api/         # API routes
 │   │   ├── projects/    # Public project pages
-│   │   └── archives/    # Blog archive pages
+│   │   └── notes/       # Public technical notes
 │   └── ...
 ├── prisma/
 │   └── schema.prisma    # Database schema
 ├── docker-compose.yml   # Production Docker config
 └── Dockerfile
 ```
-

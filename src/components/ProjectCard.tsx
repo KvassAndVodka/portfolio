@@ -1,65 +1,79 @@
-import Link from 'next/link';
-import type { Project } from '@/lib/projects';
+import Image from "next/image";
+import Link from "next/link";
+import { FaArrowRight, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6";
 
-export default function ProjectCard({ project, className = "", style = {} }: { project: Project; className?: string; style?: React.CSSProperties }) {
+import ProjectTechnologyList, { ProjectTechnologyMarks } from "@/components/ProjectTechnologyList";
+import type { ProjectPreview } from "@/lib/projects";
+
+export function formatProjectCategory(category?: string) {
+  if (!category) return "Independent project";
+
+  return category
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+export default function ProjectCard({
+  compact = false,
+  featured = false,
+  project,
+}: {
+  compact?: boolean;
+  featured?: boolean;
+  project: ProjectPreview;
+}) {
+  const liveProjectUrl = project.projectUrl || project.demoUrl;
+
   return (
-    <div className={`group block h-full ${className}`} style={style}>
-        <div className="bg-white dark:bg-[#111] border border-stone-200 dark:border-white/10 rounded-2xl overflow-hidden hover:border-[var(--accent)] hover:shadow-[0_0_20px_-5px_var(--accent)] transition-all duration-300 h-full flex flex-col">
-            {/* Thumbnail */}
-            {project.thumbnail ? (
-                <div className="relative h-48 w-full overflow-hidden border-b border-stone-100 dark:border-white/5">
-                    <img 
-                        src={project.thumbnail} 
-                        alt={project.title} 
-                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" 
-                    />
-                     {project.category && (
-                        <div className="absolute top-4 left-4">
-                            <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded-full font-bold shadow-lg ${
-                                project.category === 'professional' ? 'bg-blue-500 text-white' :
-                                project.category === 'personal' ? 'bg-green-500 text-white' :
-                                'bg-purple-500 text-white'
-                            }`}>
-                                {project.category}
-                            </span>
-                        </div>
-                    )}
-                </div>
-            ) : (
-                /* Fallback layout if no thumbnail (similar to before but adapted) */
-               <div className="h-2 bg-[var(--accent)] opacity-20 group-hover:opacity-100 transition-opacity" />
-            )}
+    <article className={`project-card group${featured ? " project-card-featured" : ""}${compact ? " project-card-bento" : ""}`}>
+      <Link className="project-card-media" href={`/projects/${project.slug}`}>
+        {project.thumbnail ? (
+          <Image
+            src={project.thumbnail}
+            alt={`${project.title} project preview`}
+            fill
+            unoptimized
+            sizes="(max-width: 767px) calc(100vw - 2rem), 52vw"
+            className="object-cover"
+          />
+        ) : (
+          <div className="project-card-fallback" aria-hidden="true">
+            <ProjectTechnologyMarks technologies={project.techStack} />
+            <span>{formatProjectCategory(project.category)}</span>
+          </div>
+        )}
+      </Link>
 
-            <div className="p-8 flex flex-col flex-1">
-                 {/* Show category here if no thumbnail */}
-                {!project.thumbnail && project.category && (
-                    <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded-full w-fit mb-4 ${
-                        project.category === 'professional' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                        project.category === 'personal' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                        'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                    }`}>
-                        {project.category}
-                    </span>
-                )}
-                
-                <h3 className="text-xl font-bold mb-3 text-stone-900 dark:text-stone-100 group-hover:text-[var(--accent)] dark:group-hover:text-[var(--accent)] transition-colors">
-                    {project.title}
-                </h3>
-                
-                <p className="text-stone-500 text-sm leading-relaxed mb-6 flex-1 line-clamp-3">
-                    {project.summary}
-                </p>
-                
-                <div className="flex flex-wrap gap-2 mt-auto">
-                    {project.techStack.slice(0, 3).map(tech => (
-                        <span key={tech} className="text-[10px] uppercase tracking-wider px-2 py-1 bg-stone-100 dark:bg-white/5 rounded text-stone-500">
-                            {tech}
-                        </span>
-                    ))}
-                    {project.techStack.length > 3 && <span className="text-[10px] text-stone-400 self-center">+{project.techStack.length - 3}</span>}
-                </div>
-            </div>
+      <div className="project-card-body">
+        <div className="project-card-heading">
+          <p className="project-card-category">{formatProjectCategory(project.category)}</p>
+          {project.isPinned && <span className="project-card-selection">Selected work</span>}
         </div>
-    </div>
+        <h3>
+          <Link href={`/projects/${project.slug}`}>{project.title}</Link>
+        </h3>
+        <p className="project-card-summary line-clamp-3">{project.summary}</p>
+        <ProjectTechnologyList limit={featured || compact ? 5 : 4} technologies={project.techStack} />
+
+        <div className="project-card-links" aria-label={`${project.title} links`}>
+          <Link className="project-card-case-study" href={`/projects/${project.slug}`}>
+            Case study
+            <FaArrowRight aria-hidden="true" />
+          </Link>
+          {project.githubUrl && (
+            <a href={project.githubUrl} rel="noreferrer" target="_blank">
+              <FaGithub aria-hidden="true" />
+              Code
+            </a>
+          )}
+          {liveProjectUrl && (
+            <a href={liveProjectUrl} rel="noreferrer" target="_blank">
+              Live
+              <FaArrowUpRightFromSquare aria-hidden="true" />
+            </a>
+          )}
+        </div>
+      </div>
+    </article>
   );
 }

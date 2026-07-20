@@ -1,92 +1,108 @@
 "use client";
 
-import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { FaBars, FaTimes } from 'react-icons/fa';
-import ThemeToggle from './ThemeToggle';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { FaArrowRight, FaBars, FaXmark } from "react-icons/fa6";
 
-import { usePathname } from 'next/navigation';
+import ThemeToggle from "./ThemeToggle";
+
+const navigation = [
+  { href: "/", label: "Home" },
+  { href: "/projects", label: "Projects" },
+  { href: "/notes", label: "Notes" },
+  { href: "/#contact", label: "Contact" },
+];
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
-
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const closeMenu = () => setIsMenuOpen(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => { document.body.style.overflow = 'unset'; };
+    if (!isMenuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMenuOpen(false);
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
   }, [isMenuOpen]);
 
-  // Hide header on admin pages
-  if (pathname?.startsWith('/admin')) {
-      return null;
-  }
+  if (pathname?.startsWith("/admin")) return null;
+
+  const closeMenu = () => setIsMenuOpen(false);
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    if (href.startsWith("/#")) return false;
+    return pathname?.startsWith(href);
+  };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50">
-      {/* Background Backdrop for Navbar */}
-      <div className={`absolute inset-0 transition-all duration-300 ${
-        isMenuOpen 
-          ? 'bg-transparent' 
-          : 'bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md border-b border-stone-200 dark:border-white/10'
-      }`} />
-
-      <div className="relative max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
-        <Link href="/" className="font-bold text-lg tracking-tight z-50 relative" onClick={closeMenu}>
+    <header className="site-header fixed inset-x-0 top-0 z-30 h-[4.5rem] border-b site-rule bg-[var(--background)]/92 backdrop-blur-xl">
+      <div className="site-shell flex h-full items-center justify-between">
+        <Link className="brand-link text-[0.95rem] font-semibold tracking-[-0.025em]" href="/" onClick={closeMenu}>
           Javier Raut
         </Link>
-        
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6 text-sm relative z-50">
-          <Link href="/" className="text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white transition">
-            Home
-          </Link>
-          <Link href="/projects" className="text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white transition">
-            Projects
-          </Link>
-          <Link href="/archives" className="text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white transition">
-            Archives
-          </Link>
-          <Link href="/#contact" className="text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white transition">
-            Contact
-          </Link>
+
+        <nav aria-label="Primary navigation" className="hidden items-center gap-7 md:flex">
+          {navigation.map((item) => (
+            <Link
+              aria-current={isActive(item.href) ? "page" : undefined}
+              className={`primary-nav-link text-sm ${
+                isActive(item.href)
+                  ? "text-[var(--foreground)]"
+                  : "text-[var(--muted)] hover:text-[var(--foreground)]"
+              }`}
+              href={item.href}
+              key={item.href}
+            >
+              {item.label}
+            </Link>
+          ))}
           <ThemeToggle />
         </nav>
 
-        {/* Mobile: Theme Toggle + Menu Button */}
-        <div className="flex items-center gap-2 md:hidden z-50 relative">
+        <div className="flex items-center gap-2 md:hidden">
           <ThemeToggle />
-          <button 
-            className="p-2 text-stone-900 dark:text-white"
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
+          <button
+            type="button"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-[0.75rem] border site-rule px-3 text-xs font-semibold"
+            aria-controls="mobile-navigation"
+            aria-expanded={isMenuOpen}
+            aria-label={isMenuOpen ? "Close navigation" : "Open navigation"}
+            onClick={() => setIsMenuOpen((open) => !open)}
           >
-            {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+            {isMenuOpen ? <FaXmark aria-hidden="true" /> : <FaBars aria-hidden="true" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Navigation Overlay */}
-      <div className={`fixed inset-0 bg-stone-50/95 dark:bg-[#0c0a09]/95 backdrop-blur-xl z-40 flex flex-col items-center justify-center gap-8 transition-all duration-300 md:hidden ${isMenuOpen ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}`}>
-        <nav className="flex flex-col items-center gap-8 text-xl font-medium">
-          <Link href="/" onClick={closeMenu} className="text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] transition">
-            Home
-          </Link>
-          <Link href="/projects" onClick={closeMenu} className="text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] transition">
-            Projects
-          </Link>
-          <Link href="/archives" onClick={closeMenu} className="text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] transition">
-            Archives
-          </Link>
-          <Link href="/#contact" onClick={closeMenu} className="text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] transition">
-            Contact
-          </Link>
+      <div
+        id="mobile-navigation"
+        className={`fixed inset-x-0 top-[4.5rem] h-[calc(100dvh-4.5rem)] border-t site-rule bg-[var(--background)] px-4 py-10 md:hidden ${
+          isMenuOpen ? "visible opacity-100" : "invisible pointer-events-none opacity-0"
+        }`}
+      >
+        <nav aria-label="Mobile navigation" className="site-shell flex flex-col">
+          {navigation.map((item) => (
+            <Link
+              aria-current={isActive(item.href) ? "page" : undefined}
+              className="flex min-h-16 items-center justify-between border-b site-rule text-2xl font-medium tracking-tight"
+              href={item.href}
+              key={item.href}
+              onClick={closeMenu}
+            >
+              {item.label}
+              <FaArrowRight aria-hidden="true" className="text-[var(--accent)]" />
+            </Link>
+          ))}
         </nav>
       </div>
     </header>

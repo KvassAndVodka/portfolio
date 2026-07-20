@@ -7,20 +7,20 @@ export default function AnalyticsTracker() {
     const pathname = usePathname();
 
     useEffect(() => {
-        // Debounce or just fire? Fire is fine for now, maybe small timeout to ensure it's not a rapid redirect.
         const track = async () => {
             try {
                 await fetch('/api/track', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ path: pathname })
+                    body: JSON.stringify({ path: pathname, event: 'page_view' }),
+                    keepalive: true,
                 });
-            } catch (err) {
-                // Ignore tracking errors
+            } catch {
+                // Analytics never blocks navigation.
             }
         };
 
-        if (pathname && !pathname.startsWith('/admin')) { // Don't track admin pages
+        if (pathname && !pathname.startsWith('/admin') && !pathname.startsWith('/auth')) {
             track();
         }
     }, [pathname]);

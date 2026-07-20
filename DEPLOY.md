@@ -1,5 +1,7 @@
 # Deployment Guide: Proxmox LXC
 
+Production deployment requires `DEPLOY_TARGET=production` in `deployment.env`. The repository pre-push hook and deployment workflow both enforce this value.
+
 This guide walks you through deploying your portfolio to a Proxmox LXC container.
 
 ## Prerequisites (On Server)
@@ -43,7 +45,7 @@ Create your production environment file from the example.
 cp .env.example .env
 nano .env
 ```
-> **IMPORTANT**: Fill in `DATABASE_URL`, `ADMIN_EMAIL`, `TS_AUTHKEY`, and your OAuth/Auth secrets.
+> **IMPORTANT**: Fill in `DATABASE_URL`, `ADMIN_EMAIL`, `TS_AUTHKEY`, your OAuth/Auth secrets, `ANALYTICS_HASH_SECRET`, and the Resend variables used by the contact form (`RESEND_API_KEY`, `CONTACT_TO_EMAIL`, and `CONTACT_FROM_EMAIL`).
 
 ## 5. Launch
 Start the containers. The initial build might take a few minutes.

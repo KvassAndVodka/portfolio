@@ -1,37 +1,28 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useState, useEffect } from "react";
-import { FaSun, FaMoon } from "react-icons/fa";
+import { useSyncExternalStore } from "react";
+import { FaMoon, FaSun } from "react-icons/fa6";
+
+const emptySubscribe = () => () => undefined;
 
 export default function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const { resolvedTheme, setTheme } = useTheme();
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
-  // Prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    // Return placeholder with same dimensions to prevent layout shift
-    return (
-      <button
-        className="p-2 rounded-lg border border-stone-300 dark:border-white/20 text-stone-600 dark:text-stone-400"
-        aria-label="Toggle theme"
-      >
-        <div className="w-4 h-4" />
-      </button>
-    );
-  }
+  const isDark = mounted && resolvedTheme === "dark";
+  const nextTheme = isDark ? "light" : "dark";
 
   return (
     <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="p-2 rounded-lg border border-stone-300 dark:border-white/20 text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-white/5 hover:text-stone-950 dark:hover:text-white transition"
-      aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+      type="button"
+      className="flex min-h-11 min-w-11 items-center justify-center rounded-[0.75rem] border site-rule px-3 text-xs font-semibold text-[var(--muted)] hover:border-[var(--line-strong)] hover:text-[var(--foreground)]"
+      aria-label={mounted ? `Switch to ${nextTheme} mode` : "Change color theme"}
+      title={mounted ? `Switch to ${nextTheme} mode` : "Change color theme"}
+      disabled={!mounted}
+      onClick={() => setTheme(nextTheme)}
     >
-      {theme === "dark" ? <FaSun size={16} /> : <FaMoon size={16} />}
+      {mounted ? (isDark ? <FaSun aria-hidden="true" /> : <FaMoon aria-hidden="true" />) : null}
     </button>
   );
 }

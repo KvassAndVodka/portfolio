@@ -1,242 +1,117 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { 
-    DndContext, 
-    closestCenter, 
-    KeyboardSensor, 
-    PointerSensor, 
-    useSensor, 
-    useSensors, 
-    DragEndEvent 
-} from '@dnd-kit/core';
-import { 
-    arrayMove, 
-    SortableContext, 
-    sortableKeyboardCoordinates, 
-    verticalListSortingStrategy,
-    useSortable
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { FaEdit, FaTrash, FaThumbtack, FaGripVertical, FaEye } from 'react-icons/fa';
-import Link from 'next/link';
-import { format } from 'date-fns';
-import { updateProjectOrder, toggleProjectPin } from '@/lib/actions'; 
-import DeleteButton from '@/components/admin/DeleteButton';
-import { useEffect } from 'react';
+import { closestCenter, DndContext, DragEndEvent, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { arrayMove, sortableKeyboardCoordinates, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
+import Image from "next/image";
+import { useMemo, useState } from "react";
+import { FaArrowUpRightFromSquare, FaGripVertical, FaMagnifyingGlass, FaPencil, FaThumbtack } from "react-icons/fa6";
+import { useRouter } from "next/navigation";
+import DeleteButton from "@/components/admin/DeleteButton";
+import { toggleProjectPin, updateProjectOrder } from "@/lib/actions";
 
-// Types matches prisma output roughly
 interface Project {
-    id: string;
-    title: string;
-    slug: string;
-    techStack: string[];
-    publishedAt: Date | string;
-    isPinned: boolean;
-    pinnedOrder: number | null;
+  id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  techStack: string[];
+  category: string | null;
+  thumbnail: string | null;
+  status: "DRAFT" | "PUBLISHED" | "SCHEDULED";
+  updatedAt: Date | string;
+  isPinned: boolean;
+  pinnedOrder: number | null;
+  githubUrl: string | null;
+  demoUrl: string | null;
+  projectUrl: string | null;
 }
 
-export default function SortableProjectList({ initialProjects }: { initialProjects: Project[] }) {
-    // We only want to sort PINNED projects usually, or maybe all?
-    // The previous UI implied sorting was for pinned items: "Order" column in table.
-    // Let's assume we are sorting PINNED items at the top, and unpinned below?
-    // OR, if the user wants to sort EVERYTHING, we need a unified order field.
-    // Based on previous code: `orderBy: [{ isPinned: 'desc' }, { pinnedOrder: 'asc' }, { publishedAt: 'desc' }]`
-    // This suggests Pinned items have an order, others fall back to date.
-    
-    // Strategy: Only PINNED items are sortable. Unpinned items are just listed below.
-    const pinnedProjects = initialProjects.filter(p => p.isPinned);
-    const unpinnedProjects = initialProjects.filter(p => !p.isPinned);
+export default function SortableProjectList({ initialProjects, initialHealth }: { initialProjects: Project[]; initialHealth?: string }) {
+  const [view, setView] = useState<"manage" | "homepage">("manage");
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("ALL");
+  const [items, setItems] = useState(initialProjects.filter((project) => project.isPinned));
+  const [message, setMessage] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const router = useRouter();
+  const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
-    const [items, setItems] = useState(pinnedProjects);
+  const filtered = useMemo(() => initialProjects.filter((project) => {
+    const matchesQuery = `${project.title} ${project.summary} ${project.techStack.join(" ")}`.toLowerCase().includes(query.toLowerCase());
+    const matchesStatus = status === "ALL" || project.status === status;
+    const matchesHealth = initialHealth === "thumbnail" ? !project.thumbnail : initialHealth === "links" ? !project.githubUrl && !project.demoUrl && !project.projectUrl : true;
+    return matchesQuery && matchesStatus && matchesHealth;
+  }), [initialHealth, initialProjects, query, status]);
 
-    // Sync state when props change (e.g. after server revalidation)
-    
-    useEffect(() => {
-        setItems(initialProjects.filter(p => p.isPinned));
-    }, [initialProjects]);
+  async function handleDragEnd(event: DragEndEvent) {
+    if (!event.over || event.active.id === event.over.id || isSaving) return;
+    const oldIndex = items.findIndex((item) => item.id === event.active.id);
+    const newIndex = items.findIndex((item) => item.id === event.over?.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const previous = items;
+    const next = arrayMove(items, oldIndex, newIndex);
+    setItems(next);
+    setIsSaving(true);
+    setMessage("Saving homepage order…");
+    try {
+      await updateProjectOrder(next.map((item) => item.id));
+      setMessage("Homepage order saved.");
+      router.refresh();
+    } catch {
+      setItems(previous);
+      setMessage("The order could not be saved. Refresh and try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
-    const sensors = useSensors(
-        useSensor(PointerSensor),
-        useSensor(KeyboardSensor, {
-            coordinateGetter: sortableKeyboardCoordinates,
-        })
-    );
-
-    const handleDragEnd = async (event: DragEndEvent) => {
-        const { active, over } = event;
-
-        if (over && active.id !== over.id) {
-            setItems((items) => {
-                const oldIndex = items.findIndex((item) => item.id === active.id);
-                const newIndex = items.findIndex((item) => item.id === over.id);
-                
-                const newOrder = arrayMove(items, oldIndex, newIndex);
-                
-                // Optimistic UI update done, now persist
-                // We need to sending the ID and its NEW INDEX to the server
-                // Or easier: send the whole list of IDs in their new order
-                const orderedIds = newOrder.map(p => p.id);
-                updateProjectOrder(orderedIds); // Server action to implement
-
-                return newOrder;
-            });
-        }
-    };
-
-    return (
-        <div className="space-y-8">
-            {/* Pinned Projects Section */}
-            {items.length > 0 && (
-                 <div className="space-y-4">
-                    <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-2">
-                        <FaThumbtack /> Pinned Projects (Drag to Reorder)
-                    </h2>
-                    
-                    <DndContext 
-                        sensors={sensors} 
-                        collisionDetection={closestCenter} 
-                        onDragEnd={handleDragEnd}
-                    >
-                        <SortableContext 
-                            items={items.map(p => p.id)} 
-                            strategy={verticalListSortingStrategy}
-                        >
-                            <div className="grid gap-4">
-                                {items.map((project) => (
-                                    <SortableProjectItem key={project.id} project={project} />
-                                ))}
-                            </div>
-                        </SortableContext>
-                    </DndContext>
-                </div>
-            )}
-
-            {/* Unpinned Projects Section */}
-            {unpinnedProjects.length > 0 && (
-                <div className="space-y-4">
-                    <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500 pt-8 border-t border-stone-200 dark:border-white/10">
-                        Other Projects
-                    </h2>
-                    <div className="grid gap-4">
-                        {unpinnedProjects.map((project) => (
-                            <ProjectItem key={project.id} project={project} isSortable={false} />
-                        ))}
-                    </div>
-                </div>
-            )}
-             
-             {initialProjects.length === 0 && (
-                <div className="text-center py-20 rounded-2xl border border-dashed border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/5">
-                    <p className="text-stone-500 mb-4">No projects yet.</p>
-                </div>
-             )}
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="inline-flex self-start rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] p-1" role="group" aria-label="Project view">
+          <button type="button" onClick={() => setView("manage")} aria-pressed={view === "manage"} className={`min-h-9 rounded-md px-4 text-sm font-medium ${view === "manage" ? "bg-[var(--accent-soft)] text-[var(--accent-hover)]" : "admin-muted"}`}>Manage</button>
+          <button type="button" onClick={() => setView("homepage")} aria-pressed={view === "homepage"} className={`min-h-9 rounded-md px-4 text-sm font-medium ${view === "homepage" ? "bg-[var(--accent-soft)] text-[var(--accent-hover)]" : "admin-muted"}`}>Homepage order <span className="ml-1 tabular-nums">{items.length}</span></button>
         </div>
-    );
+        {view === "manage" && <div className="flex flex-col gap-2 sm:flex-row"><label className="relative"><span className="sr-only">Search projects</span><FaMagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 admin-muted" aria-hidden="true" /><input className="admin-field min-w-64 !pl-9" value={query} onChange={(event) => setQuery(event.currentTarget.value)} placeholder="Search projects" /></label><label><span className="sr-only">Filter by status</span><select className="admin-select" value={status} onChange={(event) => setStatus(event.currentTarget.value)}><option value="ALL">All statuses</option><option value="PUBLISHED">Published</option><option value="DRAFT">Drafts</option><option value="SCHEDULED">Scheduled</option></select></label></div>}
+      </div>
+
+      {view === "homepage" ? (
+        <section className="admin-panel overflow-hidden" aria-labelledby="homepage-order-heading">
+          <div className="border-b border-[var(--admin-border)] px-5 py-4"><h2 id="homepage-order-heading" className="admin-section-title">Homepage bento order</h2><p className="mt-1 text-sm admin-muted">Drag featured projects into the order recruiters should see them. Keyboard reordering is supported.</p><p className="mt-2 min-h-5 text-xs admin-muted" aria-live="polite">{message || `${items.length} featured projects`}</p></div>
+          {items.length > 0 ? <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}><SortableContext items={items.map((item) => item.id)} strategy={verticalListSortingStrategy}><ol className="divide-y divide-[var(--admin-border)]">{items.map((project, index) => <SortableRow key={project.id} project={project} position={index + 1} disabled={isSaving} />)}</ol></SortableContext></DndContext> : <EmptyProjects message="Feature a project from the Manage view to add it here." />}
+        </section>
+      ) : (
+        <section className="admin-panel overflow-hidden" aria-label="Projects">
+          {filtered.length > 0 ? <ul className="divide-y divide-[var(--admin-border)]">{filtered.map((project) => <ProjectRow key={project.id} project={project} />)}</ul> : <EmptyProjects message={initialProjects.length ? "No projects match these filters." : "Create your first project to start building the portfolio."} />}
+        </section>
+      )}
+    </div>
+  );
 }
 
-// Drag & Drop wrapper
-function SortableProjectItem({ project }: { project: Project }) {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging
-    } = useSortable({ id: project.id });
-
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        zIndex: isDragging ? 50 : 'auto',
-        opacity: isDragging ? 0.5 : 1,
-    };
-
-    return (
-        <div ref={setNodeRef} style={style} {...attributes}>
-             <ProjectItem project={project} isSortable={true} dragHandleProps={listeners} />
-        </div>
-    );
+function SortableRow({ project, position, disabled }: { project: Project; position: number; disabled: boolean }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id, disabled });
+  return <li ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.55 : 1 }} className="flex min-h-16 items-center gap-3 px-4 py-3"><span className="w-6 text-sm font-semibold tabular-nums admin-muted">{position}</span><button type="button" {...attributes} {...listeners} disabled={disabled} className="admin-icon-button cursor-grab active:cursor-grabbing" aria-label={`Move ${project.title}`}><FaGripVertical aria-hidden="true" /></button><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{project.title}</p><p className="mt-0.5 text-xs admin-muted">{project.status.toLowerCase()}</p></div><Link href={`/admin/projects/${project.slug}`} className="admin-button-secondary">Edit</Link></li>;
 }
 
-
-
-// ... (other imports)
-
-// UI Card
-function ProjectItem({ project, isSortable, dragHandleProps }: { project: Project, isSortable: boolean, dragHandleProps?: any }) {
-    
-    return (
-        <div className={`group flex flex-col md:flex-row items-start md:items-center gap-4 p-5 rounded-xl bg-white dark:bg-[#0c0a09] border border-stone-200 dark:border-white/5 hover:border-[var(--accent)]/30 transition-all ${project.isPinned ? 'ring-1 ring-[var(--accent)]/20 bg-[var(--accent)]/[0.02]' : ''}`}>
-            
-            {/* Drag Handle / Pin Status */}
-            <div className="flex items-center gap-3 self-start md:self-center pr-2 border-r border-stone-100 dark:border-white/5 mr-0 md:mr-2">
-                {isSortable ? (
-                     <button 
-                        {...dragHandleProps}
-                        className="p-2 text-stone-300 dark:text-stone-600 hover:text-stone-500 dark:hover:text-stone-400 cursor-grab active:cursor-grabbing"
-                        title="Drag to reorder"
-                    >
-                        <FaGripVertical />
-                    </button>
-                ) : (
-                    <div className="p-2 w-8" /> // Spacer
-                )}
-                
-                <form action={toggleProjectPin.bind(null, project.id)}>
-                     <button className={`p-2 transition-all ${project.isPinned ? 'text-[var(--accent)]' : 'text-stone-300 dark:text-stone-600 hover:text-stone-500 dark:hover:text-stone-400'}`}>
-                         <FaThumbtack size={12} className={project.isPinned ? 'rotate-45' : ''} />
-                     </button>
-                 </form>
-            </div>
-
-            {/* Main Content */}
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                    <Link 
-                        href={`/admin/projects/${project.slug}`}
-                        className="text-lg font-bold text-stone-900 dark:text-stone-100 truncate group-hover:text-[var(--accent)] transition-colors hover:underline"
-                    >
-                        {project.title}
-                    </Link>
-                </div>
-                
-                <div className="flex flex-wrap gap-2 mt-2">
-                    {project.techStack.map(tech => (
-                        <span key={tech} className="px-2 py-0.5 rounded-md bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-400 text-xs font-medium border border-stone-200 dark:border-white/5">
-                            {tech}
-                        </span>
-                    ))}
-                </div>
-            </div>
-
-            {/* Meta & Actions */}
-             <div className="flex flex-col md:flex-row items-end md:items-center gap-4 self-end md:self-center">
-                <span className="text-xs font-mono text-stone-400">
-                    {format(new Date(project.publishedAt), 'MMM dd, yyyy')}
-                </span>
-                
-                <div className="flex items-center gap-2">
-                    <Link 
-                        href={`/projects/${project.slug}`}
-                        className="p-2 text-stone-400 hover:text-stone-900 dark:hover:text-white transition-colors rounded-lg hover:bg-stone-100 dark:hover:bg-white/5"
-                        title="View Live"
-                        target="_blank"
-                    >
-                         <FaEye size={16} />
-                    </Link>
-                    <Link 
-                        href={`/admin/projects/${project.slug}`}
-                        className="p-2 text-stone-400 hover:text-[var(--accent)] transition-colors rounded-lg hover:bg-stone-100 dark:hover:bg-white/5"
-                        title="Edit"
-                    >
-                        <FaEdit size={16} />
-                    </Link>
-                    
-                     <DeleteButton id={project.id} />
-                </div>
-            </div>
-        </div>
-    )
+function ProjectRow({ project }: { project: Project }) {
+  return (
+    <li className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center md:px-5">
+      <div className="flex min-w-0 flex-1 gap-4">
+        <div className="admin-subtle relative hidden size-16 shrink-0 overflow-hidden rounded-lg sm:block">{project.thumbnail && <Image src={project.thumbnail} alt="" fill sizes="4rem" unoptimized className="object-cover" />}</div>
+        <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><Link href={`/admin/projects/${project.slug}`} className="truncate font-semibold hover:text-[var(--accent-hover)]">{project.title}</Link><span className={`admin-status admin-status-${project.status.toLowerCase()}`}>{project.status.toLowerCase()}</span>{project.isPinned && <span className="admin-status bg-[var(--accent-soft)] text-[var(--accent-hover)]"><FaThumbtack aria-hidden="true" />Featured</span>}</div><p className="mt-1 line-clamp-1 text-sm admin-muted">{project.summary}</p><p className="mt-2 text-xs admin-muted">{project.category || "Uncategorized"} · edited {formatDistanceToNow(new Date(project.updatedAt), { addSuffix: true })}</p></div>
+      </div>
+      <div className="flex items-center justify-end gap-1">
+        <form action={toggleProjectPin.bind(null, project.id)}><button type="submit" className="admin-icon-button" aria-label={project.isPinned ? `Remove ${project.title} from homepage` : `Feature ${project.title} on homepage`}><FaThumbtack aria-hidden="true" /></button></form>
+        <a href={`/projects/${project.slug}`} target="_blank" className="admin-icon-button" aria-label={`Preview ${project.title}`}><FaArrowUpRightFromSquare aria-hidden="true" /></a>
+        <Link href={`/admin/projects/${project.slug}`} className="admin-icon-button" aria-label={`Edit ${project.title}`}><FaPencil aria-hidden="true" /></Link>
+        <DeleteButton id={project.id} />
+      </div>
+    </li>
+  );
 }
+
+function EmptyProjects({ message }: { message: string }) { return <div className="px-5 py-12"><p className="font-medium">No projects to show</p><p className="mt-1 text-sm admin-muted">{message}</p></div>; }

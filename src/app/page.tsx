@@ -1,297 +1,220 @@
-import { getProjects } from "@/lib/projects";
-import Link from 'next/link';
-import Image from 'next/image';
-import { FaGithub, FaLinkedin, FaFacebook, FaInstagram, FaEnvelope, FaPython, FaDocker, FaLinux, FaGitAlt } from "react-icons/fa";
-import { SiNextdotjs, SiTypescript, SiPostgresql, SiOpencv, SiJavascript, SiSupabase, SiProxmox, SiGnubash, SiTailscale, SiHtml5, SiCss, SiTailwindcss, SiJupyter } from "react-icons/si";
-import HeroBackground from "@/components/HeroBackground";
-import ProjectCard from "@/components/ProjectCard";
-import ScrollReveal from "@/components/ScrollReveal";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  FaArrowUpRightFromSquare,
+  FaEnvelope,
+  FaGithub,
+  FaLinkedin,
+} from "react-icons/fa6";
 
-// Reusable Section Header Component
-function SectionHeader({ title, action }: { title: string; action?: React.ReactNode }) {
-  return (
-    <div className="flex justify-between items-center mb-12 pb-4 border-b border-stone-200 dark:border-white/10">
-      <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-stone-900 dark:text-stone-100 flex items-center gap-3">
-        <span className="w-2 h-2 rounded-full bg-[var(--accent)]"></span>
-        {title}
-      </h2>
-      {action}
-    </div>
-  );
-}
+import ContactForm from "@/components/ContactForm";
+import HeroBackground from "@/components/HeroBackground";
+import ProjectShowcase from "@/components/ProjectShowcase";
+import ScrollReveal from "@/components/ScrollReveal";
+import TechnologyStack from "@/components/TechnologyStack";
 
 export const revalidate = 60;
 
-export default async function Home() {
-  const allProjects = await getProjects();
-  // Show all pinned projects. If none are pinned, show the 3 most recent.
-  const pinnedProjects = allProjects.filter(p => p.isPinned);
-  const projects = pinnedProjects.length > 0 ? pinnedProjects : allProjects.slice(0, 3);
+const proofPoints = [
+  {
+    label: "Right now",
+    value: "Software Developer at the House of Representatives",
+  },
+  {
+    label: "Class of 2026",
+    value: "BS Computer Science, Magna Cum Laude and Alan Turing Award recipient",
+  },
+  {
+    label: "After hours",
+    value: "Run a self-hosted lab on Linux, Docker, Proxmox, and Tailscale",
+  },
+];
 
+const experience = [
+  {
+    period: "2026 - Present",
+    role: "Software Developer",
+    organization: "House of Representatives of the Philippines",
+    detail:
+      "Developing internal management tools and GIS-based systems for public project planning and monitoring.",
+    current: true,
+    kind: "work",
+  },
+  {
+    period: "2025",
+    role: "ML/AI Intern",
+    organization: "meldCX",
+    detail:
+      "Built and containerized a real-time license plate recognition pipeline with YOLO, PaddleOCR, and OpenVINO.",
+    kind: "work",
+  },
+  {
+    period: "2022 - 2026",
+    role: "BS Computer Science, Magna Cum Laude",
+    organization: "University of Science and Technology of Southern Philippines",
+    detail:
+      "Received the department's Alan Turing Award and completed the degree as a DOST-SEI JLSS scholar.",
+    kind: "education",
+  },
+  {
+    period: "2023 - 2024",
+    role: "Vice President, Internal",
+    organization: "Computer Science Student Society",
+    detail:
+      "Helped establish the organization, write its governance, and complete its annual work and financial plan.",
+    kind: "work",
+  },
+];
+
+export default function Home() {
   return (
     <div>
-
-      {/* HERO SECTION */}
-      <section className="min-h-[calc(100vh-4rem)] flex flex-col justify-center border-b border-stone-200 dark:border-white/10 relative overflow-hidden py-24 md:py-0">
+      <section className="home-hero">
         <HeroBackground />
 
-        <div className="max-w-5xl mx-auto px-6 w-full pointer-events-none">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-12 animate-fade-in-up relative z-20 pointer-events-auto bg-stone-100/80 dark:bg-[#0c0a09]/60 backdrop-blur-md p-8 md:p-12 rounded-3xl border border-stone-200/50 dark:border-white/5 shadow-2xl shadow-stone-200/50 dark:shadow-black/50">
-            {/* CONTENT */}
-            <div className="flex-1 space-y-8 text-center md:text-left">
-              <div className="space-y-6">
-
-                {/* MOBILE PROFILE IMAGE */}
-                <div className="relative group mx-auto md:hidden w-64 h-64 shrink-0">
-                  <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-stone-100 dark:border-[#1c1917] hover:border-accent hover:dark:border-accent shadow-2xl transition-all duration-500 z-10">
-                    <Image
-                      src="/javier-raut-hero.png"
-                      alt="Javier Raut"
-                      fill
-                      sizes="(max-width: 768px) 256px, 320px"
-                      className="object-cover"
-                      priority
-                    />
-                  </div>
-                </div>
-
-                <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-stone-950 dark:text-stone-50">
-                  Javier Raut
-                </h1>
-
-                <div className="text-lg sm:text-xl font-medium text-stone-950 dark:text-stone-200 mb-4">
-                  Software Engineer | Backend & DevOps
-                </div>
-
-                <p className="text-base sm:text-lg text-stone-600 dark:text-stone-400 max-w-xl leading-relaxed mx-auto md:mx-0">
-                  While others use the cloud, I build it.
-                  Based in the Philippines, I specialize in <span className="text-stone-950 dark:text-stone-200 font-semibold">Backend Systems and Infrastructure</span>, currently maintaining a production-grade home lab on repurposed hardware.
-                </p>
-              </div>
-
-              <div className="flex flex-col md:flex-row gap-4 pt-2 w-full md:w-auto">
-                <Link href="/projects" className="bg-stone-950 text-white dark:bg-stone-50 dark:text-stone-950 px-6 py-3 rounded-lg font-medium hover:opacity-80 transition w-full md:w-auto text-center flex items-center justify-center">
-                  View My Projects
-                </Link>
-                <a href="mailto:javier.raut@gmail.com" className="bg-[var(--accent)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-80 transition w-full md:w-auto text-center flex items-center justify-center">
-                  Get in Touch
-                </a>
-                <div className="flex gap-4 w-full md:w-auto">
-                  <a href="https://github.com/KvassAndVodka" target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none border border-stone-300 dark:border-white/20 px-4 py-3 rounded-lg font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition flex items-center justify-center gap-2">
-                    <FaGithub size={18} />
-                  </a>
-                  <a href="https://www.linkedin.com/in/raut-javier-m/" target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none border border-stone-300 dark:border-white/20 px-4 py-3 rounded-lg font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition flex items-center justify-center">
-                    <FaLinkedin size={18} />
-                  </a>
-                </div>
-              </div>
+        <div className="site-shell home-hero-layout">
+          <div className="hero-copy">
+            <p className="hero-kicker">
+              Hi, I&apos;m <strong>Javier Raut.</strong>
+            </p>
+            <h1 className="display-title kinetic-title" aria-label="I build systems that hold up.">
+              <span className="kinetic-line">
+                <span>I build systems</span>
+              </span>
+              <span className="kinetic-line kinetic-line-accent">
+                <span>that hold up.</span>
+              </span>
+            </h1>
+            <p className="body-large hero-summary">
+              I&apos;m a software developer based in the Philippines. I build public-sector tools,
+              computer vision, and self-hosted infrastructure.
+            </p>
+            <div className="hero-actions">
+              <Link className="button-primary" href="/projects">
+                Projects
+              </Link>
+              <a
+                className="button-secondary"
+                href="https://github.com/KvassAndVodka"
+                rel="noreferrer"
+                target="_blank"
+              >
+                <FaGithub aria-hidden="true" />
+                GitHub
+                <FaArrowUpRightFromSquare aria-hidden="true" className="button-external-icon" />
+              </a>
             </div>
+          </div>
 
-            {/* PROFILE IMAGE (DESKTOP) */}
-            <div className="relative group mx-auto md:mx-0 shrink-0 hidden md:block">
-              <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-stone-100 dark:border-[#1c1917] hover:border-accent hover:dark:border-accent shadow-2xl transition-all duration-500 z-10">
-                <Image
-                  src="/javier-raut-hero.png"
-                  alt="Javier Raut"
-                  fill
-                  sizes="(max-width: 768px) 256px, 320px"
-                  className="object-cover"
-                  priority
-                />
-              </div>
+          <div className="portrait-stage">
+            <div className="hero-portrait">
+              <Image
+                src="/javier-raut-hero.png"
+                alt="Javier Raut, backend and infrastructure engineer"
+                fill
+                priority
+                sizes="(max-width: 767px) calc(100vw - 3rem), 40vw"
+                className="object-cover"
+              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* BACKGROUND SECTION */}
-      <section className="py-20 bg-stone-100 dark:bg-[#111] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]">
-        <ScrollReveal className="max-w-5xl mx-auto px-6">
-          <SectionHeader title="Background" />
-
-          <div className="relative">
-            <div className="absolute left-4 top-0 bottom-0 w-px bg-stone-300 dark:bg-white/10"></div>
-
-            <div className="space-y-8">
-              <div className="relative pl-12">
-                <div className="absolute left-2.5 w-3 h-3 rounded-full bg-[var(--accent)] ring-4 ring-stone-100 dark:ring-[#111]"></div>
-                <span className="text-xs font-mono text-stone-400 block mb-2">Jun 2026 — Present</span>
-                <div className="p-6 bg-white dark:bg-[#0a0a0a] border border-stone-200 dark:border-white/10 rounded-xl">
-                  <h3 className="font-bold text-stone-900 dark:text-stone-100">Software Developer</h3>
-                  <p className="text-sm text-[var(--accent)] font-medium mb-3">House of Representatives of the Philippines</p>
-                  <p className="text-stone-500 text-sm leading-relaxed">
-                    Developed and maintained internal Management Information System tools and GIS-Based information systems for project planning and monitoring.
-                  </p>
-                </div>
-              </div>
-
-              <div className="relative pl-12">
-                <div className="absolute left-2.5 w-3 h-3 rounded-full bg-stone-400 ring-4 ring-stone-100 dark:ring-[#111]"></div>
-                <span className="text-xs font-mono text-stone-400 block mb-2">Jun 2025 — Jul 2025</span>
-                <div className="p-6 bg-white dark:bg-[#0a0a0a] border border-stone-200 dark:border-white/10 rounded-xl">
-                  <h3 className="font-bold text-stone-900 dark:text-stone-100">ML/AI Intern</h3>
-                  <p className="text-sm text-[var(--accent)] font-medium mb-3">meldCX</p>
-                  <p className="text-stone-500 text-sm leading-relaxed">
-                    Built a real-time License Plate Recognition pipeline using YOLO, PaddleOCR & OpenVINO.
-                    Packaged it into a scalable Docker container.
-                  </p>
-                </div>
-              </div>
-
-              <div className="relative pl-12">
-                <div className="absolute left-2.5 w-3 h-3 rounded-full bg-stone-400 ring-4 ring-stone-100 dark:ring-[#111]"></div>
-                <span className="text-xs font-mono text-stone-400 block mb-2">Aug 2023 — Jun 2024</span>
-                <div className="p-6 bg-white dark:bg-[#0a0a0a] border border-stone-200 dark:border-white/10 rounded-xl">
-                  <h3 className="font-bold text-stone-900 dark:text-stone-100">VP - Internal</h3>
-                  <p className="text-sm text-[var(--accent)] font-medium mb-3">Computer Science Student Society (CS³)</p>
-                  <p className="text-stone-500 text-sm leading-relaxed">
-                    Founding member. Led the creation of Constitution & By-Laws.
-                    Achieved 100% completion of Annual Work & Financial Plan.
-                  </p>
-                </div>
-              </div>
-
-              <div className="relative pl-12">
-                <div className="absolute left-2.5 w-3 h-3 rounded-full bg-stone-300 ring-4 ring-stone-100 dark:ring-[#111]"></div>
-                <span className="text-xs font-mono text-stone-400 block mb-2">Sep 2022 — Present</span>
-                <div className="p-6 bg-white dark:bg-[#0a0a0a] border border-stone-200 dark:border-white/10 rounded-xl">
-                  <h3 className="font-bold text-stone-900 dark:text-stone-100">BS in Computer Science</h3>
-                  <p className="text-sm text-[var(--accent)] font-medium mb-3">University of Science and Technology of Southern Philippines</p>
-                  <p className="text-stone-500 text-sm leading-relaxed">
-                    Specializing in AI-Driven Systems. DOST-SEI JLSS Scholar.
-                    Consistent Dean's Lister. Level 2 TOPCIT Certified.
-                  </p>
-                </div>
-              </div>
+      <section className="proof-band" aria-label="Quick profile">
+        <dl className="proof-strip site-shell">
+          {proofPoints.map((point, index) => (
+            <div key={point.label} style={{ "--proof-index": index } as React.CSSProperties}>
+              <dt>{point.label}</dt>
+              <dd>{point.value}</dd>
             </div>
-          </div>
-        </ScrollReveal>
+          ))}
+        </dl>
       </section>
 
-      {/* SKILLS */}
-      <section className="py-20 relative overflow-hidden bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800">
-        {/* Power Core Gradient */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--accent)_0%,_transparent_70%)] opacity-[0.12] dark:opacity-5 pointer-events-none"></div>
-        <ScrollReveal className="max-w-5xl mx-auto px-6 relative z-10">
-          <SectionHeader title="Tech Stack" />
-
-          <div className="space-y-8">
-            <div>
-              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">Backend & Infrastructure</h3>
-              <div className="flex flex-wrap gap-3">
-                {[
-                  { icon: FaPython, name: "Python" },
-                  { icon: FaLinux, name: "Linux" },
-                  { icon: FaDocker, name: "Docker" },
-                  { icon: SiProxmox, name: "Proxmox" },
-                  { icon: SiTailscale, name: "Tailscale" },
-                  { icon: SiPostgresql, name: "PostgreSQL" },
-                  { icon: SiSupabase, name: "Supabase" },
-                ].map(tech => (
-                  <span key={tech.name} className="inline-flex items-center gap-2 px-4 py-2 bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-transparent rounded-full text-sm text-stone-800 dark:text-stone-300 font-medium">
-                    <tech.icon size={16} /> {tech.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">Frontend</h3>
-              <div className="flex flex-wrap gap-3">
-                {[
-                  { icon: SiNextdotjs, name: "Next.js" },
-                  { icon: SiTypescript, name: "TypeScript" },
-                  { icon: SiJavascript, name: "JavaScript" },
-                  { icon: SiTailwindcss, name: "TailwindCSS" },
-                  { icon: SiHtml5, name: "HTML" },
-                  { icon: SiCss, name: "CSS" },
-                ].map(tech => (
-                  <span key={tech.name} className="inline-flex items-center gap-2 px-4 py-2 bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-transparent rounded-full text-sm text-stone-800 dark:text-stone-300 font-medium">
-                    <tech.icon size={16} /> {tech.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">Specialized Tools & AI</h3>
-              <div className="flex flex-wrap gap-3">
-                {[
-                  { icon: SiOpencv, name: "OpenCV" },
-                  { icon: SiOpencv, name: "YOLO" },
-                  { icon: SiOpencv, name: "OpenVINO" },
-                  { icon: SiOpencv, name: "PaddleOCR" },
-                  { icon: SiJupyter, name: "Jupyter" },
-                  { icon: FaGitAlt, name: "Git" },
-                  { icon: SiGnubash, name: "Bash Scripting" },
-                ].map(tech => (
-                  <span key={tech.name} className="inline-flex items-center gap-2 px-4 py-2 bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-transparent rounded-full text-sm text-stone-800 dark:text-stone-300 font-medium">
-                    <tech.icon size={16} /> {tech.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </ScrollReveal>
-      </section>
-
-      {/* PROJECTS */}
-      <section className="py-20 bg-stone-200 dark:bg-black relative">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.03)_0%,_transparent_50%)] pointer-events-none"></div>
-        <ScrollReveal className="max-w-5xl mx-auto px-6 relative z-10">
-          <SectionHeader
-            title="Projects"
-            action={<Link href="/projects" className="text-xs text-stone-500 hover:text-[var(--accent)] transition-colors uppercase tracking-wider">View All →</Link>}
-          />
-          <div className="grid md:grid-cols-2 gap-6">
-            {projects.map((project, index) => (
-              <Link key={project.slug} href={`/projects/${project.slug}`} className="block h-full">
-                <ProjectCard project={project} className="h-full" />
-              </Link>
-            ))}
-          </div>
-        </ScrollReveal>
-      </section>
-
-      {/* CONTACT SECTION */}
-      <section id="contact" className="py-20 bg-stone-100 dark:bg-[#0c0a09]">
-        <ScrollReveal className="max-w-5xl mx-auto px-6">
-          <div className="text-center space-y-8">
-            <h2 className="text-3xl md:text-6xl font-bold tracking-tighter text-stone-950 dark:text-stone-50">
-              Let's Work Together
+      <section id="work" className="projects-stage">
+        <div className="site-shell">
+          <ScrollReveal className="projects-heading" variant="clip">
+            <h2 className="section-title section-title-wide">
+              A few things <span>I&apos;ve built.</span>
             </h2>
-            <p className="text-lg text-stone-600 dark:text-stone-400 max-w-md mx-auto">
-              I'm open to freelance projects, collaboration, and networking opportunities.
+            <p className="body-large">
+              I like working on systems where reliability matters. These case studies show how I
+              think, build, and ship.
             </p>
+          </ScrollReveal>
 
-            {/* Email - Full width mobile, Centered desktop */}
-            <div className="flex justify-center pt-8 w-full md:w-auto">
-              <a href="mailto:javier.raut@gmail.com" className="w-full md:w-auto flex items-center justify-center gap-2 bg-[var(--accent)] text-white px-8 py-3 rounded-lg font-medium hover:opacity-80 transition shadow-lg shadow-orange-500/20">
-                <FaEnvelope size={18} /> javier.raut@gmail.com
-              </a>
-            </div>
+          <ScrollReveal variant="stagger">
+            <ProjectShowcase compact featured />
+          </ScrollReveal>
+        </div>
+      </section>
 
-            {/* Socials - Stacked mobile, Row desktop */}
-            <div className="flex flex-col md:flex-row justify-center gap-4 pt-4 w-full">
-              <a href="https://github.com/KvassAndVodka" target="_blank" rel="noopener noreferrer" className="w-full md:w-auto flex items-center justify-center gap-2 border border-stone-300 dark:border-white/20 px-6 py-3 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition bg-white dark:bg-transparent">
-                <FaGithub size={16} /> @KvassAndVodka
-              </a>
-              <a href="https://linkedin.com/in/raut-javier-m" target="_blank" rel="noopener noreferrer" className="w-full md:w-auto flex items-center justify-center gap-2 border border-stone-300 dark:border-white/20 px-6 py-3 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition bg-white dark:bg-transparent">
-                <FaLinkedin size={16} /> @raut-javier-m
-              </a>
-              <a href="https://facebook.com/j.m.raut.29" target="_blank" rel="noopener noreferrer" className="w-full md:w-auto flex items-center justify-center gap-2 border border-stone-300 dark:border-white/20 px-6 py-3 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition bg-white dark:bg-transparent">
-                <FaFacebook size={16} /> @j.m.raut.29
-              </a>
-              <a href="https://instagram.com/raut_javier" target="_blank" rel="noopener noreferrer" className="w-full md:w-auto flex items-center justify-center gap-2 border border-stone-300 dark:border-white/20 px-6 py-3 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-white/5 transition bg-white dark:bg-transparent">
-                <FaInstagram size={16} /> @raut_javier
-              </a>
-            </div>
+      <TechnologyStack />
 
-            <p className="text-xs text-stone-400 pt-16">
-              © 2026 Javier Raut. Built with Next.js.
+      <section className="experience-stage">
+        <div className="site-shell experience-composition">
+          <ScrollReveal className="experience-intro" variant="slide">
+            <h2 className="section-title">Where I&apos;ve done the work.</h2>
+            <p className="body-large">
+              My path runs through public-sector software, computer vision, student leadership,
+              and plenty of self-hosted experimentation.
             </p>
+          </ScrollReveal>
+
+          <ScrollReveal className="experience-list" variant="stagger">
+            {experience.map((item) => (
+              <article
+                className={`experience-item${item.current ? " experience-item-current" : ""}`}
+                key={`${item.period}-${item.role}`}
+              >
+                <time>{item.period}</time>
+                <div>
+                  <h3>{item.role}</h3>
+                  <p className="experience-organization">{item.organization}</p>
+                  <p className="experience-detail">{item.detail}</p>
+                </div>
+              </article>
+            ))}
+          </ScrollReveal>
+        </div>
+      </section>
+
+      <section id="contact" className="contact-stage">
+        <div className="site-shell">
+          <div className="contact-layout">
+            <ScrollReveal className="contact-copy" variant="clip">
+              <p className="contact-kicker">Have a stubborn system?</p>
+              <h2>Let&apos;s make it work.</h2>
+              <p className="contact-intro">
+                Send the details here. The form delivers them directly to my inbox.
+              </p>
+              <a className="contact-email-link" href="mailto:javier.raut@gmail.com">
+                <FaEnvelope aria-hidden="true" />
+                javier.raut@gmail.com
+              </a>
+            </ScrollReveal>
+
+            <ScrollReveal variant="slide" delay={100}>
+              <ContactForm />
+            </ScrollReveal>
           </div>
-        </ScrollReveal>
+
+          <footer className="contact-footer">
+            <p>© 2026 Javier Raut</p>
+            <div>
+              <a href="https://github.com/KvassAndVodka" rel="noreferrer" target="_blank">
+                <FaGithub aria-hidden="true" />
+                GitHub
+              </a>
+              <a href="https://www.linkedin.com/in/raut-javier-m/" rel="noreferrer" target="_blank">
+                <FaLinkedin aria-hidden="true" />
+                LinkedIn
+              </a>
+              <Link href="/notes">Notes</Link>
+            </div>
+          </footer>
+        </div>
       </section>
     </div>
   );

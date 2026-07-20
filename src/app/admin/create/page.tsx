@@ -1,32 +1,18 @@
-import { createPost } from '@/lib/actions';
-import PostForm from '@/components/admin/PostForm';
+import Link from "next/link";
+import { FaArrowLeft } from "react-icons/fa6";
+import PostForm from "@/components/admin/PostForm";
+import { createPost } from "@/lib/actions";
 
-export default async function CreatePage({
-    searchParams,
-}: {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
-    const filters = await searchParams;
-    const type = (typeof filters.type === 'string' && (filters.type === 'PROJECT' || filters.type === 'BLOG')) 
-        ? filters.type as 'PROJECT' | 'BLOG' 
-        : 'BLOG';
-
-    return (
-        <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-8">Create New Post</h1>
-            <PostForm 
-                action={createPost} 
-                submitLabel="Create Post" 
-                initialData={{
-                    title: '',
-                    slug: '',
-                    summary: '',
-                    content: '',
-                    type: type, // Pass the type from URL or default to BLOG
-                    isPinned: false,
-                    showAsBlog: false
-                }}
-            />
-        </div>
-    );
+export default async function CreatePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const filters = await searchParams;
+  const type = filters.type === "PROJECT" ? "PROJECT" : "BLOG";
+  return (
+    <div className="space-y-6 pb-16">
+      <header className="flex items-start gap-3">
+        <Link href={type === "PROJECT" ? "/admin/projects" : "/admin/notes"} className="admin-icon-button" aria-label={`Back to ${type === "PROJECT" ? "projects" : "notes"}`}><FaArrowLeft aria-hidden="true" /></Link>
+        <div><h1 className="admin-page-title">New {type === "PROJECT" ? "project" : "note"}</h1><p className="mt-2 text-sm admin-muted">Start as a draft, then publish when it is ready.</p></div>
+      </header>
+      <PostForm action={createPost} submitLabel="Save content" initialData={{ title: "", slug: "", summary: "", content: "", type, status: "DRAFT", isPinned: false, showAsBlog: false }} />
+    </div>
+  );
 }

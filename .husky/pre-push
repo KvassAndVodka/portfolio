@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -e
+
+echo "ruleskit: running pre-push checks..."
+node scripts/verify-production-target.mjs
+npm run build --if-present

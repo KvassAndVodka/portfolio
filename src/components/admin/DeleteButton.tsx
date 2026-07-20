@@ -1,74 +1,36 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { FaTrash, FaUndo, FaTrashRestore } from 'react-icons/fa';
-import { deletePost, restorePost, permanentDeletePost } from '@/lib/actions';
+import { useState } from "react";
+import { FaArrowRotateLeft, FaTrashCan, FaXmark } from "react-icons/fa6";
+import { deletePost, permanentDeletePost, restorePost } from "@/lib/actions";
 
-interface DeleteButtonProps {
-    id: string;
-    isTrash?: boolean;
-}
+export default function DeleteButton({ id, isTrash = false }: { id: string; isTrash?: boolean }) {
+  const [isConfirming, setIsConfirming] = useState(false);
+  const destructiveAction = isTrash ? permanentDeletePost : deletePost;
 
-export default function DeleteButton({ id, isTrash = false }: DeleteButtonProps) {
-    const [isConfirming, setIsConfirming] = useState(false);
-
-    const handleDelete = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        const message = isTrash 
-            ? "Are you sure you want to PERMANENTLY delete this? This action cannot be undone."
-            : "Are you sure you want to move this to the trash?";
-
-        if (window.confirm(message)) {
-            if (isTrash) {
-                await permanentDeletePost(id);
-            } else {
-                await deletePost(id);
-            }
-        }
-    };
-
-    const handleRestore = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (window.confirm("Restore this item?")) {
-            await restorePost(id);
-        }
-    };
-
-    if (isTrash) {
-        return (
-            <div className="flex items-center gap-2">
-                <form onSubmit={handleRestore}>
-                     <button 
-                        type="submit"
-                        className="p-2 text-stone-400 hover:text-green-600 transition-colors rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20" 
-                        title="Restore"
-                    >
-                        <FaUndo size={16} />
-                    </button>
-                </form>
-                <form onSubmit={handleDelete}>
-                    <button 
-                        type="submit"
-                        className="p-2 text-stone-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20" 
-                        title="Delete Forever"
-                    >
-                        <FaTrash size={16} />
-                    </button>
-                </form>
-            </div>
-        );
-    }
-
+  if (isConfirming) {
     return (
-        <form onSubmit={handleDelete}>
-            <button 
-                type="submit"
-                className="p-2 text-stone-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20" 
-                title="Move to Trash"
-            >
-                <FaTrash size={16} />
-            </button>
+      <div className="flex items-center gap-1" role="group" aria-label={isTrash ? "Confirm permanent deletion" : "Confirm move to trash"}>
+        <form action={destructiveAction.bind(null, id)}>
+          <button type="submit" className="min-h-11 rounded-lg bg-[var(--admin-danger-soft)] px-3 text-xs font-semibold text-[var(--admin-danger)]">
+            {isTrash ? "Delete forever" : "Move to trash"}
+          </button>
         </form>
+        <button type="button" className="admin-icon-button" onClick={() => setIsConfirming(false)} aria-label="Cancel deletion"><FaXmark aria-hidden="true" /></button>
+      </div>
     );
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      {isTrash && (
+        <form action={restorePost.bind(null, id)}>
+          <button type="submit" className="admin-icon-button" aria-label="Restore item"><FaArrowRotateLeft aria-hidden="true" /></button>
+        </form>
+      )}
+      <button type="button" className="admin-icon-button hover:!bg-[var(--admin-danger-soft)] hover:!text-[var(--admin-danger)]" onClick={() => setIsConfirming(true)} aria-label={isTrash ? "Delete item forever" : "Move item to trash"}>
+        <FaTrashCan aria-hidden="true" />
+      </button>
+    </div>
+  );
 }

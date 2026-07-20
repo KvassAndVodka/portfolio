@@ -1,9 +1,23 @@
 'use server'
 
 import { prisma } from '@/lib/prisma';
-import { PostType } from '@prisma/client';
-import { revalidatePath } from 'next/cache';
+import { PostStatus, PostType } from '@prisma/client';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
+
+function revalidatePublicContent() {
+    revalidateTag('projects', 'max');
+    revalidateTag('notes', 'max');
+}
+
+async function getNextPinnedProjectOrder() {
+    const result = await prisma.post.aggregate({
+        _max: { pinnedOrder: true },
+        where: { type: PostType.PROJECT, isPinned: true, deletedAt: null }
+    });
+
+    return (result._max.pinnedOrder ?? 0) + 1;
+}
 
 export async function createPost(formData: FormData) {
     const title = formData.get('title') as string;
@@ -22,6 +36,14 @@ export async function createPost(formData: FormData) {
     const summary = formData.get('summary') as string;
     const content = formData.get('content') as string;
     const type = formData.get('type') as PostType;
+    const requestedStatus = formData.get('status');
+    const status = Object.values(PostStatus).includes(requestedStatus as PostStatus)
+        ? requestedStatus as PostStatus
+        : PostStatus.DRAFT;
+    const scheduledFor = String(formData.get('scheduledFor') || '');
+    const publishedAt = status === PostStatus.SCHEDULED && scheduledFor
+        ? new Date(scheduledFor)
+        : new Date();
     const category = (formData.get('category') as string) || null;
     const isPinned = formData.get('isPinned') === 'on';
     const showAsBlog  = formData.get('showAsBlog') === 'on';
@@ -30,6 +52,8 @@ export async function createPost(formData: FormData) {
     const githubUrl = (formData.get('githubUrl') as string) || null;
     const demoUrl = (formData.get('demoUrl') as string) || null;
     const projectUrl = (formData.get('projectUrl') as string) || null;
+    const shouldPinProject = type === PostType.PROJECT && isPinned;
+    const pinnedOrder = shouldPinProject ? await getNextPinnedProjectOrder() : null;
 
     await prisma.post.create({
         data: {
@@ -38,8 +62,11 @@ export async function createPost(formData: FormData) {
             summary,
             content,
             type,
+            status,
+            publishedAt,
             category,
-            isPinned,
+            isPinned: shouldPinProject,
+            pinnedOrder,
             showAsBlog,
             techStack,
             thumbnail,
@@ -51,15 +78,25 @@ export async function createPost(formData: FormData) {
 
     revalidatePath('/');
     revalidatePath('/projects');
-    revalidatePath('/archives');
-    redirect(type === 'PROJECT' ? '/admin/projects' : '/admin/archives');
+    revalidatePath('/notes');
+    revalidatePublicContent();
+    redirect(type === 'PROJECT' ? '/admin/projects' : '/admin/notes');
 }
 
 export async function updatePost(id: string, formData: FormData) {
+    const existingPost = await prisma.post.findUniqueOrThrow({ where: { id } });
     const title = formData.get('title') as string;
     const slug = formData.get('slug') as string;
     const summary = formData.get('summary') as string;
     const content = formData.get('content') as string;
+    const requestedStatus = formData.get('status');
+    const status = Object.values(PostStatus).includes(requestedStatus as PostStatus)
+        ? requestedStatus as PostStatus
+        : existingPost.status;
+    const scheduledFor = String(formData.get('scheduledFor') || '');
+    const publishedAt = status === PostStatus.SCHEDULED && scheduledFor
+        ? new Date(scheduledFor)
+        : existingPost.publishedAt;
     const category = (formData.get('category') as string) || null;
     const isPinned = formData.get('isPinned') === 'on';
     const showAsBlog = formData.get('showAsBlog') === 'on';
@@ -68,30 +105,52 @@ export async function updatePost(id: string, formData: FormData) {
     const githubUrl = (formData.get('githubUrl') as string) || null;
     const demoUrl = (formData.get('demoUrl') as string) || null;
     const projectUrl = (formData.get('projectUrl') as string) || null;
+    const shouldPinProject = existingPost.type === PostType.PROJECT && isPinned;
+    const wasPinnedProject = existingPost.type === PostType.PROJECT && existingPost.isPinned;
+    const pinnedOrder = shouldPinProject
+        ? existingPost.pinnedOrder ?? await getNextPinnedProjectOrder()
+        : null;
 
-    await prisma.post.update({
-        where : { id },
-        data: {
-            title,
-            slug,
-            summary,
-            content,
-            category,
-            isPinned,
-            showAsBlog,
-            techStack,
-            thumbnail,
-            githubUrl,
-            demoUrl,
-            projectUrl
-        }
-    });
+    await prisma.$transaction([
+        prisma.post.update({
+            where : { id },
+            data: {
+                title,
+                slug,
+                summary,
+                content,
+                status,
+                publishedAt,
+                category,
+                isPinned: shouldPinProject,
+                pinnedOrder,
+                showAsBlog,
+                techStack,
+                thumbnail,
+                githubUrl,
+                demoUrl,
+                projectUrl
+            }
+        }),
+        ...(!shouldPinProject && wasPinnedProject && existingPost.pinnedOrder !== null ? [
+            prisma.post.updateMany({
+                where: {
+                    type: PostType.PROJECT,
+                    isPinned: true,
+                    pinnedOrder: { gt: existingPost.pinnedOrder }
+                },
+                data: { pinnedOrder: { decrement: 1 } }
+            })
+        ] : [])
+    ]);
 
     revalidatePath('/');
     revalidatePath('/projects');
-    revalidatePath('/archives');
+    revalidatePath('/notes');
     revalidatePath(`/projects/${slug}`);
-    revalidatePath(`/archives/${slug}`);
+    revalidatePath(`/notes/${slug}`);
+    revalidatePath(`/admin/${existingPost.type === PostType.PROJECT ? 'projects' : 'notes'}/${slug}`);
+    revalidatePublicContent();
 }
 
 export async function deletePost(id: string) {
@@ -125,7 +184,9 @@ export async function deletePost(id: string) {
 
     revalidatePath('/admin/projects');
     revalidatePath('/admin/archives');
+    revalidatePath('/admin/notes');
     revalidatePath('/admin/trash');
+    revalidatePublicContent();
 }
 
 export async function restorePost(id: string) {
@@ -136,17 +197,20 @@ export async function restorePost(id: string) {
 
     revalidatePath('/admin/projects');
     revalidatePath('/admin/archives');
+    revalidatePath('/admin/notes');
     revalidatePath('/admin/trash');
+    revalidatePublicContent();
 }
 
 export async function permanentDeletePost(id: string) {
     await prisma.post.delete({ where: { id } });
     revalidatePath('/admin/trash');
+    revalidatePublicContent();
 }
 
 export async function toggleProjectPin(id: string) {
     const post = await prisma.post.findUnique({ where: { id } });
-    if (!post) return;
+    if (!post || post.type !== PostType.PROJECT || post.deletedAt) return;
 
     const newPinnedState = !post.isPinned;
 
@@ -154,7 +218,7 @@ export async function toggleProjectPin(id: string) {
         // Pinning: Add to end of list
         const maxOrder = await prisma.post.aggregate({
             _max: { pinnedOrder: true },
-            where: { isPinned: true }
+            where: { type: PostType.PROJECT, isPinned: true, deletedAt: null }
         });
         const nextOrder = (maxOrder._max.pinnedOrder || 0) + 1;
 
@@ -174,6 +238,7 @@ export async function toggleProjectPin(id: string) {
             ...(currentOrder ? [
                 prisma.post.updateMany({
                     where: {
+                        type: PostType.PROJECT,
                         isPinned: true,
                         pinnedOrder: { gt: currentOrder }
                     },
@@ -186,6 +251,7 @@ export async function toggleProjectPin(id: string) {
     }
     revalidatePath('/admin/projects');
     revalidatePath('/');
+    revalidatePublicContent();
 }
 
 export async function reorderProject(id: string, direction: 'up' | 'down') {
@@ -198,6 +264,7 @@ export async function reorderProject(id: string, direction: 'up' | 'down') {
     // Find the adjacent project
     const swapProject = await prisma.post.findFirst({
         where: {
+            type: PostType.PROJECT,
             isPinned: true,
             pinnedOrder: targetOrder
         }
@@ -219,6 +286,7 @@ export async function reorderProject(id: string, direction: 'up' | 'down') {
 
     revalidatePath('/admin/projects');
     revalidatePath('/');
+    revalidatePublicContent();
 }
 
 export async function revalidateAll() {
@@ -226,13 +294,23 @@ export async function revalidateAll() {
 }
 
 export async function updateProjectOrder(orderedIds: string[]) {
-    // We receive a list of IDs in their new order
-    // Update each project's pinnedOrder based on its index
-    
-    // We should run this in a transaction
+    const pinnedProjects = await prisma.post.findMany({
+        where: { type: PostType.PROJECT, isPinned: true, deletedAt: null },
+        select: { id: true }
+    });
+    const pinnedIds = new Set(pinnedProjects.map((project) => project.id));
+    const hasEveryPinnedProject =
+        orderedIds.length === pinnedIds.size &&
+        new Set(orderedIds).size === orderedIds.length &&
+        orderedIds.every((id) => pinnedIds.has(id));
+
+    if (!hasEveryPinnedProject) {
+        throw new Error('Pinned project order is stale. Refresh the page and try again.');
+    }
+
     const updates = orderedIds.map((id, index) => {
         return prisma.post.update({
-            where: { id },
+            where: { id, type: PostType.PROJECT, isPinned: true },
             data: { pinnedOrder: index + 1 }
         });
     });
@@ -240,7 +318,8 @@ export async function updateProjectOrder(orderedIds: string[]) {
     await prisma.$transaction(updates);
 
     revalidatePath('/admin/projects');
-    revalidatePath('/'); // Update home if it uses order
+    revalidatePath('/');
+    revalidatePublicContent();
 }
 
 export async function getRecentMedia() {

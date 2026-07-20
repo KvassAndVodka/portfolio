@@ -11,6 +11,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Verify Production Deployment Target
+        run: node scripts/verify-production-target.mjs
+
       - name: Create .env from Secret
         run: |
           # The quotes around 'EOF' are mandatory to stop $ expansion

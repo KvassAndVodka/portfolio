@@ -1,5 +1,7 @@
-import { prisma } from '@/lib/prisma';
-import { PostType } from '@prisma/client';
+import { PostStatus, PostType } from "@prisma/client";
+import { unstable_cache } from "next/cache";
+
+import { prisma } from "@/lib/prisma";
 
 export interface Post {
     slug: string;
@@ -8,8 +10,10 @@ export interface Post {
     summary: string;
     content: string;
     readTime: string;
-    category?: string | null;
+  category?: string | null;
 }
+
+export type PostPreview = Omit<Post, "content">;
 
 function calculateReadTime(content: string): string {
     const words = content.trim().split(/\s+/).length;
@@ -17,22 +21,27 @@ function calculateReadTime(content: string): string {
     return `${time} min read`;
 }
 
-export async function getPosts(): Promise<Post[]> {
-    try {
+const getCachedPosts = unstable_cache(
+    async (): Promise<Post[]> => {
         const posts = await prisma.post.findMany({
             where: {
-                OR: [
-                    { type: PostType.BLOG },
-                    { showAsBlog: true }
+                AND: [
+                    { OR: [{ type: PostType.BLOG }, { showAsBlog: true }] },
+                    {
+                        OR: [
+                            { status: PostStatus.PUBLISHED },
+                            { status: PostStatus.SCHEDULED, publishedAt: { lte: new Date() } },
+                        ],
+                    },
                 ],
-                deletedAt: null
+                deletedAt: null,
             },
             orderBy: {
                 publishedAt: 'desc'
             }
         });
 
-        return posts.map(post => ({
+        return posts.map((post) => ({
             slug: post.slug,
             title: post.title,
             publishedAt: post.publishedAt.toISOString(),
@@ -41,9 +50,21 @@ export async function getPosts(): Promise<Post[]> {
             readTime: calculateReadTime(post.content),
             category: post.category
         }));
-    } catch (error) {
-         console.warn("Database unreachable during build (getPosts), returning empty list.");
-         return [];
+    },
+    ["notes-list"],
+    { revalidate: 60, tags: ["notes"] },
+);
+
+export async function getPostsStrict(): Promise<Post[]> {
+    return getCachedPosts();
+}
+
+export async function getPosts(): Promise<Post[]> {
+    try {
+        return await getPostsStrict();
+    } catch {
+        console.warn("Database unreachable during build (getPosts), returning empty list.");
+        return [];
     }
 }
 
@@ -52,7 +73,8 @@ export async function getPost(slug: string): Promise<Post | null> {
         where: { slug }
     });
 
-    if (!post || (post.type !== PostType.BLOG && !post.showAsBlog) || post.deletedAt) return null;
+    const isPublic = post?.status === PostStatus.PUBLISHED || (post?.status === PostStatus.SCHEDULED && post.publishedAt <= new Date());
+    if (!post || (post.type !== PostType.BLOG && !post.showAsBlog) || post.deletedAt || !isPublic) return null;
 
     return {
         slug: post.slug,

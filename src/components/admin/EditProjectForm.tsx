@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import MarkdownEditor from '@/components/MarkdownEditor';
-import Link from 'next/link';
-import { FaArrowLeft, FaSave, FaGithub, FaLink, FaDesktop, FaImage } from 'react-icons/fa';
+import { FaSave, FaGithub, FaLink, FaDesktop, FaImage } from 'react-icons/fa';
 import MediaPicker from './MediaPicker';
 
 interface EditProjectFormProps {

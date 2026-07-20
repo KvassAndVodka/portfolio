@@ -1,51 +1,18 @@
-import { prisma } from '@/lib/prisma';
-import { notFound } from 'next/navigation';
-import { updatePost } from '@/lib/actions';
-import Link from 'next/link';
-import { FaArrowLeft } from 'react-icons/fa';
-import EditProjectForm from '@/components/admin/EditProjectForm';
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { FaArrowLeft } from "react-icons/fa6";
+import PostForm from "@/components/admin/PostForm";
+import { updatePost } from "@/lib/actions";
+import { prisma } from "@/lib/prisma";
 
 export default async function EditProjectPage({ params }: { params: Promise<{ slug: string }> }) {
-    const { slug } = await params;
-    const post = await prisma.post.findUnique({
-        where: { slug }
-    });
-
-    if (!post) notFound();
-
-    // Bind ID to the Server Action
-    const updateAction = updatePost.bind(null, post.id);
-
-    return (
-        <div className="max-w-6xl mx-auto pb-20">
-            {/* Header */}
-             <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                    <Link 
-                        href="/admin/projects" 
-                        className="p-2 rounded-lg hover:bg-stone-200 dark:hover:bg-white/10 transition-colors text-stone-500"
-                    >
-                        <FaArrowLeft />
-                    </Link>
-                    <div>
-                        <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Edit Project</h1>
-                        <p className="text-sm text-stone-500 font-mono">{post.title}</p>
-                    </div>
-                </div>
-            </div>
-
-            <EditProjectForm 
-                initialData={{
-                    ...post,
-                    thumbnail: post.thumbnail || undefined,
-                    category: post.category || undefined,
-                    githubUrl: post.githubUrl || undefined,
-                    demoUrl: post.demoUrl || undefined,
-                    projectUrl: post.projectUrl || undefined,
-                }}
-                action={updateAction}
-            />
-        </div>
-    );
+  const { slug } = await params;
+  const post = await prisma.post.findUnique({ where: { slug } });
+  if (!post || post.type !== "PROJECT") notFound();
+  return (
+    <div className="space-y-6 pb-16">
+      <header className="flex items-start gap-3"><Link href="/admin/projects" className="admin-icon-button" aria-label="Back to projects"><FaArrowLeft aria-hidden="true" /></Link><div><h1 className="admin-page-title">Edit project</h1><p className="mt-2 text-sm admin-muted">{post.title}</p></div></header>
+      <PostForm key={`${post.updatedAt.toISOString()}:${post.status}`} action={updatePost.bind(null, post.id)} submitLabel="Save project" initialData={{ ...post, status: post.status, thumbnail: post.thumbnail, category: post.category, githubUrl: post.githubUrl, demoUrl: post.demoUrl, projectUrl: post.projectUrl }} />
+    </div>
+  );
 }
-

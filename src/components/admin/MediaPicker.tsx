@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaTimes, FaImage, FaCloudUploadAlt, FaSearch } from 'react-icons/fa';
+import { FaTimes, FaImage, FaCloudUploadAlt } from 'react-icons/fa';
 import MediaUploader from './MediaUploader';
 import { getRecentMedia } from '@/lib/actions';
 
@@ -36,25 +36,29 @@ export default function MediaPicker({ onSelect, onClose, initialTab = 'library' 
     };
 
     useEffect(() => {
-        if (activeTab === 'library') {
-            loadMedia();
-        }
-    }, [activeTab]);
+        let cancelled = false;
+        void getRecentMedia().then((items) => {
+            if (!cancelled) setMediaItems(items);
+        }).catch(() => undefined).finally(() => {
+            if (!cancelled) setLoading(false);
+        });
+        return () => { cancelled = true; };
+    }, []);
 
-    const handleUploadComplete = (url: string) => {
+    const handleUploadComplete = () => {
         // Switch to library and reload to show new image
         setActiveTab('library');
         loadMedia();
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white dark:bg-[#0c0a09] w-full max-w-3xl rounded-2xl shadow-2xl border border-stone-200 dark:border-white/10 flex flex-col max-h-[85vh] overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4" role="dialog" aria-modal="true" aria-labelledby="media-picker-title">
+            <div className="admin-panel flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden">
                 
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-stone-100 dark:border-white/5">
-                    <h3 className="font-bold text-lg text-stone-900 dark:text-stone-100">Select Image</h3>
-                    <button onClick={onClose} className="p-2 hover:bg-stone-100 dark:hover:bg-white/5 rounded-lg transition-colors">
+                    <h3 id="media-picker-title" className="font-bold text-lg">Select image</h3>
+                    <button onClick={onClose} className="admin-icon-button" aria-label="Close media picker">
                         <FaTimes className="text-stone-500" />
                     </button>
                 </div>

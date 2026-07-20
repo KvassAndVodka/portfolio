@@ -17,6 +17,7 @@ model Post {
   deletedAt   DateTime?
 
   type     PostType
+  status   PostStatus @default(PUBLISHED)
   category String?
 
   isPinned   Boolean @default(false)
@@ -35,6 +36,12 @@ enum PostType {
   PROJECT
 }
 
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+}
+
 model Media {
   id        String   @id @default(cuid())
   filename  String
@@ -51,10 +58,14 @@ model Visit {
   referer   String?
   country   String?
   city      String?
+  latitude  Float?
+  longitude Float?
+  event     String   @default("page_view")
   createdAt DateTime @default(now())
 
   @@index([path])
   @@index([createdAt])
+  @@index([event, createdAt])
 }
 
 model User {

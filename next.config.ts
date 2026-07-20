@@ -15,6 +15,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      { source: "/archives", destination: "/notes", permanent: true },
+      { source: "/archives/:slug", destination: "/notes/:slug", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

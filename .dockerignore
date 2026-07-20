@@ -1,0 +1,17 @@
+.git
+.github
+.husky
+.next
+.env*
+!.env.example
+node_modules
+npm-debug.log*
+portfolio-deploy.tar.gz
+coverage
+out
+build
+.agents
+.codex
+.impeccable
+.specify
+specs

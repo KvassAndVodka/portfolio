@@ -6,7 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint --config eslint.config.mjs",
+    "lint:staged": "node scripts/lint-staged-files.mjs",
+    "deploy": "node scripts/deployment.mjs",
+    "deploy:up": "node scripts/deployment.mjs up",
+    "deploy:down": "node scripts/deployment.mjs down",
+    "deploy:logs": "node scripts/deployment.mjs logs",
+    "deploy:status": "node scripts/deployment.mjs ps",
+    "deploy:verify-production": "node scripts/verify-production-target.mjs",
+    "local:seed": "node scripts/local-content.mjs seed",
+    "local:clear": "node scripts/local-content.mjs clear",
+    "guardrails:install": "node scripts/install-git-guardrails.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

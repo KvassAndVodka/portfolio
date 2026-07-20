@@ -1,101 +1,85 @@
-import { getProject, getProjects } from "@/lib/projects";
-import { notFound } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
-import ReactMarkdown from 'react-markdown';
-import HeroBackground from "@/components/HeroBackground";
-import { FaGithub, FaExternalLinkAlt, FaArrowLeft } from "react-icons/fa";
+import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import { FaArrowLeft, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6";
+
+import { formatProjectCategory } from "@/components/ProjectCard";
+import ProjectTechnologyList from "@/components/ProjectTechnologyList";
+import { getProject, getProjects } from "@/lib/projects";
 
 export async function generateStaticParams() {
   const projects = await getProjects();
-  return projects.map((project) => ({
-    slug: project.slug,
-  }));
+  return projects.map((project) => ({ slug: project.slug }));
 }
 
-export const dynamicParams = true; // Allow new projects not generated at build time
+export const dynamicParams = true;
 
-export default async function ProjectPage(props: { params: Promise<{ slug: string }> }) {
-  const params = await props.params;
-  const project = await getProject(params.slug);
+export default async function ProjectPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const project = await getProject(slug);
 
-  if (!project) {
-    notFound();
-  }
+  if (!project) notFound();
+
+  const liveProjectUrl = project.projectUrl || project.demoUrl;
 
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-black">
-      {/* HEADER */}
-      <section className="relative py-32 border-b border-stone-200 dark:border-white/10 overflow-hidden bg-stone-100 dark:bg-[#111]">
-         <HeroBackground />
-         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
-         
-         <div className="max-w-4xl mx-auto px-6 relative z-10">
-             <Link href="/projects" className="inline-flex items-center gap-2 text-sm font-mono text-stone-500 hover:text-[var(--accent)] mb-8 transition-colors">
-                <FaArrowLeft /> Back to Projects
-             </Link>
-             
-             <div className="flex flex-wrap gap-3 mb-6">
-                {project.category && (
-                    <span className={`text-[10px] uppercase tracking-wider px-3 py-1 rounded-full ${
-                        project.category === 'professional' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                        project.category === 'personal' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                        'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                    }`}>
-                        {project.category}
-                    </span>
-                )}
-             </div>
+    <article>
+      <header className="subpage-hero">
+        <div className="site-shell max-w-5xl">
+          <Link className="back-link mb-12" href="/projects">
+            <FaArrowLeft aria-hidden="true" />
+            Back to projects
+          </Link>
+          <p className="eyebrow mb-6">{formatProjectCategory(project.category)}</p>
+          <h1 className="page-title !max-w-[15ch]">{project.title}</h1>
+          <p className="body-large mt-7">{project.summary}</p>
 
-             <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6 text-stone-950 dark:text-stone-50">
-                {project.title}
-             </h1>
-             
-             <p className="text-xl text-stone-600 dark:text-stone-400 leading-relaxed max-w-2xl mb-12">
-                {project.summary}
-             </p>
-
-             {/* SPECS & ACTIONS */}
-             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pt-8 border-t border-stone-200 dark:border-white/10">
-                <div className="space-y-3">
-                     <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest">Technologies</h3>
-                     <div className="flex flex-wrap gap-2">
-                         {project.techStack.map(tech => (
-                             <span key={tech} className="text-xs font-mono px-2 py-1 bg-stone-100 dark:bg-white/5 rounded text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-white/5">
-                                 {tech}
-                             </span>
-                         ))}
-                     </div>
-                </div>
-
-                <div className="flex gap-4">
-                     {project.githubUrl && (
-                        <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-stone-950 text-white dark:bg-white dark:text-stone-950 px-5 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 transition">
-                            <FaGithub size={18} /> Source
-                        </a>
-                     )}
-                     {project.demoUrl && (
-                        <a href={project.demoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-stone-300 dark:border-white/20 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-stone-50 dark:hover:bg-white/5 transition">
-                            <FaExternalLinkAlt size={14} /> Demo
-                        </a>
-                     )}
-                     {project.projectUrl && (
-                        <a href={project.projectUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-[var(--accent)] text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 transition shadow-lg shadow-orange-500/20">
-                            <FaExternalLinkAlt size={14} /> View Project
-                        </a>
-                     )}
-                </div>
-             </div>
-         </div>
-      </section>
-
-      {/* CONTENT */}
-      <section className="py-20">
-        <div className="max-w-3xl mx-auto px-6">
-            <article className="prose prose-stone dark:prose-invert prose-lg max-w-none">
-                <ReactMarkdown>{project.content}</ReactMarkdown>
-            </article>
+          <div className="mt-10 flex flex-col gap-7 border-t site-rule pt-8 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="mb-3 text-xs font-semibold text-[var(--muted)]">Built with</p>
+              <ProjectTechnologyList technologies={project.techStack} />
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {project.githubUrl && (
+                <a className="button-secondary" href={project.githubUrl} rel="noreferrer" target="_blank">
+                  <FaGithub aria-hidden="true" />
+                  Source code
+                </a>
+              )}
+              {liveProjectUrl && (
+                <a className="button-primary" href={liveProjectUrl} rel="noreferrer" target="_blank">
+                  Live project
+                  <FaArrowUpRightFromSquare aria-hidden="true" className="button-external-icon" />
+                </a>
+              )}
+            </div>
+          </div>
         </div>
-      </section>
-    </div>
+      </header>
+
+      <div className="site-shell max-w-5xl py-16 md:py-24">
+        {project.thumbnail && (
+          <div className="relative mb-16 aspect-[16/9] overflow-hidden rounded-[0.75rem] bg-[var(--surface)] md:mb-24">
+            <Image
+              src={project.thumbnail}
+              alt={`${project.title} project preview`}
+              fill
+              unoptimized
+              sizes="(max-width: 767px) calc(100vw - 2rem), 64rem"
+              className="object-cover"
+              priority
+            />
+          </div>
+        )}
+        <div className="prose prose-lg article-prose mx-auto max-w-3xl">
+          <ReactMarkdown>{project.content}</ReactMarkdown>
+        </div>
+      </div>
+    </article>
   );
 }

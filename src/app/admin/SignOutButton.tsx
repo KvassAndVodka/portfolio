@@ -1,19 +1,17 @@
 'use client';
 
 import { logout } from '@/app/actions/auth';
-import { FaSignOutAlt } from 'react-icons/fa';
+import { FaRightFromBracket } from 'react-icons/fa6';
 
 export default function SignOutButton() {
     return (
         <form action={logout}>
             <button 
                 type="submit"
-                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-red-400 hover:bg-stone-100 dark:hover:bg-red-500/10 transition-all group"
+                className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium admin-muted hover:bg-[var(--admin-danger-soft)] hover:text-[var(--admin-danger)]"
             >
-                <span className="text-lg text-stone-400 group-hover:text-red-500 dark:text-stone-500 dark:group-hover:text-red-400 transition-colors">
-                    <FaSignOutAlt /> 
-                </span>
-                Sign Out
+                <FaRightFromBracket className="w-5" aria-hidden="true" />
+                Sign out
             </button>
         </form>
     );

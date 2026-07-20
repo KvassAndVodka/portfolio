@@ -15,15 +15,6 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
     const [history, setHistory] = useState<string[]>([defaultValue]);
     const [historyIndex, setHistoryIndex] = useState(0);
     
-    // Sync with prop changes (e.g. data loaded async)
-    useEffect(() => {
-        if (defaultValue && defaultValue !== content) {
-            setContent(defaultValue);
-            setHistory([defaultValue]);
-            setHistoryIndex(0);
-        }
-    }, [defaultValue]);
-
     const [isPreview, setIsPreview] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
