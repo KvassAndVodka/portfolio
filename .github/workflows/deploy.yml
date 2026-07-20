@@ -12,7 +12,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Verify Production Deployment Target
-        run: node scripts/verify-production-target.mjs
+        run: |
+          if ! grep -qx 'DEPLOY_TARGET=production' deployment.env; then
+            echo "::error::deployment.env must contain DEPLOY_TARGET=production"
+            exit 1
+          fi
+          echo "Production deployment target verified."
 
       - name: Create .env from Secret
         run: |
