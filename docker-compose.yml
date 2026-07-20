@@ -23,9 +23,10 @@ services:
       - TS_AUTHKEY=${TS_AUTHKEY}
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_USERSPACE=false
-      # Match the setting already stored in the persistent Tailscale profile.
-      # Without this, `tailscale up` refuses to start after a container refresh.
-      - TS_EXTRA_ARGS=--accept-dns=false
+      # State is persisted, so authenticate only when the node is not already
+      # logged in. Re-running `tailscale up` can conflict with stored settings.
+      - TS_AUTH_ONCE=true
+      - TS_ACCEPT_DNS=false
     volumes:
       - tailscale_data:/var/lib/tailscale
       - /dev/net/tun:/dev/net/tun

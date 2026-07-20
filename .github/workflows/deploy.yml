@@ -59,7 +59,7 @@ jobs:
           STABLE_CHECKS=0
           for i in $(seq 1 30); do
             if [ "$(docker inspect -f '{{.State.Running}}' tailscale 2>/dev/null)" = "true" ] && \
-               docker exec tailscale test -S /var/run/tailscale/tailscaled.sock 2>/dev/null; then
+               docker exec tailscale tailscale --socket=/tmp/tailscaled.sock status >/dev/null 2>&1; then
               STABLE_CHECKS=$((STABLE_CHECKS+1))
               if [ "$STABLE_CHECKS" -ge 3 ]; then
                 break
@@ -118,7 +118,7 @@ jobs:
             STABLE_CHECKS=0
             for i in $(seq 1 30); do
               if [ "$(docker inspect -f '{{.State.Running}}' tailscale 2>/dev/null)" = "true" ] && \
-                 docker exec tailscale test -S /var/run/tailscale/tailscaled.sock 2>/dev/null; then
+                 docker exec tailscale tailscale --socket=/tmp/tailscaled.sock status >/dev/null 2>&1; then
                 STABLE_CHECKS=$((STABLE_CHECKS+1))
                 if [ "$STABLE_CHECKS" -ge 3 ]; then
                   break
@@ -140,13 +140,13 @@ jobs:
 
             # Re-establish Tailscale Funnel after rollback
             TIMEOUT=30
-            until docker exec tailscale test -S /var/run/tailscale/tailscaled.sock || [ $TIMEOUT -eq 0 ]; do
+            until docker exec tailscale tailscale --socket=/tmp/tailscaled.sock status >/dev/null 2>&1 || [ $TIMEOUT -eq 0 ]; do
               echo "Waiting for tailscale daemon socket... ($TIMEOUT s left)"
               sleep 2
               TIMEOUT=$((TIMEOUT-2))
             done
             sleep 15
-            docker exec tailscale tailscale funnel --bg --https=443 http://localhost:3000
+            docker exec tailscale tailscale --socket=/tmp/tailscaled.sock funnel --bg --https=443 http://localhost:3000
             echo "Tailscale Funnel re-established after rollback."
           else
             echo "::error::No rollback image found! Cannot restore previous version."
@@ -157,7 +157,7 @@ jobs:
         if: success()
         run: |
           TIMEOUT=30
-          until docker exec tailscale test -S /var/run/tailscale/tailscaled.sock || [ $TIMEOUT -eq 0 ]; do
+          until docker exec tailscale tailscale --socket=/tmp/tailscaled.sock status >/dev/null 2>&1 || [ $TIMEOUT -eq 0 ]; do
             echo "Waiting for tailscale daemon socket... ($TIMEOUT s left)"
             sleep 2
             TIMEOUT=$((TIMEOUT-2))
@@ -166,4 +166,4 @@ jobs:
           echo "Waiting 15s for app initialization..."
           sleep 15
 
-          docker exec tailscale tailscale funnel --bg --https=443 http://localhost:3000
+          docker exec tailscale tailscale --socket=/tmp/tailscaled.sock funnel --bg --https=443 http://localhost:3000
