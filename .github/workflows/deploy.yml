@@ -50,8 +50,33 @@ jobs:
 
       - name: Deploy New Containers
         run: |
-          docker compose down --remove-orphans
-          docker compose up -d
+          # Keep long-lived infrastructure in place. Recreating Tailscale and the
+          # web service together can make web join a network namespace whose
+          # owning container is still restarting.
+          docker compose up -d postgres tailscale
+
+          echo "Waiting for the Tailscale network namespace to become stable..."
+          STABLE_CHECKS=0
+          for i in $(seq 1 30); do
+            if [ "$(docker inspect -f '{{.State.Running}}' tailscale 2>/dev/null)" = "true" ] && \
+               docker exec tailscale test -S /var/run/tailscale/tailscaled.sock 2>/dev/null; then
+              STABLE_CHECKS=$((STABLE_CHECKS+1))
+              if [ "$STABLE_CHECKS" -ge 3 ]; then
+                break
+              fi
+            else
+              STABLE_CHECKS=0
+            fi
+            sleep 2
+          done
+
+          if [ "$STABLE_CHECKS" -lt 3 ]; then
+            echo "::error::Tailscale did not reach a stable running state"
+            docker compose logs --tail=100 tailscale
+            exit 1
+          fi
+
+          docker compose up -d --no-deps --force-recreate web
           docker image prune -f
 
       - name: Health Check
@@ -88,8 +113,29 @@ jobs:
           echo "::warning::Deployment failed — rolling back to previous image..."
           if docker image inspect portfolio:rollback >/dev/null 2>&1; then
             docker tag portfolio:rollback portfolio:latest
-            docker compose down --remove-orphans
-            docker compose up -d
+            docker compose up -d postgres tailscale
+
+            STABLE_CHECKS=0
+            for i in $(seq 1 30); do
+              if [ "$(docker inspect -f '{{.State.Running}}' tailscale 2>/dev/null)" = "true" ] && \
+                 docker exec tailscale test -S /var/run/tailscale/tailscaled.sock 2>/dev/null; then
+                STABLE_CHECKS=$((STABLE_CHECKS+1))
+                if [ "$STABLE_CHECKS" -ge 3 ]; then
+                  break
+                fi
+              else
+                STABLE_CHECKS=0
+              fi
+              sleep 2
+            done
+
+            if [ "$STABLE_CHECKS" -lt 3 ]; then
+              echo "::error::Tailscale did not stabilize during rollback"
+              docker compose logs --tail=100 tailscale
+              exit 1
+            fi
+
+            docker compose up -d --no-deps --force-recreate web
             echo "Rollback complete. Previous version restored."
 
             # Re-establish Tailscale Funnel after rollback
