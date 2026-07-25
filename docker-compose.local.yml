@@ -23,7 +23,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: runner
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
@@ -40,24 +39,7 @@ services:
       CONTACT_TO_EMAIL: ${CONTACT_TO_EMAIL}
       CONTACT_FROM_EMAIL: ${CONTACT_FROM_EMAIL}
     ports:
-      - "3001:3000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      migrator:
-        condition: service_completed_successfully
-
-  migrator:
-    container_name: portfolio_local_migrator
-    image: portfolio-local-migrator
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: migrator
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
-      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
+      - "3000:3000"
     depends_on:
       postgres:
         condition: service_healthy
