@@ -41,6 +41,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runner
     restart: always
     environment:
       - DATABASE_URL=${DATABASE_URL}
@@ -63,7 +64,24 @@ services:
         condition: service_healthy
       tailscale:
         condition: service_started
+      migrator:
+        condition: service_completed_successfully
     network_mode: service:tailscale
+
+  migrator:
+    container_name: portfolio_migrator
+    image: portfolio-migrator
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:

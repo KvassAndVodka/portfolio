@@ -67,3 +67,4 @@ Your public URL will be `https://portfolio.<your-tailnet>.ts.net`.
 -   **View Logs**: `docker logs -f portfolio_web`
 -   **Restart**: `docker compose restart web`
 -   **Check Database**: `docker exec -it portfolio_db psql -U postgres -d portfolio`
+-   **Seed Database**: `docker compose run --rm migrator db seed`

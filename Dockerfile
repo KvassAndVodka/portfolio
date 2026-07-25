@@ -1,10 +1,10 @@
 # Base Image
 FROM node:22-alpine AS base
+RUN apk add --no-cache libc6-compat openssl
+WORKDIR /app
 
 # 1. Dependencies Stage
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
@@ -15,14 +15,11 @@ RUN \
 
 # 2. Builder Stage
 FROM base AS builder
-WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Generate Prisma Client
-COPY prisma ./prisma
-COPY prisma.config.ts ./
 RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
 
 RUN \
@@ -32,36 +29,39 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
-# Runner
+# 3. Runner Target (the web runtime)
 FROM base AS runner
-WORKDIR /app
-
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
-RUN apk add --no-cache openssl
 
-# 1. Copy public and .next metadata
+# Copy assets and standalone metadata
 COPY --from=builder /app/public ./public
 RUN mkdir .next && chown nextjs:nodejs .next
 
-# 2. Copy the standalone build
+# Copy Next.js standalone build
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# 3. FIX: Copy ALL node_modules from the builder stage 
-# This ensures Prisma, engines, and .wasm files are all in the correct paths
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-
-# 4. Copy schema and entrypoint
-COPY --chown=nextjs:nodejs prisma ./prisma
-COPY --chown=nextjs:nodejs prisma.config.ts ./
-COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
-
 USER nextjs
 EXPOSE 3000
-ENTRYPOINT ["./docker-entrypoint.sh"]
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+CMD ["node", "server.js"]
+
+# 4. Migrator Target (one-shot database tool)
+FROM base AS migrator
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+
+# Generate target platform query engine binary for migrator
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
+
+ENTRYPOINT ["npx", "prisma"]
+CMD ["migrate", "deploy"]
