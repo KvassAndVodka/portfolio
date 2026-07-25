@@ -55,15 +55,6 @@ jobs:
           # owning container is still restarting.
           docker compose up -d postgres tailscale
 
-          echo "Waiting for PostgreSQL database to become healthy..."
-          for i in $(seq 1 30); do
-            if [ "$(docker inspect -f '{{.State.Health.Status}}' portfolio_db 2>/dev/null)" = "healthy" ]; then
-              echo "PostgreSQL is healthy!"
-              break
-            fi
-            sleep 1
-          done
-
           echo "Waiting for the Tailscale network namespace to become stable..."
           STABLE_CHECKS=0
           for i in $(seq 1 30); do
@@ -85,10 +76,6 @@ jobs:
             exit 1
           fi
 
-          echo "Running database migrations..."
-          docker compose run --rm --no-deps migrator
-
-          echo "Deploying new web container..."
           docker compose up -d --no-deps --force-recreate web
           docker image prune -f
 
@@ -118,16 +105,6 @@ jobs:
           if [ "$SUCCESS" = "false" ]; then
             echo "::error::Health check failed after $RETRIES attempts"
             exit 1
-          fi
-
-      - name: Clean Up Migrator Image
-        if: success()
-        run: |
-          echo "Cleaning up migrator container and image..."
-          MIGRATOR_IMAGE_ID="$(docker compose images -q migrator)"
-          docker compose rm -f migrator
-          if [ -n "$MIGRATOR_IMAGE_ID" ]; then
-            docker image rm "$MIGRATOR_IMAGE_ID" || true
           fi
 
       - name: Rollback on Failure
