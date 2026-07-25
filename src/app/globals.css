@@ -627,8 +627,6 @@ button {
   inset: 0;
   width: 100%;
   height: 100%;
-  opacity: 0;
-  animation: field-enter 900ms 80ms var(--ease-out-expo) forwards;
   touch-action: manipulation;
 }
 
@@ -665,8 +663,6 @@ button {
   font-size: clamp(1rem, 1.4vw, 1.15rem);
   font-weight: 520;
   letter-spacing: -0.015em;
-  opacity: 0;
-  animation: hero-fade 650ms 150ms var(--ease-out-expo) forwards;
 }
 
 .hero-kicker strong {
@@ -686,13 +682,7 @@ button {
 
 .kinetic-line > span {
   display: block;
-  transform: translateY(110%) rotate(1.5deg);
   transform-origin: left bottom;
-  animation: hero-line-enter 820ms 210ms var(--ease-out-expo) forwards;
-}
-
-.kinetic-line:nth-child(2) > span {
-  animation-delay: 320ms;
 }
 
 .kinetic-line-accent {
@@ -701,8 +691,6 @@ button {
 
 .hero-summary {
   margin-top: 1.75rem;
-  opacity: 0;
-  animation: hero-fade 700ms 430ms var(--ease-out-expo) forwards;
 }
 
 .hero-actions {
@@ -710,8 +698,6 @@ button {
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-top: 2rem;
-  opacity: 0;
-  animation: hero-fade 700ms 520ms var(--ease-out-expo) forwards;
 }
 
 .hero-actions .button-primary,
@@ -740,9 +726,6 @@ button {
   position: relative;
   grid-column: span 5;
   padding: 0 1rem 1rem 0;
-  opacity: 0;
-  transform: translate3d(2rem, 0, 0) rotate(1.6deg);
-  animation: portrait-enter 900ms 300ms var(--ease-out-expo) forwards;
   pointer-events: auto;
 }
 
@@ -772,6 +755,43 @@ button {
 .portrait-stage:hover .hero-portrait img {
   filter: saturate(1.08) contrast(1.04);
   transform: scale(1.035);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-field-canvas {
+    opacity: 0;
+    animation: field-enter 900ms 80ms var(--ease-out-expo) forwards;
+  }
+
+  .hero-kicker {
+    opacity: 0;
+    animation: hero-fade 650ms 150ms var(--ease-out-expo) forwards;
+  }
+
+  .kinetic-line > span {
+    transform: translateY(110%) rotate(1.5deg);
+    animation: hero-line-enter 820ms 210ms var(--ease-out-expo) forwards;
+  }
+
+  .kinetic-line:nth-child(2) > span {
+    animation-delay: 320ms;
+  }
+
+  .hero-summary {
+    opacity: 0;
+    animation: hero-fade 700ms 430ms var(--ease-out-expo) forwards;
+  }
+
+  .hero-actions {
+    opacity: 0;
+    animation: hero-fade 700ms 520ms var(--ease-out-expo) forwards;
+  }
+
+  .portrait-stage {
+    opacity: 0;
+    transform: translate3d(2rem, 0, 0) rotate(1.6deg);
+    animation: portrait-enter 900ms 300ms var(--ease-out-expo) forwards;
+  }
 }
 
 .proof-band {
