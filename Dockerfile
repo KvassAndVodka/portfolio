@@ -1,67 +1,56 @@
-# Base Image
-FROM node:22-alpine AS base
+# syntax=docker/dockerfile:1
 
-# 1. Dependencies Stage
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
-RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
+FROM node:22-bookworm-slim AS base
 
-# 2. Builder Stage
-FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Generate Prisma Client
-COPY prisma ./prisma
-COPY prisma.config.ts ./
-RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates openssl \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN \
-  if [ -f yarn.lock ]; then yarn run build; \
-  elif [ -f package-lock.json ]; then npm run build; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
+FROM base AS deps
 
-# Runner
-FROM base AS runner
-WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+FROM base AS migrator
 
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV PATH="/app/node_modules/.bin:${PATH}"
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-RUN apk add --no-cache openssl
+COPY --from=deps /app/node_modules ./node_modules
+COPY --chown=node:node package.json package-lock.json prisma.config.ts tsconfig.json ./
+COPY --chown=node:node prisma ./prisma
 
-# 1. Copy public and .next metadata
-COPY --from=builder /app/public ./public
-RUN mkdir .next && chown nextjs:nodejs .next
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
+  ./node_modules/.bin/prisma generate
 
-# 2. Copy the standalone build
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+USER node
 
-# 3. FIX: Copy ALL node_modules from the builder stage 
-# This ensures Prisma, engines, and .wasm files are all in the correct paths
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+ENTRYPOINT ["prisma"]
+CMD ["migrate", "deploy"]
 
-# 4. Copy schema and entrypoint
-COPY --chown=nextjs:nodejs prisma ./prisma
-COPY --chown=nextjs:nodejs prisma.config.ts ./
-COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
+FROM base AS builder
 
-USER nextjs
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
+  ./node_modules/.bin/prisma generate
+RUN npm run build
+
+FROM base AS runner
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+COPY --from=builder --chown=node:node /app/public ./public
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+
+USER node
 EXPOSE 3000
-ENTRYPOINT ["./docker-entrypoint.sh"]
+
+CMD ["node", "server.js"]

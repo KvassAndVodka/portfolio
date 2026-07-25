@@ -48,12 +48,28 @@ nano .env
 > **IMPORTANT**: Fill in `DATABASE_URL`, `ADMIN_EMAIL`, `TS_AUTHKEY`, your OAuth/Auth secrets, `ANALYTICS_HASH_SECRET`, and the Resend variables used by the contact form (`RESEND_API_KEY`, `CONTACT_TO_EMAIL`, and `CONTACT_FROM_EMAIL`).
 
 ## 5. Launch
-Start the containers. The initial build might take a few minutes.
+Build the web runtime and migrator. Apply migrations before replacing the web
+container:
 
 ```bash
-docker compose up -d --build
+docker compose build web migrator
+docker compose up -d postgres tailscale
+docker compose run --rm migrator
+docker compose up -d --no-deps web
 ```
-> Note: We use `docker-compose.yml` which is already configured for production.
+
+The web image contains only the Next.js standalone runtime. Prisma CLI and
+`tsx` are available only in the one-shot migrator image.
+
+Database seeding is never performed during web startup. Run it explicitly when
+you intend to create the configured admin user or seed other repository content:
+
+```bash
+docker compose run --rm --build migrator db seed
+```
+
+Application rollback does not reverse database migrations. Keep production
+migrations backward-compatible with the previously deployed application.
 
 ## 6. Public Access (Tailscale Funnel)
 To expose your site to the public internet:
@@ -67,3 +83,5 @@ Your public URL will be `https://portfolio.<your-tailnet>.ts.net`.
 -   **View Logs**: `docker logs -f portfolio_web`
 -   **Restart**: `docker compose restart web`
 -   **Check Database**: `docker exec -it portfolio_db psql -U postgres -d portfolio`
+-   **Run Migrations**: `docker compose run --rm --build migrator`
+-   **Seed Explicitly**: `docker compose run --rm --build migrator db seed`

@@ -8,7 +8,7 @@ const projectRoot = resolve(import.meta.dirname, "..");
 const targetFile = resolve(projectRoot, "deployment.env");
 const localEnvironmentFile = resolve(projectRoot, ".env.local.deploy");
 const productionEnvironmentFile = resolve(projectRoot, ".env");
-const supportedCommands = new Set(["up", "down", "restart", "logs", "ps", "config"]);
+const supportedCommands = new Set(["up", "down", "restart", "logs", "ps", "config", "seed"]);
 
 function readDeploymentTarget() {
   const match = readFileSync(targetFile, "utf8").match(/^DEPLOY_TARGET=(local|production)$/m);
@@ -99,6 +99,7 @@ function composeArguments(command, composeFile, environmentFile) {
   if (command === "restart") return [...base, "restart"];
   if (command === "logs") return [...base, "logs", "-f", "web"];
   if (command === "config") return [...base, "config", "--quiet"];
+  if (command === "seed") return [...base, "run", "--rm", "--build", "migrator", "db", "seed"];
   return [...base, command];
 }
 

@@ -13,6 +13,7 @@
     "deploy:down": "node scripts/deployment.mjs down",
     "deploy:logs": "node scripts/deployment.mjs logs",
     "deploy:status": "node scripts/deployment.mjs ps",
+    "deploy:seed": "node scripts/deployment.mjs seed",
     "deploy:verify-production": "node scripts/verify-production-target.mjs",
     "local:seed": "node scripts/local-content.mjs seed",
     "local:clear": "node scripts/local-content.mjs clear",

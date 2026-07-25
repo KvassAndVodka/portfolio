@@ -1,0 +1,150 @@
+name: Validate Docker Runtime
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/docker-validate.yml"
+      - ".github/workflows/deploy.yml"
+      - ".dockerignore"
+      - "Dockerfile"
+      - "docker-compose.yml"
+      - "docker-compose.local.yml"
+      - "next.config.*"
+      - "package.json"
+      - "package-lock.json"
+      - "prisma/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: portfolio-test
+      POSTGRES_DB: portfolio
+      DATABASE_URL: postgresql://postgres:portfolio-test@portfolio-runtime-ci-db:5432/portfolio
+      ADMIN_EMAIL: ci@example.com
+      ADMIN_PASSWORD_HASH: ci-password-hash
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci-nextauth-secret
+      AUTH_SECRET: ci-auth-secret
+      ANALYTICS_HASH_SECRET: ci-analytics-secret
+      AUTH_GITHUB_ID: ci-github-id
+      AUTH_GITHUB_SECRET: ci-github-secret
+      RESEND_API_KEY: ""
+      CONTACT_TO_EMAIL: ci@example.com
+      CONTACT_FROM_EMAIL: Portfolio CI <ci@example.com>
+      TS_AUTHKEY: ci-unused
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate Compose Configuration
+        run: |
+          docker compose config --quiet
+          docker compose -f docker-compose.local.yml config --quiet
+
+      - name: Build Runtime Images
+        run: |
+          docker build --target runner -t portfolio-runtime:ci .
+          docker build --target migrator -t portfolio-migrator:ci .
+
+      - name: Enforce Runtime Boundary
+        run: |
+          RUNTIME_SIZE="$(docker save portfolio-runtime:ci | gzip -c | wc -c)"
+          MAX_SIZE="$((250 * 1024 * 1024))"
+          echo "Compressed runtime archive: $RUNTIME_SIZE bytes"
+
+          if [ "$RUNTIME_SIZE" -ge "$MAX_SIZE" ]; then
+            echo "::error::Compressed runtime archive must remain smaller than 250 MiB"
+            exit 1
+          fi
+
+          docker run --rm --entrypoint sh portfolio-runtime:ci \
+            -c 'test ! -x ./node_modules/.bin/prisma && test ! -x ./node_modules/.bin/tsx'
+
+      - name: Test Migrations, Seeding, and Startup
+        run: |
+          set -euo pipefail
+
+          docker network create portfolio-runtime-ci
+          docker run -d \
+            --name portfolio-runtime-ci-db \
+            --network portfolio-runtime-ci \
+            -e POSTGRES_PASSWORD \
+            -e POSTGRES_DB \
+            postgres:15-alpine
+
+          DATABASE_READY=false
+          for i in $(seq 1 30); do
+            if docker exec portfolio-runtime-ci-db pg_isready -U postgres -d portfolio >/dev/null 2>&1; then
+              DATABASE_READY=true
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$DATABASE_READY" = "false" ]; then
+            docker logs portfolio-runtime-ci-db
+            exit 1
+          fi
+
+          docker run --rm \
+            --network portfolio-runtime-ci \
+            -e DATABASE_URL \
+            portfolio-migrator:ci
+
+          docker run --rm \
+            --network portfolio-runtime-ci \
+            -e DATABASE_URL \
+            -e ADMIN_EMAIL \
+            -e ADMIN_PASSWORD_HASH \
+            portfolio-migrator:ci db seed
+
+          USER_COUNT="$(docker exec portfolio-runtime-ci-db \
+            psql -U postgres -d portfolio -tAc \
+            "SELECT COUNT(*) FROM \"User\" WHERE email = 'ci@example.com';")"
+          test "$USER_COUNT" = "1"
+
+          docker run -d \
+            --name portfolio-runtime-ci-web \
+            --network portfolio-runtime-ci \
+            -e DATABASE_URL \
+            -e ADMIN_EMAIL \
+            -e NEXTAUTH_URL \
+            -e NEXTAUTH_SECRET \
+            -e AUTH_SECRET \
+            -e ANALYTICS_HASH_SECRET \
+            portfolio-runtime:ci
+
+          WEB_READY=false
+          for i in $(seq 1 30); do
+            if docker exec portfolio-runtime-ci-web node -e \
+              "fetch('http://127.0.0.1:3000').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"; then
+              WEB_READY=true
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$WEB_READY" = "false" ]; then
+            docker logs portfolio-runtime-ci-web
+            exit 1
+          fi
+
+          test "$(docker inspect -f '{{.Config.User}}' portfolio-runtime-ci-web)" = "node"
+
+      - name: Clean Up Test Resources
+        if: always()
+        run: |
+          docker rm -f portfolio-runtime-ci-web portfolio-runtime-ci-db >/dev/null 2>&1 || true
+          docker network rm portfolio-runtime-ci >/dev/null 2>&1 || true
