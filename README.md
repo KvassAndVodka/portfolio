@@ -21,7 +21,7 @@ A self-hosted personal portfolio and blog platform built with Next.js 16, featur
 | Styling | Tailwind CSS 4 |
 | Auth | NextAuth.js v5 |
 | Deployment | Docker + Docker Compose |
-| Networking | Tailscale (optional) |
+| Networking | Cloudflare Tunnel |
 
 ## Getting Started
 
@@ -78,6 +78,14 @@ npm run deploy:up
 
 The first launch generates a gitignored `.env.local.deploy` containing random PostgreSQL, Auth.js, and admin credentials. The command prints the local URLs and admin login. The site is available at `http://localhost:3000` and at port 3000 on your LAN address.
 
+Database migrations run before the web container starts. Seeding is intentionally
+separate; run it once after a fresh deployment to create the configured admin
+account:
+
+```bash
+npm run deploy:seed
+```
+
 Useful commands:
 
 ```bash
@@ -121,7 +129,7 @@ This project is designed for self-hosting on servers like Proxmox LXC containers
 
 See **[DEPLOY.md](./DEPLOY.md)** for detailed deployment instructions including:
 - Docker Compose setup
-- Tailscale Funnel for public access
+- Cloudflare Tunnel for production ingress
 - Production environment configuration
 
 ### Quick Deploy
@@ -133,8 +141,12 @@ See **[DEPLOY.md](./DEPLOY.md)** for detailed deployment instructions including:
 # Transfer to server
 scp portfolio-deploy.tar.gz user@server:~/
 
-# On server: unpack and launch
-docker compose up -d --build
+# On server: unpack, migrate, and launch
+docker compose build web migrator
+docker compose up -d postgres
+docker compose run --rm migrator
+docker compose up -d --no-deps web
+docker compose up -d --no-deps cloudflared
 ```
 
 ## Project Structure
