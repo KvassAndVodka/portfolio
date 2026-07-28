@@ -190,7 +190,8 @@ jobs:
 
           for i in $(seq 1 30); do
             echo "Public health check attempt $i/30..."
-            if curl --fail --silent --show-error --location --head \
+            if curl --fail --silent --show-error --proto '=https' \
+              --proto-redir '=https' --location --head \
               --max-time 15 https://portfolio.jmraut.dev >/dev/null; then
               PUBLIC_READY=true
               break
