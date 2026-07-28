@@ -8,7 +8,6 @@ const projectRoot = resolve(import.meta.dirname, "..");
 const targetFile = resolve(projectRoot, "deployment.env");
 const localEnvironmentFile = resolve(projectRoot, ".env.local.deploy");
 const productionEnvironmentFile = resolve(projectRoot, ".env");
-const supportedCommands = new Set(["up", "down", "restart", "logs", "ps", "config", "seed"]);
 
 function readDeploymentTarget() {
   const match = readFileSync(targetFile, "utf8").match(/^DEPLOY_TARGET=(local|production)$/m);
@@ -94,20 +93,29 @@ function printLocalAccess() {
 
 function composeArguments(command, composeFile, environmentFile) {
   const base = ["compose", "--env-file", environmentFile, "-f", composeFile];
-  if (command === "up") return [...base, "up", "-d", "--build"];
-  if (command === "down") return [...base, "down", "--remove-orphans"];
-  if (command === "restart") return [...base, "restart"];
-  if (command === "logs") return [...base, "logs", "-f", "web"];
-  if (command === "config") return [...base, "config", "--quiet"];
-  if (command === "seed") return [...base, "run", "--rm", "--build", "migrator", "db", "seed"];
-  return [...base, command];
+
+  switch (command) {
+    case "up":
+      return [...base, "up", "-d", "--build"];
+    case "down":
+      return [...base, "down", "--remove-orphans"];
+    case "restart":
+      return [...base, "restart"];
+    case "logs":
+      return [...base, "logs", "-f", "web"];
+    case "ps":
+      return [...base, "ps"];
+    case "config":
+      return [...base, "config", "--quiet"];
+    case "seed":
+      return [...base, "run", "--rm", "--build", "migrator", "db", "seed",];
+    default:
+      throw new Error(`Unsupported deployment command: ${command}`);
+  }
 }
 
 async function main() {
   const command = process.argv[2] ?? "up";
-  if (!supportedCommands.has(command)) {
-    throw new Error(`Unsupported deployment command: ${command}`);
-  }
 
   const target = readDeploymentTarget();
   const isLocal = target === "local";
@@ -125,6 +133,7 @@ async function main() {
   const result = spawnSync("docker", composeArguments(command, composeFile, environmentFile), {
     cwd: projectRoot,
     stdio: "inherit",
+    shell: false,
   });
 
   if (result.error) throw result.error;
