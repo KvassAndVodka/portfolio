@@ -15,26 +15,6 @@ services:
       timeout: 5s
       retries: 5
 
-  tailscale:
-    image: tailscale/tailscale:latest
-    container_name: tailscale
-    hostname: portfolio
-    environment:
-      - TS_AUTHKEY=${TS_AUTHKEY}
-      - TS_STATE_DIR=/var/lib/tailscale
-      - TS_USERSPACE=false
-      # State is persisted, so authenticate only when the node is not already
-      # logged in. Re-running `tailscale up` can conflict with stored settings.
-      - TS_AUTH_ONCE=true
-      - TS_ACCEPT_DNS=false
-    volumes:
-      - tailscale_data:/var/lib/tailscale
-      - /dev/net/tun:/dev/net/tun
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    restart: always
-
   web:
     container_name: portfolio_web
     image: portfolio
@@ -46,6 +26,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - AUTH_URL=${AUTH_URL}
       - NEXTAUTH_URL=${NEXTAUTH_URL}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - AUTH_SECRET=${AUTH_SECRET}
@@ -60,11 +41,31 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      tailscale:
-        condition: service_started
       migrator:
         condition: service_completed_successfully
-    network_mode: service:tailscale
+    expose:
+      - "3000"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:3000').then((response)=>process.exit(response.status<400?0:1)).catch(()=>process.exit(1))
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  cloudflared:
+    image: cloudflare/cloudflared@sha256:e39ee8da81ad5e05d77f38d2f51c60ca51bf2a8450ac3abab50c17fdb91d91bf
+    container_name: portfolio_cloudflared
+    restart: always
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      web:
+        condition: service_healthy
 
   migrator:
     container_name: portfolio_migrator
@@ -83,4 +84,3 @@ services:
 
 volumes:
   postgres_data:
-  tailscale_data:

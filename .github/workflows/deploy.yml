@@ -30,6 +30,23 @@ jobs:
           ${{ secrets.PORTFOLIO_ENV }}
           EOF
 
+      - name: Verify Cloudflare Production Configuration
+        run: |
+          if ! grep -Eq '^CLOUDFLARE_TUNNEL_TOKEN=.+$' .env; then
+            echo "::error::PORTFOLIO_ENV must contain CLOUDFLARE_TUNNEL_TOKEN"
+            exit 1
+          fi
+
+          if ! grep -qx 'AUTH_URL=https://portfolio.jmraut.dev' .env; then
+            echo "::error::AUTH_URL must be https://portfolio.jmraut.dev"
+            exit 1
+          fi
+
+          if ! grep -qx 'NEXTAUTH_URL=https://portfolio.jmraut.dev' .env; then
+            echo "::error::NEXTAUTH_URL must be https://portfolio.jmraut.dev"
+            exit 1
+          fi
+
       - name: Clean Docker Build Cache
         run: |
           echo "Pruning Docker build cache (keeping up to 1GB)..."
@@ -55,10 +72,7 @@ jobs:
       - name: Deploy New Containers
         id: deploy
         run: |
-          # Keep long-lived infrastructure in place. Recreating Tailscale and the
-          # web service together can make web join a network namespace whose
-          # owning container is still restarting.
-          docker compose up -d postgres tailscale
+          docker compose up -d postgres
 
           echo "Waiting for PostgreSQL to become healthy..."
           POSTGRES_READY=false
@@ -76,27 +90,6 @@ jobs:
             exit 1
           fi
 
-          echo "Waiting for the Tailscale network namespace to become stable..."
-          STABLE_CHECKS=0
-          for i in $(seq 1 30); do
-            if [ "$(docker inspect -f '{{.State.Running}}' tailscale 2>/dev/null)" = "true" ] && \
-               docker exec tailscale tailscale --socket=/tmp/tailscaled.sock status >/dev/null 2>&1; then
-              STABLE_CHECKS=$((STABLE_CHECKS+1))
-              if [ "$STABLE_CHECKS" -ge 3 ]; then
-                break
-              fi
-            else
-              STABLE_CHECKS=0
-            fi
-            sleep 2
-          done
-
-          if [ "$STABLE_CHECKS" -lt 3 ]; then
-            echo "::error::Tailscale did not reach a stable running state"
-            docker compose logs --tail=100 tailscale
-            exit 1
-          fi
-
           echo "Applying database migrations..."
           docker compose run --rm --no-deps migrator
 
@@ -110,24 +103,21 @@ jobs:
         id: healthcheck
         run: |
           echo "Waiting for app to initialize..."
-          RETRIES=15
-          DELAY=5
-          SUCCESS=false
+          WEB_HEALTHY=false
 
-          for i in $(seq 1 $RETRIES); do
-            echo "Health check attempt $i/$RETRIES..."
-            if docker exec portfolio_web node -e \
-              "fetch('http://127.0.0.1:3000').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"; then
+          for i in $(seq 1 30); do
+            echo "Health check attempt $i/30..."
+            if [ "$(docker inspect -f '{{.State.Health.Status}}' portfolio_web 2>/dev/null)" = "healthy" ]; then
               echo "App is healthy!"
-              SUCCESS=true
+              WEB_HEALTHY=true
               break
             fi
-            echo "Not ready yet, retrying in ${DELAY}s..."
-            sleep $DELAY
+            sleep 5
           done
 
-          if [ "$SUCCESS" = "false" ]; then
-            echo "::error::Health check failed after $RETRIES attempts"
+          if [ "$WEB_HEALTHY" = "false" ]; then
+            echo "::error::Web container did not become healthy"
+            docker compose logs --tail=100 web
             exit 1
           fi
 
@@ -137,60 +127,96 @@ jobs:
           echo "::warning::Deployment failed — rolling back to previous image..."
           if docker image inspect portfolio:rollback >/dev/null 2>&1; then
             docker tag portfolio:rollback portfolio:latest
-            docker compose up -d postgres tailscale
+            docker compose up -d --no-deps --force-recreate web
 
-            STABLE_CHECKS=0
+            WEB_HEALTHY=false
             for i in $(seq 1 30); do
-              if [ "$(docker inspect -f '{{.State.Running}}' tailscale 2>/dev/null)" = "true" ] && \
-                 docker exec tailscale tailscale --socket=/tmp/tailscaled.sock status >/dev/null 2>&1; then
-                STABLE_CHECKS=$((STABLE_CHECKS+1))
-                if [ "$STABLE_CHECKS" -ge 3 ]; then
-                  break
-                fi
-              else
-                STABLE_CHECKS=0
+              if [ "$(docker inspect -f '{{.State.Health.Status}}' portfolio_web 2>/dev/null)" = "healthy" ]; then
+                WEB_HEALTHY=true
+                break
               fi
-              sleep 2
+              sleep 5
             done
 
-            if [ "$STABLE_CHECKS" -lt 3 ]; then
-              echo "::error::Tailscale did not stabilize during rollback"
-              docker compose logs --tail=100 tailscale
+            if [ "$WEB_HEALTHY" = "false" ]; then
+              echo "::error::Rolled-back web container did not become healthy"
+              docker compose logs --tail=100 web
               exit 1
             fi
 
-            docker compose up -d --no-deps --force-recreate web
-            echo "Rollback complete. Previous version restored."
-
-            # Re-establish Tailscale Funnel after rollback
-            TIMEOUT=30
-            until docker exec tailscale tailscale --socket=/tmp/tailscaled.sock status >/dev/null 2>&1 || [ $TIMEOUT -eq 0 ]; do
-              echo "Waiting for tailscale daemon socket... ($TIMEOUT s left)"
-              sleep 2
-              TIMEOUT=$((TIMEOUT-2))
-            done
-            sleep 15
-            docker exec tailscale tailscale --socket=/tmp/tailscaled.sock funnel --bg --https=443 http://localhost:3000
-            echo "Tailscale Funnel re-established after rollback."
+            echo "Rollback complete. Previous version restored and healthy."
           else
             echo "::error::No rollback image found! Cannot restore previous version."
             exit 1
           fi
 
-      - name: Ensure Tailscale Funnel is Up
+      - name: Start Cloudflare Tunnel
         if: success()
         run: |
-          TIMEOUT=30
-          until docker exec tailscale tailscale --socket=/tmp/tailscaled.sock status >/dev/null 2>&1 || [ $TIMEOUT -eq 0 ]; do
-            echo "Waiting for tailscale daemon socket... ($TIMEOUT s left)"
+          docker compose up -d --no-deps cloudflared
+
+          CONNECTOR_STABLE=false
+          STABLE_CHECKS=0
+          LAST_RESTART_COUNT=""
+
+          for i in $(seq 1 30); do
+            RUNNING="$(docker inspect -f '{{.State.Running}}' portfolio_cloudflared 2>/dev/null || true)"
+            RESTART_COUNT="$(docker inspect -f '{{.RestartCount}}' portfolio_cloudflared 2>/dev/null || true)"
+
+            if [ "$RUNNING" = "true" ] && { [ -z "$LAST_RESTART_COUNT" ] || [ "$RESTART_COUNT" = "$LAST_RESTART_COUNT" ]; }; then
+              STABLE_CHECKS=$((STABLE_CHECKS+1))
+              if [ "$STABLE_CHECKS" -ge 3 ]; then
+                CONNECTOR_STABLE=true
+                break
+              fi
+            else
+              STABLE_CHECKS=0
+            fi
+
+            LAST_RESTART_COUNT="$RESTART_COUNT"
             sleep 2
-            TIMEOUT=$((TIMEOUT-2))
           done
 
-          echo "Waiting 15s for app initialization..."
-          sleep 15
+          if [ "$CONNECTOR_STABLE" = "false" ]; then
+            echo "::error::Cloudflare Tunnel connector did not remain stable"
+            docker compose logs --tail=100 cloudflared
+            exit 1
+          fi
 
-          docker exec tailscale tailscale --socket=/tmp/tailscaled.sock funnel --bg --https=443 http://localhost:3000
+      - name: Verify Public Cloudflare Route
+        if: success()
+        run: |
+          PUBLIC_READY=false
+
+          for i in $(seq 1 30); do
+            echo "Public health check attempt $i/30..."
+            if curl --fail --silent --show-error --location --head \
+              --max-time 15 https://portfolio.jmraut.dev >/dev/null; then
+              PUBLIC_READY=true
+              break
+            fi
+            sleep 5
+          done
+
+          if [ "$PUBLIC_READY" = "false" ]; then
+            echo "::error::Cloudflare public route did not become healthy"
+            docker compose logs --tail=100 cloudflared
+            exit 1
+          fi
+
+      - name: Retire Tailscale Funnel Container
+        if: success()
+        run: |
+          if docker container inspect tailscale >/dev/null 2>&1; then
+            docker exec tailscale tailscale --socket=/tmp/tailscaled.sock funnel reset >/dev/null 2>&1 || true
+            docker rm -f tailscale
+            echo "Removed the retired Tailscale Funnel container."
+          fi
+
+          if docker volume inspect portfolio_tailscale_data >/dev/null 2>&1; then
+            docker volume rm portfolio_tailscale_data
+            echo "Removed the retired Tailscale state volume."
+          fi
 
       - name: Clean Up Migrator Image
         if: always()

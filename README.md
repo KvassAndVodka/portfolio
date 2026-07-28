@@ -21,7 +21,7 @@ A self-hosted personal portfolio and blog platform built with Next.js 16, featur
 | Styling | Tailwind CSS 4 |
 | Auth | NextAuth.js v5 |
 | Deployment | Docker + Docker Compose |
-| Networking | Tailscale (optional) |
+| Networking | Cloudflare Tunnel |
 
 ## Getting Started
 
@@ -129,7 +129,7 @@ This project is designed for self-hosting on servers like Proxmox LXC containers
 
 See **[DEPLOY.md](./DEPLOY.md)** for detailed deployment instructions including:
 - Docker Compose setup
-- Tailscale Funnel for public access
+- Cloudflare Tunnel for production ingress
 - Production environment configuration
 
 ### Quick Deploy
@@ -143,9 +143,10 @@ scp portfolio-deploy.tar.gz user@server:~/
 
 # On server: unpack, migrate, and launch
 docker compose build web migrator
-docker compose up -d postgres tailscale
+docker compose up -d postgres
 docker compose run --rm migrator
 docker compose up -d --no-deps web
+docker compose up -d --no-deps cloudflared
 ```
 
 ## Project Structure
