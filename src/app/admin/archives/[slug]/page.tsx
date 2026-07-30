@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default async function LegacyNotePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function LegacyNotePage({ params }: Readonly<{ params: Promise<{ slug: string }> }>) {
   const { slug } = await params;
   redirect(`/admin/notes/${slug}`);
 }

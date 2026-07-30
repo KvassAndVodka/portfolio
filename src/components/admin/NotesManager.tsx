@@ -18,7 +18,12 @@ interface NoteItem {
   updatedAt: Date | string;
 }
 
-export default function NotesManager({ notes, initialStatus }: { notes: NoteItem[]; initialStatus?: string }) {
+type NotesManagerProps = Readonly<{
+  notes: NoteItem[];
+  initialStatus?: string;
+}>;
+
+export default function NotesManager({ notes, initialStatus }: NotesManagerProps) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState(initialStatus || "ALL");
   const filtered = useMemo(() => notes.filter((note) => {

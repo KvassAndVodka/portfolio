@@ -1,15 +1,15 @@
 import { FaArrowDown, FaArrowUp, FaMinus } from "react-icons/fa6";
 
-interface StatsProps {
+type StatsProps = Readonly<{
   days: number;
   views: number;
   visitors: number;
   contactSubmissions: number;
   viewsChange: number;
   visitorsChange: number;
-}
+}>;
 
-function Change({ value }: { value: number }) {
+function Change({ value }: Readonly<{ value: number }>) {
   const Icon = value > 0 ? FaArrowUp : value < 0 ? FaArrowDown : FaMinus;
   return (
     <span className="inline-flex items-center gap-1 text-xs admin-muted">

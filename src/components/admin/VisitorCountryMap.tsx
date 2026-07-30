@@ -61,7 +61,7 @@ function visitorFill(visitors: number, maximum: number) {
   return "var(--admin-map-level-4)";
 }
 
-export default function VisitorCountryMap({ countries }: { countries: CountryStat[] }) {
+export default function VisitorCountryMap({ countries }: Readonly<{ countries: CountryStat[] }>) {
   const maximumVisitors = Math.max(...countries.map((country) => country.visitors), 1);
   const countriesByNumericCode = new Map(
     countries.flatMap((country) => {

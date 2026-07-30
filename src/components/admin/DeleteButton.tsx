@@ -4,7 +4,12 @@ import { useState } from "react";
 import { FaArrowRotateLeft, FaTrashCan, FaXmark } from "react-icons/fa6";
 import { deletePost, permanentDeletePost, restorePost } from "@/lib/actions";
 
-export default function DeleteButton({ id, isTrash = false }: { id: string; isTrash?: boolean }) {
+type DeleteButtonProps = Readonly<{
+  id: string;
+  isTrash?: boolean;
+}>;
+
+export default function DeleteButton({ id, isTrash = false }: DeleteButtonProps) {
   const [isConfirming, setIsConfirming] = useState(false);
   const destructiveAction = isTrash ? permanentDeletePost : deletePost;
 

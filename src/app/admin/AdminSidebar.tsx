@@ -13,7 +13,7 @@ const navItems = [
   { label: "Trash", href: "/admin/trash", icon: FaTrashCan },
 ];
 
-export default function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
+export default function AdminSidebar({ onNavigate }: Readonly<{ onNavigate?: () => void }>) {
   const pathname = usePathname();
   return (
     <nav className="flex-1 px-3 py-5" aria-label="Primary">

@@ -4,7 +4,7 @@ import NotesManager from "@/components/admin/NotesManager";
 import { prisma } from "@/lib/prisma";
 import { isAdminPreviewEnabled } from "@/lib/admin-preview";
 
-export default async function AdminNotes({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+export default async function AdminNotes({ searchParams }: Readonly<{ searchParams: Promise<Record<string, string | string[] | undefined>> }>) {
   const filters = await searchParams;
   const notes = isAdminPreviewEnabled() ? [] : await prisma.post.findMany({
     where: { deletedAt: null, OR: [{ type: "BLOG" }, { showAsBlog: true }] },

@@ -1,4 +1,4 @@
-export default function ProjectSkeleton({ featured = false }: { featured?: boolean }) {
+export default function ProjectSkeleton({ featured = false }: Readonly<{ featured?: boolean }>) {
   return (
     <div className={`project-card project-skeleton${featured ? " project-card-featured" : ""}`} aria-hidden="true">
       <div className="project-skeleton-media skeleton-shimmer" />

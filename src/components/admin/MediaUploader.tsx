@@ -3,9 +3,9 @@
 import { useState, useRef } from 'react';
 import { FaCloudUploadAlt, FaSpinner, FaCheck, FaTimes } from 'react-icons/fa';
 
-interface MediaUploaderProps {
+type MediaUploaderProps = Readonly<{
     onUploadComplete?: (url: string) => void;
-}
+}>;
 
 export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) {
     const [isDragging, setIsDragging] = useState(false);
@@ -43,7 +43,7 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
             if (onUploadComplete) {
                 onUploadComplete(data.url);
             }
-            
+
             // Reset success state after a delay to allow another upload
             setTimeout(() => setSuccess(false), 3000);
 
@@ -67,7 +67,7 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
     const onDrop = (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(false);
-        
+
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             handleFile(e.dataTransfer.files[0]);
         }
@@ -81,8 +81,8 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
                 onDrop={onDrop}
                 onClick={() => fileInputRef.current?.click()}
                 className={`relative border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all gap-4
-                    ${isDragging 
-                        ? 'border-[var(--accent)] bg-[var(--accent)]/5' 
+                    ${isDragging
+                        ? 'border-[var(--accent)] bg-[var(--accent)]/5'
                         : 'border-stone-200 dark:border-white/10 hover:border-[var(--accent)] hover:bg-stone-50 dark:hover:bg-white/5'
                     }
                     ${error ? 'border-red-500/50 bg-red-500/5' : ''}
@@ -123,9 +123,9 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
                 )}
 
                 {error && (
-                     <div className="absolute bottom-4 flex items-center gap-2 text-xs font-bold text-red-500 bg-red-50 dark:bg-white p-2 rounded-lg shadow-sm">
+                    <div className="absolute bottom-4 flex items-center gap-2 text-xs font-bold text-red-500 bg-red-50 dark:bg-white p-2 rounded-lg shadow-sm">
                         <FaTimes /> {error}
-                     </div>
+                    </div>
                 )}
             </div>
         </div>

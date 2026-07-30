@@ -8,11 +8,11 @@ import ProjectSkeleton from "@/components/ProjectSkeleton";
 import { useTimedFetch } from "@/hooks/useTimedFetch";
 import type { ProjectPreview } from "@/lib/projects";
 
-interface ProjectShowcaseProps {
+type ProjectShowcaseProps = Readonly<{
   compact?: boolean;
   featured?: boolean;
   limit?: number;
-}
+}>;
 
 export default function ProjectShowcase({
   compact = false,
@@ -27,9 +27,9 @@ export default function ProjectShowcase({
     const projects = data?.projects ?? [];
     const selected = featured
       ? (() => {
-          const pinned = projects.filter((project) => project.isPinned);
-          return pinned.length > 0 ? pinned : projects.slice(0, 3);
-        })()
+        const pinned = projects.filter((project) => project.isPinned);
+        return pinned.length > 0 ? pinned : projects.slice(0, 3);
+      })()
       : projects;
 
     return typeof limit === "number" ? selected.slice(0, limit) : selected;

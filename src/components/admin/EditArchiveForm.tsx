@@ -3,7 +3,7 @@
 import MarkdownEditor from '@/components/MarkdownEditor';
 import { FaSave } from 'react-icons/fa';
 
-interface EditArchiveFormProps {
+type EditArchiveFormProps = Readonly<{
     initialData: {
         id: string;
         title: string;
@@ -15,7 +15,7 @@ interface EditArchiveFormProps {
         thumbnail?: string | null;
     };
     action: (formData: FormData) => Promise<void>;
-}
+}>;
 
 export default function EditArchiveForm({ initialData, action }: EditArchiveFormProps) {
 
@@ -24,7 +24,7 @@ export default function EditArchiveForm({ initialData, action }: EditArchiveForm
 
             {/* Main Content Area */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
+
                 {/* Left Column: Editor */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -62,9 +62,9 @@ export default function EditArchiveForm({ initialData, action }: EditArchiveForm
                     <div className="space-y-2">
                         <label className="text-sm font-bold uppercase tracking-wider text-stone-500">Content</label>
                         <div className="prose-editor min-h-[500px] border border-stone-200 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-[#0c0a09]">
-                            <MarkdownEditor 
-                                defaultValue={initialData.content} 
-                                name="content" 
+                            <MarkdownEditor
+                                defaultValue={initialData.content}
+                                name="content"
                             />
                         </div>
                     </div>
@@ -72,11 +72,11 @@ export default function EditArchiveForm({ initialData, action }: EditArchiveForm
 
                 {/* Right Column: Metadata */}
                 <div className="space-y-6">
-                        <div className="sticky top-8 space-y-6">
-                        
+                    <div className="sticky top-8 space-y-6">
+
                         {/* Actions Card */}
                         <div className="bg-white dark:bg-[#0c0a09] border border-stone-200 dark:border-white/10 rounded-xl p-6 shadow-sm">
-                            <button 
+                            <button
                                 type="submit"
                                 className="w-full flex items-center justify-center gap-2 bg-stone-900 dark:bg-stone-100 text-white dark:text-black py-3 rounded-lg font-bold hover:opacity-90 transition-all shadow-lg"
                             >
@@ -85,14 +85,14 @@ export default function EditArchiveForm({ initialData, action }: EditArchiveForm
                         </div>
 
                         {/* Metadata Card */}
-                            <div className="bg-white dark:bg-[#0c0a09] border border-stone-200 dark:border-white/10 rounded-xl p-6 space-y-6 shadow-sm">
+                        <div className="bg-white dark:bg-[#0c0a09] border border-stone-200 dark:border-white/10 rounded-xl p-6 space-y-6 shadow-sm">
                             <h3 className="font-bold text-sm uppercase tracking-wider text-stone-500 border-b border-stone-200 dark:border-white/10 pb-2">
                                 Settings
                             </h3>
-                            
+
                             <div className="space-y-2">
                                 <label className="text-xs font-bold uppercase text-stone-500">Category</label>
-                                <input 
+                                <input
                                     name="category"
                                     defaultValue={initialData.category || ''}
                                     className="w-full bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-[var(--accent)] outline-none"
@@ -102,7 +102,7 @@ export default function EditArchiveForm({ initialData, action }: EditArchiveForm
 
                             <div className="space-y-2">
                                 <label className="text-xs font-bold uppercase text-stone-500">Tags (comma separated)</label>
-                                <input 
+                                <input
                                     name="techStack"
                                     defaultValue={initialData.techStack.join(', ')}
                                     className="w-full bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-[var(--accent)] outline-none"
@@ -112,7 +112,7 @@ export default function EditArchiveForm({ initialData, action }: EditArchiveForm
                             </div>
                         </div>
 
-                        </div>
+                    </div>
                 </div>
             </div>
         </form>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { FaCopy, FaCheck } from 'react-icons/fa';
 
-export default function CopyUrlButton({ url }: { url: string }) {
+export default function CopyUrlButton({ url }: Readonly<{ url: string }>) {
     const [copied, setCopied] = useState(false);
 
     const handleCopy = () => {
@@ -14,8 +14,8 @@ export default function CopyUrlButton({ url }: { url: string }) {
     };
 
     return (
-        <button 
-            onClick={handleCopy} 
+        <button
+            onClick={handleCopy}
             className="p-2 bg-stone-800 text-white hover:bg-[var(--accent)] rounded-lg transition-colors"
             title="Copy URL"
             type="button"

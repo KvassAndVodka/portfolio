@@ -5,6 +5,12 @@ import { FaArrowRight, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa
 import ProjectTechnologyList, { ProjectTechnologyMarks } from "@/components/ProjectTechnologyList";
 import type { ProjectPreview } from "@/lib/projects";
 
+type ProjectCardProps = Readonly<{
+  compact?: boolean;
+  featured?: boolean;
+  project: ProjectPreview;
+}>;
+
 export function formatProjectCategory(category?: string) {
   if (!category) return "Independent project";
 
@@ -13,15 +19,7 @@ export function formatProjectCategory(category?: string) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-export default function ProjectCard({
-  compact = false,
-  featured = false,
-  project,
-}: {
-  compact?: boolean;
-  featured?: boolean;
-  project: ProjectPreview;
-}) {
+export default function ProjectCard({ compact = false, featured = false, project }: ProjectCardProps) {
   const liveProjectUrl = project.projectUrl || project.demoUrl;
 
   return (

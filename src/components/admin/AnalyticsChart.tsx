@@ -22,7 +22,7 @@ function linePath(points: ChartPoint[], key: "viewsY" | "visitorsY") {
     .join(" ");
 }
 
-export default function AnalyticsChart({ data }: { data: DailyVisit[] }) {
+export default function AnalyticsChart({ data }: Readonly<{ data: DailyVisit[] }>) {
   const maximum = Math.max(...data.flatMap((item) => [item.views, item.visitors]), 1);
   const chartHeight = CHART_HEIGHT - CHART_TOP - CHART_BOTTOM;
   const points = data.map((item, index) => {

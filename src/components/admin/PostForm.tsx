@@ -15,7 +15,7 @@ const statusOptions: Array<{ value: ContentStatus; label: string; description: s
   { value: "SCHEDULED", label: "Scheduled", description: "Publishes at a chosen time" },
 ];
 
-interface PostFormProps {
+type PostFormProps = Readonly<{
   initialData?: {
     id?: string;
     title: string;
@@ -36,7 +36,7 @@ interface PostFormProps {
   };
   action: (formData: FormData) => Promise<void>;
   submitLabel: string;
-}
+}>;
 
 function toLocalDateTime(value?: Date | string) {
   if (!value) return "";
@@ -45,7 +45,12 @@ function toLocalDateTime(value?: Date | string) {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 
-function StatusSelect({ value, onChange }: { value: ContentStatus; onChange: (status: ContentStatus) => void }) {
+type StatusSelectProps = Readonly<{
+  value: ContentStatus,
+  onChange: (status: ContentStatus) => void
+}>;
+
+function StatusSelect({ value, onChange }: StatusSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const selected = statusOptions.find((option) => option.value === value) ?? statusOptions[0];

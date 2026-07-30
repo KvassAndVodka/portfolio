@@ -13,7 +13,12 @@ interface AdminUser {
   image?: string | null;
 }
 
-export default function AdminLayoutShell({ children, user }: { children: React.ReactNode; user?: AdminUser }) {
+type AdminLayoutShellProps = Readonly<{
+  children: React.ReactNode;
+  user?: AdminUser;
+}>;
+
+export default function AdminLayoutShell({ children, user }: AdminLayoutShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
