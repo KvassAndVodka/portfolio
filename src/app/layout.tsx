@@ -11,13 +11,15 @@ export const metadata: Metadata = {
     template: "%s | Javier Raut",
   },
   description:
-    "Backend and infrastructure engineer building dependable software, self-hosted systems, and applied AI projects.",
+    "Software developer building dependable products, data systems, infrastructure, and operational tools.",
 };
 
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 
 import MainWrapper from "@/components/MainWrapper";
+import MotionProvider from "@/components/MotionProvider";
 import NextLoader from "@/components/NextLoader";
+import ScrollProgress from "@/components/ScrollProgress";
 
 export default function RootLayout({
   children,
@@ -42,8 +44,11 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
         >
-          <Header />
-          <MainWrapper>{children}</MainWrapper>
+          <MotionProvider>
+            <ScrollProgress />
+            <Header />
+            <MainWrapper>{children}</MainWrapper>
+          </MotionProvider>
         </ThemeProvider>
       </body>
     </html>

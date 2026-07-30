@@ -43,3 +43,9 @@ next-env.d.ts
 
 system_architecture.md
 /src/generated/prisma
+
+# Local agent workspaces
+.agents
+.codex
+.impeccable
+.specify

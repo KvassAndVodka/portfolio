@@ -45,6 +45,8 @@ services:
         condition: service_completed_successfully
     expose:
       - "3000"
+    volumes:
+      - next_cache:/app/.next/cache
     healthcheck:
       test:
         - CMD
@@ -84,3 +86,4 @@ services:
 
 volumes:
   postgres_data:
+  next_cache:

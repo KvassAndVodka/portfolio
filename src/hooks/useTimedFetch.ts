@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type TimedFetchStatus = "loading" | "ready" | "timeout" | "error";
 
@@ -10,10 +10,16 @@ interface TimedFetchState<T> {
   status: TimedFetchStatus;
 }
 
-export function useTimedFetch<T>(url: string, timeoutMs = 10_000): TimedFetchState<T> {
+export function useTimedFetch<T>(
+  url: string,
+  timeoutMs = 4_000,
+  initialData?: T,
+  enabled = true,
+): TimedFetchState<T> {
   const [attempt, setAttempt] = useState(0);
-  const [data, setData] = useState<T | null>(null);
-  const [status, setStatus] = useState<TimedFetchStatus>("loading");
+  const initialDataRef = useRef(initialData);
+  const [data, setData] = useState<T | null>(initialData ?? null);
+  const [status, setStatus] = useState<TimedFetchStatus>(initialData ? "ready" : "loading");
 
   const retry = useCallback(() => {
     setData(null);
@@ -22,6 +28,9 @@ export function useTimedFetch<T>(url: string, timeoutMs = 10_000): TimedFetchSta
   }, []);
 
   useEffect(() => {
+    if (!enabled) return;
+    if (attempt === 0 && initialDataRef.current !== undefined) return;
+
     const controller = new AbortController();
     let active = true;
     let timedOut = false;
@@ -62,7 +71,7 @@ export function useTimedFetch<T>(url: string, timeoutMs = 10_000): TimedFetchSta
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [attempt, timeoutMs, url]);
+  }, [attempt, enabled, timeoutMs, url]);
 
   return { data, retry, status };
 }

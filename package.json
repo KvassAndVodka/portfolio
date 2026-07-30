@@ -31,6 +31,7 @@
     "d3-geo": "^3.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
+    "framer-motion": "^12.43.0",
     "geist": "^1.5.1",
     "geoip-lite": "^1.4.10",
     "gray-matter": "^4.0.3",

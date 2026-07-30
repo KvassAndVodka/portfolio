@@ -8,6 +8,8 @@ import { formatProjectCategory } from "@/components/ProjectCard";
 import ProjectTechnologyList from "@/components/ProjectTechnologyList";
 import { getProject, getProjects } from "@/lib/projects";
 
+export const revalidate = 60;
+
 export async function generateStaticParams() {
   const projects = await getProjects();
   return projects.map((project) => ({ slug: project.slug }));

@@ -1,115 +1,146 @@
+"use client";
+
+import { m } from "framer-motion";
 import type { IconType } from "react-icons";
 import {
+  SiDotnet,
   SiDocker,
-  SiIntel,
+  SiFfmpeg,
+  SiHuggingface,
   SiLinux,
+  SiNginx,
   SiNextdotjs,
-  SiOpencv,
   SiPostgresql,
-  SiPrisma,
-  SiProxmox,
   SiPython,
-  SiTailscale,
+  SiSonarqubeserver,
   SiTypescript,
-  SiYolo,
+  SiIntel,
 } from "react-icons/si";
 
-interface Technology {
+import useSafeReveal from "@/hooks/useSafeReveal";
+
+interface Capability {
   icon: IconType;
   name: string;
 }
 
-interface TechnologyGroup {
+interface PracticeArea {
+  capabilities: Capability[];
   description: string;
   name: string;
-  technologies: Technology[];
 }
 
-const technologyGroups: TechnologyGroup[] = [
+const practiceAreas: PracticeArea[] = [
   {
-    name: "Backend and product",
-    description: "I use these for typed applications, APIs, data models, and the interfaces around them.",
-    technologies: [
+    name: "Product systems",
+    description:
+      "I shape interfaces, APIs, and relational models together—from this publishing system to the internal tools I maintain at the House.",
+    capabilities: [
       { name: "TypeScript", icon: SiTypescript },
       { name: "Next.js", icon: SiNextdotjs },
       { name: "PostgreSQL", icon: SiPostgresql },
-      { name: "Prisma", icon: SiPrisma },
+      { name: ".NET", icon: SiDotnet },
     ],
   },
   {
-    name: "Infrastructure",
-    description: "I use these to keep services self-hosted, deployments repeatable, and networks private.",
-    technologies: [
-      { name: "Linux", icon: SiLinux },
+    name: "Delivery and assurance",
+    description:
+      "I containerize production services, design private service networks, and use static analysis and deployment guards to harden what ships.",
+    capabilities: [
       { name: "Docker", icon: SiDocker },
-      { name: "Proxmox", icon: SiProxmox },
-      { name: "Tailscale", icon: SiTailscale },
+      { name: "Linux", icon: SiLinux },
+      { name: "Nginx", icon: SiNginx },
+      { name: "SonarQube", icon: SiSonarqubeserver },
     ],
   },
   {
-    name: "Applied AI",
-    description: "I use these for computer-vision pipelines that need to work outside a notebook.",
-    technologies: [
+    name: "Applied AI and media",
+    description:
+      "I build transcription, computer-vision, and dynamic-network research pipelines, then tune them around accuracy, recovery, and constrained hardware.",
+    capabilities: [
       { name: "Python", icon: SiPython },
-      { name: "OpenCV", icon: SiOpencv },
-      { name: "YOLO", icon: SiYolo },
+      { name: "FFmpeg", icon: SiFfmpeg },
+      { name: "Hugging Face", icon: SiHuggingface },
       { name: "OpenVINO", icon: SiIntel },
     ],
   },
 ];
 
-const technologies = technologyGroups.flatMap((group) => group.technologies);
-
-function TechnologyRailList({ hidden = false }: Readonly<{ hidden?: boolean }>) {
-  return (
-    <ul className="tool-rail-list" aria-hidden={hidden || undefined}>
-      {technologies.map(({ icon: Icon, name }) => (
-        <li key={name}>
-          <Icon aria-hidden="true" />
-          <span>{name}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 export default function TechnologyStack() {
+  const {
+    ref: headingRef,
+    isRevealed: isHeadingRevealed,
+    reduceMotion,
+  } = useSafeReveal<HTMLDivElement>({ amount: 0.5 });
+  const {
+    ref: groupsRef,
+    isRevealed: areGroupsRevealed,
+  } = useSafeReveal<HTMLDivElement>();
+
   return (
     <section className="technology-stage" aria-labelledby="technology-heading">
       <div className="site-shell">
-        <div className="technology-heading">
+        <m.div
+          className="technology-heading"
+          ref={headingRef}
+          initial={
+            reduceMotion
+              ? false
+              : { opacity: 0, clipPath: "inset(0 0 100% 0)", y: 22 }
+          }
+          animate={
+            isHeadingRevealed
+              ? { opacity: 1, clipPath: "inset(0 0 0% 0)", y: 0 }
+              : { opacity: 0, clipPath: "inset(0 0 100% 0)", y: 22 }
+          }
+          transition={{ duration: reduceMotion ? 0 : 0.92, ease: [0.16, 1, 0.3, 1] }}
+        >
           <h2 className="section-title" id="technology-heading">
             How I build.
           </h2>
           <p className="body-large">
-            I reach for different tools depending on the problem. Here&apos;s how they fit into the
-            work I do.
+            A focused view of the tools I reach for, grouped by the problem they help me solve.
+            Each project page carries the full implementation stack.
           </p>
-        </div>
+        </m.div>
 
-        <div className="technology-groups">
-          {technologyGroups.map((group) => (
-            <article className="technology-group" key={group.name}>
-              <h3>{group.name}</h3>
-              <p>{group.description}</p>
+        <m.div
+          className="technology-groups"
+          ref={groupsRef}
+          initial={reduceMotion ? false : "hidden"}
+          animate={areGroupsRevealed ? "visible" : "hidden"}
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.16 } },
+          }}
+        >
+          {practiceAreas.map((area) => (
+            <m.article
+              className="technology-group"
+              key={area.name}
+              variants={{
+                hidden: { opacity: 0, x: -44, clipPath: "inset(0 0 30% 0)" },
+                visible: {
+                  opacity: 1,
+                  x: 0,
+                  clipPath: "inset(0 0 0% 0)",
+                  transition: { duration: 0.76, ease: [0.16, 1, 0.3, 1] },
+                },
+              }}
+            >
+              <h3>{area.name}</h3>
+              <p>{area.description}</p>
               <ul>
-                {group.technologies.map(({ icon: Icon, name }) => (
+                {area.capabilities.map(({ icon: Icon, name }) => (
                   <li key={name}>
                     <Icon aria-hidden="true" />
                     <span>{name}</span>
                   </li>
                 ))}
               </ul>
-            </article>
+            </m.article>
           ))}
-        </div>
-      </div>
-
-      <div className="tool-rail mt-16" aria-label="Technology stack overview">
-        <div className="tool-rail-track">
-          <TechnologyRailList />
-          <TechnologyRailList hidden />
-        </div>
+        </m.div>
       </div>
     </section>
   );
