@@ -1,35 +1,33 @@
 import { NextResponse } from "next/server";
 
-import { getProjectsStrict } from "@/lib/projects";
+import { getProjectsStrict, toProjectPreview } from "@/lib/projects";
+import { withTimeout } from "@/lib/withTimeout";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+const PROJECT_QUERY_BUDGET_MS = 2_500;
+
 export async function GET() {
   try {
-    const projects = await getProjectsStrict();
+    const projects = await withTimeout(getProjectsStrict(), PROJECT_QUERY_BUDGET_MS);
 
     return NextResponse.json(
       {
-        projects: projects.map((project) => ({
-          slug: project.slug,
-          title: project.title,
-          summary: project.summary,
-          techStack: project.techStack,
-          githubUrl: project.githubUrl,
-          demoUrl: project.demoUrl,
-          projectUrl: project.projectUrl,
-          category: project.category,
-          isPinned: project.isPinned,
-          thumbnail: project.thumbnail,
-        })),
+        projects: projects.map(toProjectPreview),
       },
       { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } },
     );
   } catch {
     return NextResponse.json(
       { error: { code: "PROJECTS_UNAVAILABLE", message: "Projects are temporarily unavailable." } },
-      { status: 503 },
+      {
+        status: 503,
+        headers: {
+          "Cache-Control": "no-store",
+          "Retry-After": "10",
+        },
+      },
     );
   }
 }

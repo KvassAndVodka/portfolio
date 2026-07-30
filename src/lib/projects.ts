@@ -19,6 +19,21 @@ export interface Project {
 
 export type ProjectPreview = Omit<Project, "content">;
 
+export function toProjectPreview(project: Project): ProjectPreview {
+    return {
+        slug: project.slug,
+        title: project.title,
+        summary: project.summary,
+        techStack: project.techStack,
+        githubUrl: project.githubUrl,
+        demoUrl: project.demoUrl,
+        projectUrl: project.projectUrl,
+        category: project.category,
+        isPinned: project.isPinned,
+        thumbnail: project.thumbnail,
+    };
+}
+
 const getCachedProjects = unstable_cache(
     async (): Promise<Project[]> => {
         const projects = await prisma.post.findMany({
@@ -63,33 +78,17 @@ export async function getProjects(): Promise<Project[]> {
     try {
         return await getProjectsStrict();
     } catch {
-        console.warn("Database unreachable during build (getProjects), returning empty list.");
+        console.warn("No cached project snapshot is available; returning an empty project list.");
         return [];
     }
 }
 
 
-// Removed dead code
-
-
 export async function getProject(slug: string): Promise<Project | null> {
-     const p = await prisma.post.findUnique({
-        where: { slug }
-    });
-    
-    const isPublic = p?.status === PostStatus.PUBLISHED || (p?.status === PostStatus.SCHEDULED && p.publishedAt <= new Date());
-    if (!p || p.type !== PostType.PROJECT || p.deletedAt || !isPublic) return null;
-
-    return {
-        slug: p.slug,
-        title: p.title,
-        summary: p.summary,
-        content: p.content,
-        techStack: p.techStack,
-        githubUrl: p.githubUrl || undefined,
-        demoUrl: p.demoUrl || undefined,
-        projectUrl: p.projectUrl || undefined,
-        category: p.category || undefined,
-        thumbnail: p.thumbnail || undefined,
+    try {
+        const projects = await getProjectsStrict();
+        return projects.find((project) => project.slug === slug) ?? null;
+    } catch {
+        return null;
     }
 }
