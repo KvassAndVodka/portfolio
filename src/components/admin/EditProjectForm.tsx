@@ -5,7 +5,7 @@ import MarkdownEditor from '@/components/MarkdownEditor';
 import { FaSave, FaGithub, FaLink, FaDesktop, FaImage } from 'react-icons/fa';
 import MediaPicker from './MediaPicker';
 
-interface EditProjectFormProps {
+type EditProjectFormProps = Readonly<{
     initialData: {
         id: string;
         title: string;
@@ -21,7 +21,7 @@ interface EditProjectFormProps {
         thumbnail?: string | null;
     };
     action: (formData: FormData) => Promise<void>;
-}
+}>;
 
 export default function EditProjectForm({ initialData, action }: EditProjectFormProps) {
     const [thumbnail, setThumbnail] = useState(initialData.thumbnail || '');
@@ -33,7 +33,7 @@ export default function EditProjectForm({ initialData, action }: EditProjectForm
 
             {/* Main Content Area */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
+
                 {/* Left Column: Editor & Core Info */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -57,8 +57,8 @@ export default function EditProjectForm({ initialData, action }: EditProjectForm
                         </div>
                     </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold uppercase tracking-wider text-stone-500">Summary</label>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold uppercase tracking-wider text-stone-500">Summary</label>
                         <textarea
                             name="summary"
                             defaultValue={initialData.summary}
@@ -71,9 +71,9 @@ export default function EditProjectForm({ initialData, action }: EditProjectForm
                     <div className="space-y-2">
                         <label className="text-sm font-bold uppercase tracking-wider text-stone-500">Case Study (Content)</label>
                         <div className="prose-editor min-h-[500px] border border-stone-200 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-[#0c0a09]">
-                            <MarkdownEditor 
-                                defaultValue={initialData.content} 
-                                name="content" 
+                            <MarkdownEditor
+                                defaultValue={initialData.content}
+                                name="content"
                             />
                         </div>
                     </div>
@@ -81,11 +81,11 @@ export default function EditProjectForm({ initialData, action }: EditProjectForm
 
                 {/* Right Column: Metadata & Links */}
                 <div className="space-y-6">
-                        <div className="sticky top-8 space-y-6">
-                        
+                    <div className="sticky top-8 space-y-6">
+
                         {/* Actions Card */}
                         <div className="bg-white dark:bg-[#0c0a09] border border-stone-200 dark:border-white/10 rounded-xl p-6 shadow-sm">
-                            <button 
+                            <button
                                 type="submit"
                                 className="w-full flex items-center justify-center gap-2 bg-stone-900 dark:bg-stone-100 text-white dark:text-black py-3 rounded-lg font-bold hover:opacity-90 transition-all shadow-lg"
                             >
@@ -93,12 +93,12 @@ export default function EditProjectForm({ initialData, action }: EditProjectForm
                             </button>
                             <div className="mt-4 pt-4 border-t border-stone-100 dark:border-white/5">
                                 <div className="flex items-center gap-2">
-                                    <input 
-                                        name="isPinned" 
-                                        type="checkbox" 
-                                        id="isPinned" 
-                                        defaultChecked={initialData.isPinned} 
-                                        className="w-4 h-4 rounded border-gray-300 text-[var(--accent)] focus:ring-[var(--accent)]" 
+                                    <input
+                                        name="isPinned"
+                                        type="checkbox"
+                                        id="isPinned"
+                                        defaultChecked={initialData.isPinned}
+                                        className="w-4 h-4 rounded border-gray-300 text-[var(--accent)] focus:ring-[var(--accent)]"
                                     />
                                     <label htmlFor="isPinned" className="text-sm font-medium">Pin to Home</label>
                                 </div>
@@ -110,7 +110,7 @@ export default function EditProjectForm({ initialData, action }: EditProjectForm
                             <h3 className="font-bold text-sm uppercase tracking-wider text-stone-500 border-b border-stone-200 dark:border-white/10 pb-2 flex justify-between items-center">
                                 <span>Thumbnail</span>
                                 {thumbnail && (
-                                     <button 
+                                    <button
                                         type="button"
                                         onClick={(e) => {
                                             e.preventDefault();
@@ -123,7 +123,7 @@ export default function EditProjectForm({ initialData, action }: EditProjectForm
                                     </button>
                                 )}
                             </h3>
-                            <button 
+                            <button
                                 type="button"
                                 onClick={() => setShowThumbnailPicker(true)}
                                 className="w-full relative aspect-video bg-stone-100 dark:bg-white/5 rounded-lg border-2 border-dashed border-stone-200 dark:border-white/10 flex flex-col items-center justify-center overflow-hidden hover:border-[var(--accent)] hover:bg-stone-50 dark:hover:bg-white/10 transition-all group cursor-pointer"
@@ -148,14 +148,14 @@ export default function EditProjectForm({ initialData, action }: EditProjectForm
                         </div>
 
                         {/* Project Details Card */}
-                            <div className="bg-white dark:bg-[#0c0a09] border border-stone-200 dark:border-white/10 rounded-xl p-6 space-y-6 shadow-sm">
+                        <div className="bg-white dark:bg-[#0c0a09] border border-stone-200 dark:border-white/10 rounded-xl p-6 space-y-6 shadow-sm">
                             <h3 className="font-bold text-sm uppercase tracking-wider text-stone-500 border-b border-stone-200 dark:border-white/10 pb-2">
                                 Project Details
                             </h3>
-                            
+
                             <div className="space-y-2">
                                 <label className="text-xs font-bold uppercase text-stone-500">Category</label>
-                                <select 
+                                <select
                                     name="category"
                                     defaultValue={initialData.category || 'personal'}
                                     className="w-full bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-[var(--accent)] outline-none appearance-none"
@@ -168,7 +168,7 @@ export default function EditProjectForm({ initialData, action }: EditProjectForm
 
                             <div className="space-y-2">
                                 <label className="text-xs font-bold uppercase text-stone-500">Tech Stack</label>
-                                <input 
+                                <input
                                     name="techStack"
                                     defaultValue={initialData.techStack.join(', ')}
                                     className="w-full bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-[var(--accent)] outline-none"
@@ -187,7 +187,7 @@ export default function EditProjectForm({ initialData, action }: EditProjectForm
                                     <label className="flex items-center gap-2 text-xs font-bold uppercase text-stone-500">
                                         <FaGithub /> GitHub Repo
                                     </label>
-                                    <input 
+                                    <input
                                         name="githubUrl"
                                         defaultValue={initialData.githubUrl || ''}
                                         className="w-full bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-[var(--accent)] outline-none"
@@ -198,7 +198,7 @@ export default function EditProjectForm({ initialData, action }: EditProjectForm
                                     <label className="flex items-center gap-2 text-xs font-bold uppercase text-stone-500">
                                         <FaDesktop /> Demo URL
                                     </label>
-                                    <input 
+                                    <input
                                         name="demoUrl"
                                         defaultValue={initialData.demoUrl || ''}
                                         className="w-full bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-[var(--accent)] outline-none"
@@ -209,7 +209,7 @@ export default function EditProjectForm({ initialData, action }: EditProjectForm
                                     <label className="flex items-center gap-2 text-xs font-bold uppercase text-stone-500">
                                         <FaLink /> Project Link
                                     </label>
-                                    <input 
+                                    <input
                                         name="projectUrl"
                                         defaultValue={initialData.projectUrl || ''}
                                         className="w-full bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-[var(--accent)] outline-none"
@@ -219,17 +219,17 @@ export default function EditProjectForm({ initialData, action }: EditProjectForm
                             </div>
                         </div>
 
-                        </div>
+                    </div>
                 </div>
             </div>
 
             {showThumbnailPicker && (
-                <MediaPicker 
+                <MediaPicker
                     onSelect={(url) => {
                         setThumbnail(url);
                         setShowThumbnailPicker(false);
-                    }} 
-                    onClose={() => setShowThumbnailPicker(false)} 
+                    }}
+                    onClose={() => setShowThumbnailPicker(false)}
                 />
             )}
         </form>

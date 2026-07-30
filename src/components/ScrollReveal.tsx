@@ -3,16 +3,15 @@
 import type { CSSProperties } from "react";
 import { useEffect, useRef, useState } from "react";
 
-interface ScrollRevealProps {
+type ScrollRevealProps = Readonly<{
   children: React.ReactNode;
   className?: string;
   threshold?: number;
   variant?: "lift" | "clip" | "slide" | "stagger";
   delay?: number;
-}
+}>;
 
-export default function ScrollReveal({
-  children,
+export default function ScrollReveal({ children,
   className = "",
   threshold = 0.12,
   variant = "lift",

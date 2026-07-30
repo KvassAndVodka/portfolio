@@ -5,7 +5,7 @@ import PostForm from "@/components/admin/PostForm";
 import { updatePost } from "@/lib/actions";
 import { prisma } from "@/lib/prisma";
 
-export default async function EditNotePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function EditNotePage({ params }: Readonly<{ params: Promise<{ slug: string }> }>) {
   const { slug } = await params;
   const post = await prisma.post.findUnique({ where: { slug } });
   if (!post || post.type !== "BLOG") notFound();

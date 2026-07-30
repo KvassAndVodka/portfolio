@@ -3,7 +3,7 @@ import { FaArrowLeft } from "react-icons/fa6";
 import PostForm from "@/components/admin/PostForm";
 import { createPost } from "@/lib/actions";
 
-export default async function CreatePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+export default async function CreatePage({ searchParams }: Readonly<{ searchParams: Promise<Record<string, string | string[] | undefined>> }>) {
   const filters = await searchParams;
   const type = filters.type === "PROJECT" ? "PROJECT" : "BLOG";
   return (

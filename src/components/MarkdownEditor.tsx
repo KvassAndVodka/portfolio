@@ -5,16 +5,23 @@ import ReactMarkdown from 'react-markdown';
 import { FaBold, FaItalic, FaHeading, FaQuoteRight, FaList, FaLink, FaImage, FaCode, FaEye, FaEyeSlash, FaUndo, FaRedo } from 'react-icons/fa';
 import MediaPicker from './admin/MediaPicker';
 
-interface MarkdownEditorProps {
+type MarkdownEditorProps = Readonly<{
     defaultValue?: string;
     name: string;
-}
+}>;
+
+type ToolbarBtnProps = Readonly<{
+    icon: React.ReactNode;
+    onClick: () => void;
+    title: string;
+    disabled?: boolean;
+}>;
 
 export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEditorProps) {
     const [content, setContent] = useState(defaultValue);
     const [history, setHistory] = useState<string[]>([defaultValue]);
     const [historyIndex, setHistoryIndex] = useState(0);
-    
+
     const [isPreview, setIsPreview] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -98,9 +105,9 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
         const end = textarea.selectionEnd;
         const selectedText = content.substring(start, end);
         const newText = content.substring(0, start) + before + selectedText + after + content.substring(end);
-        
+
         addToHistory(newText, true);
-        
+
         // Restore focus and selection
         setTimeout(() => {
             textarea.focus();
@@ -119,7 +126,7 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
                 body: formData
             });
             const data = await res.json();
-            
+
             if (data.success) {
                 const imgTag = `\n![${file.name}](${data.url})\n`;
                 // Append to cursor or end? Let's use insertText logic but we need access to ref
@@ -166,7 +173,7 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
     const handleMediaSelect = (url: string, alt: string) => {
         setShowMediaPicker(false);
         const imgMarkdown = `![${alt}](${url})`;
-        
+
         // Use saved cursor position if available
         if (savedCursorPosition !== null) {
             const { start, end } = savedCursorPosition;
@@ -174,7 +181,7 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
             const newText = content.substring(0, start) + imgMarkdown + selectedText + content.substring(end);
             addToHistory(newText, true);
             setSavedCursorPosition(null);
-            
+
             // Restore focus and cursor
             setTimeout(() => {
                 const textarea = textareaRef.current;
@@ -214,7 +221,7 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
                 <ToolbarBtn icon={<FaUndo />} onClick={undo} title="Undo (Ctrl+Z)" disabled={historyIndex <= 0} />
                 <ToolbarBtn icon={<FaRedo />} onClick={redo} title="Redo (Ctrl+Y)" disabled={historyIndex >= history.length - 1} />
                 <div className="w-px h-4 bg-stone-300 dark:bg-white/10 mx-1" />
-                
+
                 <ToolbarBtn icon={<FaBold />} onClick={() => insertText('**', '**')} title="Bold" />
                 <ToolbarBtn icon={<FaItalic />} onClick={() => insertText('*', '*')} title="Italic" />
                 <ToolbarBtn icon={<FaHeading />} onClick={() => insertText('## ')} title="Heading" />
@@ -226,14 +233,13 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
                 <ToolbarBtn icon={<FaLink />} onClick={() => insertText('[', '](url)')} title="Link" />
                 <ToolbarBtn icon={<FaImage />} onClick={onImageBtnClick} title="Upload Image" />
                 <div className="flex-1" />
-                <button 
+                <button
                     type="button"
                     onClick={() => setIsPreview(!isPreview)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                        isPreview 
-                        ? 'bg-[var(--accent)] text-white' 
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${isPreview
+                        ? 'bg-[var(--accent)] text-white'
                         : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-white/10'
-                    }`}
+                        }`}
                 >
                     {isPreview ? <><FaEyeSlash /> Edit</> : <><FaEye /> Preview</>}
                 </button>
@@ -241,26 +247,26 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
 
             {/* Top Toolbar */}
             {/* ... toolbar buttons ... */}
-            
+
             {/* Hidden File Input (keep for paste/drop support) */}
-            <input 
-                type="file" 
-                ref={fileInputRef} 
-                className="hidden" 
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
                 accept="image/*"
                 onChange={onFileChange}
             />
 
             {/* Media Picker Modal */}
             {showMediaPicker && (
-                <MediaPicker 
-                    onSelect={handleMediaSelect} 
-                    onClose={() => setShowMediaPicker(false)} 
+                <MediaPicker
+                    onSelect={handleMediaSelect}
+                    onClose={() => setShowMediaPicker(false)}
                 />
             )}
 
             {/* Editor Area */}
-            <div 
+            <div
                 className="relative min-h-[500px]"
                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                 onDragLeave={() => setIsDragging(false)}
@@ -268,9 +274,9 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
             >
                 {/* ... existing upload/preview/textarea code ... */}
                 {isUploading && (
-                     <div className="absolute inset-0 bg-white/80 dark:bg-black/80 z-20 flex items-center justify-center backdrop-blur-sm">
+                    <div className="absolute inset-0 bg-white/80 dark:bg-black/80 z-20 flex items-center justify-center backdrop-blur-sm">
                         <div className="text-[var(--accent)] font-bold animate-pulse">Uploading Image...</div>
-                     </div>
+                    </div>
                 )}
 
                 {isPreview && (
@@ -287,14 +293,14 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
                     className={`w-full h-[500px] p-4 bg-transparent resize-y focus:outline-none font-mono text-sm leading-relaxed ${isPreview ? 'sr-only' : ''}`}
                     placeholder="Write something amazing... (Drag & Drop images here)"
                 />
-                
+
                 {isDragging && (
                     <div className="absolute inset-0 bg-[var(--accent)]/10 z-10 flex items-center justify-center border-2 border-dashed border-[var(--accent)] m-2 rounded">
                         <span className="text-[var(--accent)] font-bold">Drop image to upload</span>
                     </div>
                 )}
             </div>
-            
+
             <div className="px-4 py-2 bg-stone-50 dark:bg-white/5 border-t border-stone-200 dark:border-white/10 text-xs text-stone-400 flex justify-between">
                 <span>Markdown Supported</span>
                 <span>{content.length} chars</span>
@@ -303,19 +309,18 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
     );
 }
 
-function ToolbarBtn({ icon, onClick, title, disabled = false }: { icon: React.ReactNode, onClick: () => void, title: string, disabled?: boolean }) {
+function ToolbarBtn({ icon, onClick, title, disabled = false }: ToolbarBtnProps) {
     return (
-        <button 
-            type="button" 
+        <button
+            type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={onClick}
             title={title}
             disabled={disabled}
-            className={`p-2 rounded transition-colors ${
-                disabled 
-                ? 'text-stone-300 dark:text-stone-700 cursor-not-allowed' 
+            className={`p-2 rounded transition-colors ${disabled
+                ? 'text-stone-300 dark:text-stone-700 cursor-not-allowed'
                 : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200 dark:hover:bg-white/10'
-            }`}
+                }`}
         >
             {icon}
         </button>

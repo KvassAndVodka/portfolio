@@ -2,11 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 
-export default function MainWrapper({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function MainWrapper({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
 

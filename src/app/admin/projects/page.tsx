@@ -4,7 +4,7 @@ import SortableProjectList from "@/components/admin/SortableProjectList";
 import { prisma } from "@/lib/prisma";
 import { isAdminPreviewEnabled } from "@/lib/admin-preview";
 
-export default async function AdminProjects({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+export default async function AdminProjects({ searchParams }: Readonly<{ searchParams: Promise<Record<string, string | string[] | undefined>> }>) {
   const filters = await searchParams;
   const projects = isAdminPreviewEnabled() ? [] : await prisma.post.findMany({
     where: { type: "PROJECT", deletedAt: null },

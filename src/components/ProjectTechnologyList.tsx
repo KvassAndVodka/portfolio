@@ -46,6 +46,11 @@ const technologyIcons: Record<string, IconType> = {
   yolo: SiYolo,
 };
 
+type ProjectTechnologyListProps = Readonly<{
+  limit?: number,
+  technologies: string[],
+}>;
+
 function normalizeTechnology(technology: string) {
   return technology.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
@@ -54,7 +59,7 @@ export function getTechnologyIcon(technology: string) {
   return technologyIcons[normalizeTechnology(technology)] ?? FaCode;
 }
 
-export function ProjectTechnologyMarks({ technologies }: { technologies: string[] }) {
+export function ProjectTechnologyMarks({ technologies }: Readonly<{ technologies: string[] }>) {
   const visibleTechnologies = technologies.slice(0, 4);
 
   return (
@@ -68,13 +73,7 @@ export function ProjectTechnologyMarks({ technologies }: { technologies: string[
   );
 }
 
-export default function ProjectTechnologyList({
-  limit,
-  technologies,
-}: {
-  limit?: number;
-  technologies: string[];
-}) {
+export default function ProjectTechnologyList({ limit, technologies }: ProjectTechnologyListProps) {
   const visibleTechnologies = typeof limit === "number" ? technologies.slice(0, limit) : technologies;
 
   if (visibleTechnologies.length === 0) return null;

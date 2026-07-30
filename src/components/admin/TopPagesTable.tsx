@@ -9,7 +9,7 @@ function pageLabel(path: string) {
   return decodeURIComponent(parts.at(-1) || path).replaceAll("-", " ");
 }
 
-export default function TopPagesTable({ pages }: { pages: PageStat[] }) {
+export default function TopPagesTable({ pages }: Readonly<{ pages: PageStat[] }>) {
   return (
     <section className="admin-panel h-full p-5 md:p-6" aria-labelledby="top-content-heading">
       <h2 id="top-content-heading" className="admin-section-title">Most viewed content</h2>

@@ -29,7 +29,18 @@ interface Project {
   projectUrl: string | null;
 }
 
-export default function SortableProjectList({ initialProjects, initialHealth }: { initialProjects: Project[]; initialHealth?: string }) {
+type SortableProjectListProps = Readonly<{
+  initialProjects: readonly Project[];
+  initialHealth?: string;
+}>;
+
+type SortableRowProps = Readonly<{
+  project: Project;
+  position: number;
+  disabled: boolean;
+}>;
+
+export default function SortableProjectList({ initialProjects, initialHealth }: SortableProjectListProps) {
   const [view, setView] = useState<"manage" | "homepage">("manage");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("ALL");
@@ -92,12 +103,12 @@ export default function SortableProjectList({ initialProjects, initialHealth }: 
   );
 }
 
-function SortableRow({ project, position, disabled }: { project: Project; position: number; disabled: boolean }) {
+function SortableRow({ project, position, disabled }: SortableRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id, disabled });
   return <li ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.55 : 1 }} className="flex min-h-16 items-center gap-3 px-4 py-3"><span className="w-6 text-sm font-semibold tabular-nums admin-muted">{position}</span><button type="button" {...attributes} {...listeners} disabled={disabled} className="admin-icon-button cursor-grab active:cursor-grabbing" aria-label={`Move ${project.title}`}><FaGripVertical aria-hidden="true" /></button><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{project.title}</p><p className="mt-0.5 text-xs admin-muted">{project.status.toLowerCase()}</p></div><Link href={`/admin/projects/${project.slug}`} className="admin-button-secondary">Edit</Link></li>;
 }
 
-function ProjectRow({ project }: { project: Project }) {
+function ProjectRow({ project }: Readonly<{ project: Project }>) {
   return (
     <li className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center md:px-5">
       <div className="flex min-w-0 flex-1 gap-4">
@@ -114,4 +125,4 @@ function ProjectRow({ project }: { project: Project }) {
   );
 }
 
-function EmptyProjects({ message }: { message: string }) { return <div className="px-5 py-12"><p className="font-medium">No projects to show</p><p className="mt-1 text-sm admin-muted">{message}</p></div>; }
+function EmptyProjects({ message }: Readonly<{ message: string }>) { return <div className="px-5 py-12"><p className="font-medium">No projects to show</p><p className="mt-1 text-sm admin-muted">{message}</p></div>; }

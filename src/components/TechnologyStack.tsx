@@ -60,7 +60,7 @@ const technologyGroups: TechnologyGroup[] = [
 
 const technologies = technologyGroups.flatMap((group) => group.technologies);
 
-function TechnologyRailList({ hidden = false }: { hidden?: boolean }) {
+function TechnologyRailList({ hidden = false }: Readonly<{ hidden?: boolean }>) {
   return (
     <ul className="tool-rail-list" aria-hidden={hidden || undefined}>
       {technologies.map(({ icon: Icon, name }) => (
