@@ -9,7 +9,7 @@ import {
 } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { FaArrowRight, FaBars, FaXmark } from "react-icons/fa6";
 
 import ThemeToggle from "./ThemeToggle";
@@ -128,6 +128,15 @@ export default function Header() {
   if (pathname?.startsWith("/admin")) return null;
 
   const closeMenu = () => setIsMenuOpen(false);
+  const handleHomeClick = (event: ReactMouseEvent<HTMLAnchorElement>) => {
+    closeMenu();
+    if (pathname !== "/") return;
+
+    event.preventDefault();
+    if (window.location.hash) window.history.replaceState(null, "", "/");
+    setCurrentHash("");
+    window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+  };
   const toggleMenu = () => {
     if (isMenuOpen) restoreFocusRef.current = true;
     setIsMenuOpen((open) => !open);
@@ -139,13 +148,13 @@ export default function Header() {
   };
 
   return (
-    <m.header
+    <header
       ref={headerRef}
-      className="site-header fixed inset-x-0 top-0 z-30 h-[4.5rem] border-b site-rule"
+      className="site-header sticky top-0 z-30 border-b site-rule"
       data-scrolled={isScrolled}
     >
       <div className="header-inner site-shell flex h-full items-center justify-between">
-        <Link className="brand-lockup" href="/" onClick={closeMenu}>
+        <Link className="brand-lockup" href="/" onClick={handleHomeClick}>
           <strong>Javier Raut</strong>
           <span aria-hidden="true" className="brand-signal" />
         </Link>
@@ -157,6 +166,7 @@ export default function Header() {
               className="primary-nav-link"
               href={item.href}
               key={item.href}
+              onClick={item.href === "/" ? handleHomeClick : undefined}
             >
               <span className="primary-nav-label">
                 <span>{item.label}</span>
@@ -211,7 +221,7 @@ export default function Header() {
           <m.div
             ref={menuRef}
             id="mobile-navigation"
-            className="absolute inset-x-0 top-full h-[calc(100dvh-4.5rem)] overflow-y-auto border-t site-rule bg-[var(--background)] py-6 md:hidden sm:py-10"
+            className="mobile-navigation-panel absolute inset-x-0 top-full overflow-y-auto border-t site-rule bg-[var(--background)] py-6 md:hidden sm:py-10"
             initial={reduceMotion ? false : { opacity: 0, clipPath: "inset(0 0 100% 0)" }}
             animate={{ opacity: 1, clipPath: "inset(0 0 0% 0)" }}
             exit={reduceMotion ? undefined : { opacity: 0, clipPath: "inset(0 0 100% 0)" }}
@@ -244,7 +254,7 @@ export default function Header() {
                     aria-current={isActive(item.href) ? "page" : undefined}
                     className="mobile-nav-link flex min-h-16 items-center justify-between border-b site-rule text-2xl font-medium tracking-tight"
                     href={item.href}
-                    onClick={closeMenu}
+                    onClick={item.href === "/" ? handleHomeClick : closeMenu}
                   >
                     {item.label}
                     <FaArrowRight aria-hidden="true" className="text-[var(--accent)]" />
@@ -255,6 +265,6 @@ export default function Header() {
           </m.div>
         )}
       </AnimatePresence>
-    </m.header>
+    </header>
   );
 }

@@ -18,6 +18,7 @@ interface Disturbance {
 
 const TRACE_COUNT = 13;
 const TRACE_STEP = 12;
+const OPENING_DURATION_MS = 1_700;
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value));
@@ -42,6 +43,7 @@ export default function HeroBackground() {
     let frameId = 0;
     let lastTime = 0;
     let isVisible = true;
+    let openingStartedAt = 0;
     let accent = "255, 90, 36";
     let trace = "114, 110, 103";
     let traceAlpha = 0.14;
@@ -140,7 +142,12 @@ export default function HeroBackground() {
       return y;
     };
 
-    const drawGate = (x: number, elapsed: number, animate: boolean) => {
+    const drawGate = (
+      x: number,
+      elapsed: number,
+      animate: boolean,
+      openingIntensity: number,
+    ) => {
       const pulse = animate ? 0.78 + Math.sin(elapsed * 0.0012 + x) * 0.12 : 0.82;
       const gateTop = height * 0.19;
       const gateBottom = height * 0.87;
@@ -153,7 +160,7 @@ export default function HeroBackground() {
       context.moveTo(x, gateBottom - 24);
       context.lineTo(x, gateBottom);
       context.lineTo(x + notch, gateBottom);
-      context.strokeStyle = `rgba(${accent}, ${0.28 * pulse})`;
+      context.strokeStyle = `rgba(${accent}, ${(0.28 + openingIntensity * 0.16) * pulse})`;
       context.lineWidth = 1;
       context.stroke();
     };
@@ -164,6 +171,9 @@ export default function HeroBackground() {
       context.lineJoin = "round";
 
       const allowInteraction = animate && !reducedMotion.matches;
+      if (!openingStartedAt) openingStartedAt = elapsed;
+      const openingProgress = clamp((elapsed - openingStartedAt) / OPENING_DURATION_MS, 0, 1);
+      const openingIntensity = 1 - smoothstep(0.56, 1, openingProgress);
 
       disturbances = disturbances
         .map((disturbance) => ({
@@ -184,22 +194,29 @@ export default function HeroBackground() {
 
         const isSignal = traceIndex === Math.floor(TRACE_COUNT * 0.62);
         context.strokeStyle = isSignal
-          ? `rgba(${accent}, ${traceAlpha * 2.8})`
-          : `rgba(${trace}, ${traceAlpha * (0.7 + (traceIndex % 3) * 0.18)})`;
+          ? `rgba(${accent}, ${traceAlpha * (2.8 + openingIntensity * 1.1)})`
+          : `rgba(${trace}, ${traceAlpha * (0.7 + (traceIndex % 3) * 0.18 + openingIntensity * 0.28)})`;
         context.lineWidth = isSignal ? 1.7 : 1;
         context.stroke();
       }
 
       const gatePositions = [0.49, 0.66, 0.83];
-      gatePositions.forEach((position) => drawGate(width * position, elapsed, animate));
+      gatePositions.forEach((position) =>
+        drawGate(width * position, elapsed, animate, openingIntensity),
+      );
 
-      const signalProgress = animate ? (elapsed * 0.00007) % 1 : 0.74;
+      const signalProgress =
+        openingProgress < 1
+          ? smoothstep(0.02, 0.9, openingProgress)
+          : animate
+            ? (elapsed * 0.00007) % 1
+            : 0.74;
       const signalX = signalProgress * width;
       const signalIndex = Math.floor(TRACE_COUNT * 0.62);
       const signalY = getTraceY(signalIndex, signalX, elapsed, false);
 
       context.beginPath();
-      context.arc(signalX, signalY, 3.2, 0, Math.PI * 2);
+      context.arc(signalX, signalY, 3.2 + openingIntensity * 1.4, 0, Math.PI * 2);
       context.fillStyle = `rgb(${accent})`;
       context.fill();
     };
@@ -218,6 +235,7 @@ export default function HeroBackground() {
 
     const renderStatic = () => {
       lastTime = 0;
+      openingStartedAt = -OPENING_DURATION_MS;
       disturbances = [];
       draw(0, false);
     };
@@ -266,7 +284,10 @@ export default function HeroBackground() {
       pointer.active = false;
 
       if (reducedMotion.matches) renderStatic();
-      else if (isVisible) frameId = requestAnimationFrame(renderFrame);
+      else if (isVisible) {
+        openingStartedAt = 0;
+        frameId = requestAnimationFrame(renderFrame);
+      }
     };
 
     const resizeObserver = new ResizeObserver(() => {

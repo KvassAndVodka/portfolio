@@ -14,7 +14,7 @@ const containerVariants = {
   hidden: {},
   visible: {
     transition: {
-      delayChildren: 0.08,
+      delayChildren: 0.48,
       staggerChildren: 0.09,
     },
   },
@@ -165,7 +165,7 @@ export default function AnimatedHero() {
               opacity: 1,
               x: 0,
               rotate: 0,
-              transition: { duration: 0.86, delay: 0.16, ease: easeOutExpo },
+              transition: { duration: 0.86, delay: 0.22, ease: easeOutExpo },
             },
           }}
           style={{
@@ -182,7 +182,7 @@ export default function AnimatedHero() {
               hidden: { clipPath: "inset(100% 0 0 0)" },
               visible: {
                 clipPath: "inset(0% 0 0 0)",
-                transition: { duration: 0.92, delay: 0.14, ease: easeOutExpo },
+                transition: { duration: 0.92, delay: 0.2, ease: easeOutExpo },
               },
             }}
           >

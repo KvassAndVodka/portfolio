@@ -3,6 +3,9 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --header-height: 4.5rem;
+  --header-safe-area: env(safe-area-inset-top, 0px);
+  --header-offset: calc(var(--header-height) + var(--header-safe-area));
   --background: #f8f8f5;
   --foreground: #161616;
   --surface: #ecebe6;
@@ -352,7 +355,7 @@ button {
 }
 
 [id] {
-  scroll-margin-top: 6rem;
+  scroll-margin-top: calc(var(--header-offset) + 1.5rem);
 }
 
 .site-shell {
@@ -383,6 +386,8 @@ button {
 }
 
 .site-header {
+  height: var(--header-offset);
+  padding-top: var(--header-safe-area);
   background: var(--background);
   transition:
     border-color 240ms ease,
@@ -396,6 +401,10 @@ button {
 
 .header-inner {
   position: relative;
+}
+
+.mobile-navigation-panel {
+  height: calc(100dvh - var(--header-offset));
 }
 
 .scroll-progress {
@@ -700,7 +709,7 @@ button {
   position: relative;
   isolation: isolate;
   display: flex;
-  min-height: calc(100dvh - 4.5rem);
+  min-height: calc(100dvh - var(--header-offset));
   align-items: stretch;
   overflow: hidden;
   background: var(--background);
@@ -743,7 +752,7 @@ button {
   position: relative;
   z-index: 1;
   display: grid;
-  min-height: calc(100dvh - 4.5rem);
+  min-height: calc(100dvh - var(--header-offset));
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: clamp(1.5rem, 4vw, 4.5rem);
   align-items: center;
