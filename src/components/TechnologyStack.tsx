@@ -132,14 +132,10 @@ export default function TechnologyStack() {
               <p>{area.description}</p>
               <ul>
                 {area.capabilities.map(({ icon: Icon, name }) => (
-                  <m.li
-                    key={name}
-                    whileHover={reduceMotion ? undefined : { x: 5 }}
-                    transition={{ type: "spring", stiffness: 420, damping: 30 }}
-                  >
+                  <li key={name}>
                     <Icon aria-hidden="true" />
                     <span>{name}</span>
-                  </m.li>
+                  </li>
                 ))}
               </ul>
             </m.article>

@@ -136,7 +136,7 @@ export default function ContactForm() {
             animate={
               fieldErrors.name && !reduceMotion ? { x: [0, -5, 5, -3, 3, 0] } : { x: 0 }
             }
-            transition={{ duration: 0.32 }}
+            transition={{ duration: 0.24 }}
           />
           <span className="contact-field-error" id="name-error" aria-live="polite" aria-atomic="true">
             <AnimatePresence initial={false}>
@@ -168,7 +168,7 @@ export default function ContactForm() {
             animate={
               fieldErrors.email && !reduceMotion ? { x: [0, -5, 5, -3, 3, 0] } : { x: 0 }
             }
-            transition={{ duration: 0.32 }}
+            transition={{ duration: 0.24 }}
           />
           <span className="contact-field-error" id="email-error" aria-live="polite" aria-atomic="true">
             <AnimatePresence initial={false}>
@@ -202,7 +202,7 @@ export default function ContactForm() {
           animate={
             fieldErrors.message && !reduceMotion ? { x: [0, -5, 5, -3, 3, 0] } : { x: 0 }
           }
-          transition={{ duration: 0.32 }}
+          transition={{ duration: 0.24 }}
         />
         <span className="contact-field-error" id="message-error" aria-live="polite" aria-atomic="true">
           <AnimatePresence initial={false}>
@@ -234,8 +234,7 @@ export default function ContactForm() {
           className="contact-submit"
           type="submit"
           disabled={status === "sending"}
-          whileHover={reduceMotion ? undefined : { x: 4 }}
-          whileTap={reduceMotion ? undefined : { scale: 0.96 }}
+          whileTap={reduceMotion ? undefined : { scale: 0.97 }}
         >
           <m.span
             animate={
@@ -243,7 +242,7 @@ export default function ContactForm() {
                 ? { x: [0, 5, 2], y: [0, -5, -2], rotate: [0, -8, -3] }
                 : { x: 0, y: 0, rotate: 0 }
             }
-            transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
           >
             <FaPaperPlane aria-hidden="true" />
           </m.span>

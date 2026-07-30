@@ -87,7 +87,6 @@ export default function ProjectCard({
         rotateY: reduceMotion ? 0 : rotateY,
         transformPerspective: 1200,
       }}
-      whileHover={reduceMotion ? undefined : { y: -8 }}
       whileTap={reduceMotion ? undefined : { scale: 0.992 }}
       onPointerMove={handlePointerMove}
       onPointerLeave={resetTilt}

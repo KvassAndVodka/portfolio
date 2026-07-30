@@ -119,8 +119,8 @@ export default function AnimatedHero() {
                   <m.span
                     aria-hidden="true"
                     className="hero-process-checkpoint"
-                    initial={reduceMotion ? false : { scale: 0, rotate: -45 }}
-                    animate={{ scale: 1, rotate: 0 }}
+                    initial={reduceMotion ? false : { opacity: 0, scale: 0.9, rotate: -35 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
                     transition={{
                       type: "spring",
                       stiffness: 420,
@@ -138,7 +138,6 @@ export default function AnimatedHero() {
             <m.a
               className="button-primary"
               href="/projects"
-              whileHover={reduceMotion ? undefined : { x: 4 }}
               whileTap={reduceMotion ? undefined : { scale: 0.97 }}
             >
               View projects
@@ -149,7 +148,6 @@ export default function AnimatedHero() {
               aria-label="Javier Raut on GitHub (opens in a new tab)"
               rel="noreferrer"
               target="_blank"
-              whileHover={reduceMotion ? undefined : { x: 4 }}
               whileTap={reduceMotion ? undefined : { scale: 0.97 }}
             >
               <FaGithub aria-hidden="true" />
@@ -175,7 +173,6 @@ export default function AnimatedHero() {
             rotateY: reduceMotion ? 0 : portraitRotateY,
             transformPerspective: 1200,
           }}
-          whileHover={reduceMotion ? undefined : { scale: 1.012 }}
           onPointerMove={handlePortraitPointerMove}
           onPointerLeave={resetPortrait}
         >

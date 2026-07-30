@@ -48,8 +48,6 @@ export default function ExperienceTimeline({
               transition: { duration: 0.76, ease: easeOutExpo },
             },
           }}
-          whileHover={reduceMotion ? undefined : { x: 10 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
           <div className="experience-period">
             <time>{item.period}</time>

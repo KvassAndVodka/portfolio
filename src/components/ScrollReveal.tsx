@@ -19,8 +19,8 @@ export default function ScrollReveal({ children, className = "", threshold = 0.1
   const easeOutExpo = [0.16, 1, 0.3, 1] as const;
   const variants: Record<NonNullable<ScrollRevealProps["variant"]>, Variants> = {
     lift: {
-      hidden: { opacity: 0, y: 38, filter: "blur(7px)" },
-      visible: { opacity: 1, y: 0, filter: "blur(0px)" },
+      hidden: { opacity: 0, y: 38 },
+      visible: { opacity: 1, y: 0 },
     },
     clip: {
       hidden: { opacity: 0.35, clipPath: "inset(0 0 100% 0)", y: 18 },

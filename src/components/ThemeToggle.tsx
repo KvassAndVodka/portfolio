@@ -23,16 +23,15 @@ export default function ThemeToggle() {
       title={mounted ? `Switch to ${nextTheme} mode` : "Change color theme"}
       disabled={!mounted}
       onClick={() => setTheme(nextTheme)}
-      whileHover={reduceMotion ? undefined : { rotate: 4, scale: 1.04 }}
-      whileTap={reduceMotion ? undefined : { rotate: -8, scale: 0.9 }}
+      whileTap={reduceMotion ? undefined : { rotate: -4, scale: 0.97 }}
     >
       <AnimatePresence initial={false} mode="wait">
         {mounted && (
           <m.span
             key={isDark ? "sun" : "moon"}
-            initial={reduceMotion ? false : { opacity: 0, rotate: -90, scale: 0.65 }}
+            initial={reduceMotion ? false : { opacity: 0, rotate: -45, scale: 0.9 }}
             animate={{ opacity: 1, rotate: 0, scale: 1 }}
-            exit={reduceMotion ? undefined : { opacity: 0, rotate: 90, scale: 0.65 }}
+            exit={reduceMotion ? undefined : { opacity: 0, rotate: 45, scale: 0.9 }}
             transition={{ duration: reduceMotion ? 0 : 0.2 }}
           >
             {isDark ? <FaSun aria-hidden="true" /> : <FaMoon aria-hidden="true" />}

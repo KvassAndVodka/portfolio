@@ -14,9 +14,13 @@ export default function MainWrapper({ children }: Readonly<{ children: React.Rea
       id="main-content"
       className={isAdmin ? "" : "pt-[4.5rem]"}
       tabIndex={-1}
-      initial={reduceMotion || isAdmin ? false : { opacity: 0.55, clipPath: "inset(0 0 1.5rem 0)" }}
-      animate={{ opacity: 1, clipPath: "inset(0 0 0rem 0)" }}
-      transition={{ duration: reduceMotion ? 0 : 0.42, ease: [0.16, 1, 0.3, 1] }}
+      initial={
+        reduceMotion || isAdmin
+          ? false
+          : { opacity: 0.86, transform: "translateY(4px)" }
+      }
+      animate={{ opacity: 1, transform: "translateY(0px)" }}
+      transition={{ duration: reduceMotion ? 0 : 0.18, ease: [0.23, 1, 0.32, 1] }}
     >
       {children}
     </m.main>

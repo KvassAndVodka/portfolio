@@ -189,14 +189,14 @@ export default function Header() {
             aria-expanded={isMenuOpen}
             aria-label={isMenuOpen ? "Close navigation" : "Open navigation"}
             onClick={toggleMenu}
-            whileTap={reduceMotion ? undefined : { scale: 0.9 }}
+            whileTap={reduceMotion ? undefined : { scale: 0.97 }}
           >
             <AnimatePresence initial={false} mode="wait">
               <m.span
                 key={isMenuOpen ? "close" : "menu"}
-                initial={reduceMotion ? false : { opacity: 0, rotate: -70, scale: 0.7 }}
+                initial={reduceMotion ? false : { opacity: 0, rotate: -45, scale: 0.9 }}
                 animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                exit={reduceMotion ? undefined : { opacity: 0, rotate: 70, scale: 0.7 }}
+                exit={reduceMotion ? undefined : { opacity: 0, rotate: 45, scale: 0.9 }}
                 transition={{ duration: reduceMotion ? 0 : 0.18 }}
               >
                 {isMenuOpen ? <FaXmark aria-hidden="true" /> : <FaBars aria-hidden="true" />}
@@ -215,7 +215,7 @@ export default function Header() {
             initial={reduceMotion ? false : { opacity: 0, clipPath: "inset(0 0 100% 0)" }}
             animate={{ opacity: 1, clipPath: "inset(0 0 0% 0)" }}
             exit={reduceMotion ? undefined : { opacity: 0, clipPath: "inset(0 0 100% 0)" }}
-            transition={{ duration: reduceMotion ? 0 : 0.38, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.16, 1, 0.3, 1] }}
           >
             <m.nav
               aria-label="Mobile navigation"
@@ -224,7 +224,7 @@ export default function Header() {
               animate="visible"
               variants={{
                 hidden: {},
-                visible: { transition: { delayChildren: 0.08, staggerChildren: 0.06 } },
+                visible: { transition: { delayChildren: 0.04, staggerChildren: 0.04 } },
               }}
             >
               {navigation.map((item, index) => (
@@ -235,7 +235,7 @@ export default function Header() {
                     visible: {
                       opacity: 1,
                       x: 0,
-                      transition: { duration: 0.42, ease: [0.16, 1, 0.3, 1] },
+                      transition: { duration: 0.24, ease: [0.16, 1, 0.3, 1] },
                     },
                   }}
                 >

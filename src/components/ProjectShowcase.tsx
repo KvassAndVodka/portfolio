@@ -89,15 +89,7 @@ function ProjectShowcaseContent({
       <div className="project-loading-state" aria-busy="true" role="status">
         <span>Loading selected work</span>
         <span aria-hidden="true" className="project-loading-track">
-          <m.span
-            animate={reduceMotion ? { scaleX: 1 } : { scaleX: [0.08, 0.72, 0.28] }}
-            transition={{
-              duration: reduceMotion ? 0 : 1.35,
-              ease: [0.16, 1, 0.3, 1],
-              repeat: reduceMotion ? 0 : Infinity,
-              repeatType: "mirror",
-            }}
-          />
+          <span />
         </span>
       </div>
     );
@@ -159,7 +151,7 @@ function ProjectShowcaseContent({
                     type="button"
                     onClick={() => setActiveCategory(category)}
                     aria-pressed={activeCategory === category}
-                    whileTap={reduceMotion ? undefined : { scale: 0.94 }}
+                    whileTap={reduceMotion ? undefined : { scale: 0.97 }}
                   >
                     <span>{category}</span>
                     {activeCategory === category && (
