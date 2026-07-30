@@ -2,13 +2,30 @@
 
 import { useEffect, useRef } from "react";
 
-interface Pulse {
+/*
+ * THESIS: Show a system being refined under pressure, not a generic developer grid or terminal.
+ * OWN-WORLD: Quiet neutral traces, one vivid orange-red signal, hard checkpoints, and no glow or particles.
+ * STORY: Ideas can be disturbed; deliberate process brings them back into a dependable shape.
+ * FIRST VIEWPORT: Traces gather behind the portrait while the copy remains calm and immediately legible.
+ * FORM: A directly shaped precision trace for this local hero redesign; no concept seed was required.
+ */
+
+interface Disturbance {
   x: number;
   y: number;
   age: number;
-  life: number;
-  strength: number;
 }
+
+const TRACE_COUNT = 13;
+const TRACE_STEP = 12;
+
+const clamp = (value: number, minimum: number, maximum: number) =>
+  Math.min(maximum, Math.max(minimum, value));
+
+const smoothstep = (edgeStart: number, edgeEnd: number, value: number) => {
+  const progress = clamp((value - edgeStart) / (edgeEnd - edgeStart), 0, 1);
+  return progress * progress * (3 - 2 * progress);
+};
 
 export default function HeroBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -17,237 +34,261 @@ export default function HeroBackground() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const context = canvas.getContext("2d");
+    if (!context) return;
 
-    const gridSize = 42;
-    let cols = 0;
-    let rows = 0;
-    let width = 0;
-    let height = 0;
-    let dampeningMap: number[] = [];
-    let accent = "201, 67, 18";
-    let grid = "98, 98, 94";
-    let baseAlpha = 0.1;
+    let width = 1;
+    let height = 1;
+    let frameId = 0;
+    let lastTime = 0;
+    let isVisible = true;
+    let accent = "255, 90, 36";
+    let trace = "114, 110, 103";
+    let traceAlpha = 0.14;
+    let disturbances: Disturbance[] = [];
+
+    const pointer = {
+      x: -10_000,
+      y: -10_000,
+      active: false,
+    };
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     const resize = () => {
       const bounds = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
       width = Math.max(1, bounds.width);
       height = Math.max(1, bounds.height);
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      cols = Math.ceil(width / gridSize);
-      rows = Math.ceil(height / gridSize);
-      dampeningMap = new Array((cols + 1) * rows + (rows + 1) * cols).fill(0);
+      canvas.width = Math.round(width * devicePixelRatio);
+      canvas.height = Math.round(height * devicePixelRatio);
+      context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
     };
 
     const updatePalette = () => {
       const styles = getComputedStyle(document.documentElement);
       accent = styles.getPropertyValue("--canvas-accent-rgb").trim() || accent;
-      grid = styles.getPropertyValue("--canvas-grid-rgb").trim() || grid;
-      baseAlpha = Number.parseFloat(styles.getPropertyValue("--canvas-grid-alpha")) || 0.1;
+      trace = styles.getPropertyValue("--canvas-trace-rgb").trim() || trace;
+      traceAlpha =
+        Number.parseFloat(styles.getPropertyValue("--canvas-trace-alpha")) || traceAlpha;
     };
 
-    let pulses: Pulse[] = [];
-    let frameId = 0;
-    let isVisible = true;
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-    const spawnPulse = (targetX?: number, targetY?: number, strength = 1) => {
-      const x = targetX ?? Math.floor(Math.random() * cols);
-      const y = targetY ?? Math.floor(Math.random() * rows);
-      pulses = [...pulses.slice(-4), { x, y, age: 0, life: 4.8, strength }];
-    };
-
-    let lastTime = 0;
-    const mouse = { x: -1000, y: -1000 };
-
-    const handlePointerMove = (event: PointerEvent) => {
-      if (reducedMotion.matches) return;
-      const rect = canvas.getBoundingClientRect();
-      mouse.x = event.clientX - rect.left;
-      mouse.y = event.clientY - rect.top;
-    };
-
-    const handlePointerLeave = () => {
-      mouse.x = -1000;
-      mouse.y = -1000;
-    };
-
-    const handlePointerDown = (event: PointerEvent) => {
-      if (reducedMotion.matches) return;
-      const rect = canvas.getBoundingClientRect();
-      spawnPulse(
-        Math.round((event.clientX - rect.left) / gridSize),
-        Math.round((event.clientY - rect.top) / gridSize),
-        1.35,
-      );
-    };
-
-    const handleVisibility = () => {
-      isVisible = !document.hidden;
-      if (!isVisible) {
-        cancelAnimationFrame(frameId);
-        frameId = 0;
-        return;
-      }
-
-      lastTime = performance.now();
-      if (reducedMotion.matches) {
-        drawGrid(0, false);
-      } else if (!frameId) {
-        frameId = requestAnimationFrame(draw);
-      }
-    };
-
-    canvas.addEventListener("pointermove", handlePointerMove);
-    canvas.addEventListener("pointerleave", handlePointerLeave);
-    canvas.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("visibilitychange", handleVisibility);
-
-    const drawLine = (
-      x1: number,
-      y1: number,
-      x2: number,
-      y2: number,
-      intensity: number,
+    const getTraceY = (
+      traceIndex: number,
+      x: number,
+      elapsed: number,
+      allowInteraction: boolean,
     ) => {
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
+      const progress = x / Math.max(width, 1);
+      const indexPosition = traceIndex / (TRACE_COUNT - 1) - 0.5;
+      const fieldCenter = height * 0.54;
+      const fieldSpread = Math.min(height * 0.62, 520);
+      const settling = 1 - smoothstep(0.5, 0.92, progress) * 0.72;
+      const phase = traceIndex * 0.68;
+      const primaryWave =
+        Math.sin(progress * Math.PI * 2.35 + phase + elapsed * 0.00022) *
+        (20 + Math.abs(indexPosition) * 32) *
+        settling;
+      const secondaryWave =
+        Math.sin(progress * Math.PI * 5.2 - phase * 0.45 - elapsed * 0.00011) *
+        8 *
+        settling;
+      const convergence =
+        Math.exp(-Math.pow((progress - 0.72) / 0.12, 2)) *
+        indexPosition *
+        fieldSpread *
+        -0.24;
 
-      if (intensity > 0.05) {
-        const alpha = Math.min(0.72, baseAlpha + intensity * 0.55);
-        const lineWidth = 1 + intensity * 0.55;
-        ctx.strokeStyle =
-          intensity > 1.08
-            ? `rgba(255, 247, 241, ${Math.min(alpha, 0.82)})`
-            : `rgba(${accent}, ${alpha})`;
-        ctx.lineWidth = intensity > 1.08 ? lineWidth * 1.25 : lineWidth;
-      } else {
-        ctx.strokeStyle = `rgba(${grid}, ${baseAlpha})`;
-        ctx.lineWidth = 1;
+      let y =
+        fieldCenter +
+        indexPosition * fieldSpread +
+        primaryWave +
+        secondaryWave +
+        convergence;
+
+      if (!allowInteraction) return y;
+
+      const sources: Array<{ x: number; y: number; strength: number }> = [];
+
+      if (pointer.active) {
+        sources.push({ x: pointer.x, y: pointer.y, strength: 30 });
       }
 
-      ctx.stroke();
+      for (const disturbance of disturbances) {
+        const decay = 1 - clamp(disturbance.age / 1.6, 0, 1);
+        sources.push({
+          x: disturbance.x,
+          y: disturbance.y,
+          strength: 54 * decay,
+        });
+      }
+
+      for (const source of sources) {
+        const distanceX = x - source.x;
+        const distanceY = y - source.y;
+        const distance = Math.hypot(distanceX, distanceY);
+        const radius = Math.min(width * 0.15, 170);
+
+        if (distance < radius) {
+          const falloff = Math.pow(1 - distance / radius, 2);
+          const direction = distanceY === 0 ? (traceIndex % 2 ? 1 : -1) : Math.sign(distanceY);
+          y += direction * source.strength * falloff;
+        }
+      }
+
+      return y;
     };
 
-    const drawGrid = (deltaTime: number, animate: boolean) => {
-      ctx.clearRect(0, 0, width, height);
+    const drawGate = (x: number, elapsed: number, animate: boolean) => {
+      const pulse = animate ? 0.78 + Math.sin(elapsed * 0.0012 + x) * 0.12 : 0.82;
+      const gateTop = height * 0.19;
+      const gateBottom = height * 0.87;
+      const notch = 11;
 
-      if (animate) {
-        pulses.forEach((pulse) => (pulse.age += deltaTime));
-        pulses = pulses.filter((pulse) => pulse.age < pulse.life);
-        if (Math.random() < 0.24 * deltaTime) spawnPulse();
-      }
-
-      const getIntensity = (cx: number, cy: number) => {
-        let intensity = 0;
-        let activeSources = 0;
-        const mouseDistance = Math.hypot(cx - mouse.x / gridSize, cy - mouse.y / gridSize);
-
-        if (animate && mouseDistance < 4.2) {
-          const mouseIntensity = (1 - mouseDistance / 4.2) * 0.92;
-          intensity += mouseIntensity;
-          if (mouseIntensity > 0.1) activeSources += 1;
-        }
-
-        for (const pulse of pulses) {
-          const distance = Math.hypot(cx - pulse.x, cy - pulse.y);
-          const radius = pulse.age * 10.5;
-          const difference = Math.abs(distance - radius);
-
-          if (difference < 1.8) {
-            const decay = Math.max(0, 1 - pulse.age / pulse.life);
-            const pulseIntensity = (1 - difference / 1.8) * decay * pulse.strength;
-            intensity += pulseIntensity;
-            if (pulseIntensity > 0.1) activeSources += 1;
-          }
-        }
-
-        return { activeSources, intensity };
-      };
-
-      for (let i = 0; i <= cols; i += 1) {
-        for (let j = 0; j < rows; j += 1) {
-          const { activeSources, intensity } = getIntensity(i, j + 0.5);
-          const mapIndex = i * rows + j;
-          dampeningMap[mapIndex] =
-            activeSources > 1 && intensity > 0.5
-              ? Math.min(dampeningMap[mapIndex] + 4.8 * deltaTime, 1)
-              : Math.max(dampeningMap[mapIndex] - 0.42 * deltaTime, 0);
-          drawLine(
-            i * gridSize,
-            j * gridSize,
-            i * gridSize,
-            (j + 1) * gridSize,
-            Math.max(0, intensity - dampeningMap[mapIndex]),
-          );
-        }
-      }
-
-      const horizontalOffset = (cols + 1) * rows;
-      for (let j = 0; j <= rows; j += 1) {
-        for (let i = 0; i < cols; i += 1) {
-          const { activeSources, intensity } = getIntensity(i + 0.5, j);
-          const mapIndex = horizontalOffset + j * cols + i;
-          dampeningMap[mapIndex] =
-            activeSources > 1 && intensity > 0.5
-              ? Math.min(dampeningMap[mapIndex] + 4.8 * deltaTime, 1)
-              : Math.max(dampeningMap[mapIndex] - 0.42 * deltaTime, 0);
-          drawLine(
-            i * gridSize,
-            j * gridSize,
-            (i + 1) * gridSize,
-            j * gridSize,
-            Math.max(0, intensity - dampeningMap[mapIndex]),
-          );
-        }
-      }
+      context.beginPath();
+      context.moveTo(x + notch, gateTop);
+      context.lineTo(x, gateTop);
+      context.lineTo(x, gateTop + 24);
+      context.moveTo(x, gateBottom - 24);
+      context.lineTo(x, gateBottom);
+      context.lineTo(x + notch, gateBottom);
+      context.strokeStyle = `rgba(${accent}, ${0.28 * pulse})`;
+      context.lineWidth = 1;
+      context.stroke();
     };
 
-    const draw = (timestamp: number) => {
+    const draw = (elapsed: number, animate: boolean) => {
+      context.clearRect(0, 0, width, height);
+      context.lineCap = "round";
+      context.lineJoin = "round";
+
+      const allowInteraction = animate && !reducedMotion.matches;
+
+      disturbances = disturbances
+        .map((disturbance) => ({
+          ...disturbance,
+          age: disturbance.age + Math.min((elapsed - lastTime) / 1000, 0.05),
+        }))
+        .filter((disturbance) => disturbance.age < 1.6);
+
+      for (let traceIndex = 0; traceIndex < TRACE_COUNT; traceIndex += 1) {
+        context.beginPath();
+
+        for (let x = -TRACE_STEP; x <= width + TRACE_STEP; x += TRACE_STEP) {
+          const y = getTraceY(traceIndex, x, elapsed, allowInteraction);
+
+          if (x === -TRACE_STEP) context.moveTo(x, y);
+          else context.lineTo(x, y);
+        }
+
+        const isSignal = traceIndex === Math.floor(TRACE_COUNT * 0.62);
+        context.strokeStyle = isSignal
+          ? `rgba(${accent}, ${traceAlpha * 2.8})`
+          : `rgba(${trace}, ${traceAlpha * (0.7 + (traceIndex % 3) * 0.18)})`;
+        context.lineWidth = isSignal ? 1.7 : 1;
+        context.stroke();
+      }
+
+      const gatePositions = [0.49, 0.66, 0.83];
+      gatePositions.forEach((position) => drawGate(width * position, elapsed, animate));
+
+      const signalProgress = animate ? (elapsed * 0.00007) % 1 : 0.74;
+      const signalX = signalProgress * width;
+      const signalIndex = Math.floor(TRACE_COUNT * 0.62);
+      const signalY = getTraceY(signalIndex, signalX, elapsed, false);
+
+      context.beginPath();
+      context.arc(signalX, signalY, 3.2, 0, Math.PI * 2);
+      context.fillStyle = `rgb(${accent})`;
+      context.fill();
+    };
+
+    const renderFrame = (timestamp: number) => {
       if (!isVisible || reducedMotion.matches) {
         frameId = 0;
         return;
       }
 
       if (!lastTime) lastTime = timestamp;
-      const deltaTime = Math.min((timestamp - lastTime) / 1000, 0.05);
+      draw(timestamp, true);
       lastTime = timestamp;
-      drawGrid(deltaTime, true);
-      frameId = requestAnimationFrame(draw);
+      frameId = requestAnimationFrame(renderFrame);
+    };
+
+    const renderStatic = () => {
+      lastTime = 0;
+      disturbances = [];
+      draw(0, false);
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (reducedMotion.matches) return;
+      const bounds = canvas.getBoundingClientRect();
+      pointer.x = event.clientX - bounds.left;
+      pointer.y = event.clientY - bounds.top;
+      pointer.active = true;
+    };
+
+    const handlePointerLeave = () => {
+      pointer.active = false;
+    };
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (reducedMotion.matches) return;
+      const bounds = canvas.getBoundingClientRect();
+      disturbances = [
+        ...disturbances.slice(-2),
+        {
+          x: event.clientX - bounds.left,
+          y: event.clientY - bounds.top,
+          age: 0,
+        },
+      ];
+    };
+
+    const handleVisibility = () => {
+      isVisible = !document.hidden;
+
+      if (!isVisible) {
+        cancelAnimationFrame(frameId);
+        frameId = 0;
+        return;
+      }
+
+      if (reducedMotion.matches) renderStatic();
+      else if (!frameId) frameId = requestAnimationFrame(renderFrame);
+    };
+
+    const handleMotionPreference = () => {
+      cancelAnimationFrame(frameId);
+      frameId = 0;
+      pointer.active = false;
+
+      if (reducedMotion.matches) renderStatic();
+      else if (isVisible) frameId = requestAnimationFrame(renderFrame);
     };
 
     const resizeObserver = new ResizeObserver(() => {
       resize();
-      if (reducedMotion.matches) drawGrid(0, false);
+      if (reducedMotion.matches) renderStatic();
     });
     const themeObserver = new MutationObserver(() => {
       updatePalette();
-      if (reducedMotion.matches) drawGrid(0, false);
+      if (reducedMotion.matches) renderStatic();
     });
-    const handleMotionPreference = () => {
-      cancelAnimationFrame(frameId);
-      frameId = 0;
-      pulses = [];
-      lastTime = performance.now();
 
-      if (reducedMotion.matches) {
-        drawGrid(0, false);
-      } else if (isVisible) {
-        frameId = requestAnimationFrame(draw);
-      }
-    };
-
+    canvas.addEventListener("pointermove", handlePointerMove);
+    canvas.addEventListener("pointerleave", handlePointerLeave);
+    canvas.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("visibilitychange", handleVisibility);
     resizeObserver.observe(canvas);
     themeObserver.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class"],
     });
     reducedMotion.addEventListener("change", handleMotionPreference);
+
     updatePalette();
     resize();
     handleMotionPreference();

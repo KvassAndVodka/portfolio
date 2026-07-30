@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   serverExternalPackages: ['geoip-lite'],
   images: {
+    qualities: [75, 90],
     remotePatterns: [
       {
         protocol: 'https',

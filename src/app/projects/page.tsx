@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 
 import ProjectShowcase from "@/components/ProjectShowcase";
-import ScrollReveal from "@/components/ScrollReveal";
-
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Projects",
-  description: "Selected backend, infrastructure, full-stack, and applied AI projects by Javier Raut.",
+  description: "Selected product, data, infrastructure, and operational software projects by Javier Raut.",
 };
 
 export default function ProjectsPage() {
@@ -15,7 +12,7 @@ export default function ProjectsPage() {
     <div>
       <section className="subpage-hero">
         <div className="site-shell">
-          <h1 className="page-title">Backend and infrastructure projects.</h1>
+          <h1 className="page-title">Systems built to do real work.</h1>
           <p className="body-large mt-7">
             Case studies with the problem, my implementation, the technology, and links you can inspect.
           </p>
@@ -23,9 +20,9 @@ export default function ProjectsPage() {
       </section>
 
       <section className="py-20 md:py-28">
-        <ScrollReveal className="site-shell">
-          <ProjectShowcase />
-        </ScrollReveal>
+        <div className="site-shell">
+          <ProjectShowcase loadImmediately />
+        </div>
       </section>
     </div>
   );

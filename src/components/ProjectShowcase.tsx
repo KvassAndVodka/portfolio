@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { AnimatePresence, LayoutGroup, m, useInView, useReducedMotion } from "framer-motion";
+import { useMemo, useRef, useState } from "react";
 import { FaArrowUpRightFromSquare, FaGithub, FaRotateRight } from "react-icons/fa6";
 
 import ProjectCard, { formatProjectCategory } from "@/components/ProjectCard";
-import ProjectSkeleton from "@/components/ProjectSkeleton";
 import { useTimedFetch } from "@/hooks/useTimedFetch";
 import type { ProjectPreview } from "@/lib/projects";
 
@@ -12,18 +12,44 @@ type ProjectShowcaseProps = Readonly<{
   compact?: boolean;
   featured?: boolean;
   limit?: number;
+  loadImmediately?: boolean;
 }>;
 
 export default function ProjectShowcase({
+  loadImmediately = false,
+  ...props
+}: ProjectShowcaseProps) {
+  const boundaryRef = useRef<HTMLDivElement>(null);
+  const isNearViewport = useInView(boundaryRef, {
+    margin: "0px 0px 120px 0px",
+    once: true,
+  });
+  const shouldLoad = loadImmediately || isNearViewport;
+
+  return (
+    <div className="project-showcase-boundary" ref={boundaryRef}>
+      <ProjectShowcaseContent {...props} enabled={shouldLoad} />
+    </div>
+  );
+}
+
+function ProjectShowcaseContent({
   compact = false,
+  enabled,
   featured = false,
   limit,
-}: ProjectShowcaseProps) {
+}: ProjectShowcaseProps & Readonly<{ enabled: boolean }>) {
+  const reduceMotion = useReducedMotion();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
-  const { data, retry, status } = useTimedFetch<{ projects: ProjectPreview[] }>("/api/projects");
+  const { data, retry, status } = useTimedFetch<{ projects: ProjectPreview[] }>(
+    "/api/projects",
+    3_500,
+    undefined,
+    enabled,
+  );
 
-  const initialProjects = useMemo(() => {
+  const availableProjects = useMemo(() => {
     const projects = data?.projects ?? [];
     const selected = featured
       ? (() => {
@@ -39,13 +65,13 @@ export default function ProjectShowcase({
     () => [
       "All",
       ...Array.from(
-        new Set(initialProjects.map((project) => formatProjectCategory(project.category))),
+        new Set(availableProjects.map((project) => formatProjectCategory(project.category))),
       ),
     ],
-    [initialProjects],
+    [availableProjects],
   );
 
-  const filteredProjects = initialProjects.filter((project) => {
+  const filteredProjects = availableProjects.filter((project) => {
     const query = search.trim().toLowerCase();
     const category = formatProjectCategory(project.category);
     const matchesCategory = activeCategory === "All" || category === activeCategory;
@@ -59,30 +85,42 @@ export default function ProjectShowcase({
   });
 
   if (status === "loading") {
-    const skeletonCount = compact ? 3 : 4;
-
     return (
-      <div
-        className={`project-grid ${compact ? "project-grid-compact" : "project-grid-index"}`}
-        data-count={skeletonCount}
-        aria-busy="true"
-        aria-label="Loading projects"
-      >
-        {Array.from({ length: skeletonCount }, (_, index) => (
-          <ProjectSkeleton key={index} featured={!compact && index === 0} />
-        ))}
+      <div className="project-loading-state" aria-busy="true" role="status">
+        <span>Loading selected work</span>
+        <span aria-hidden="true" className="project-loading-track">
+          <m.span
+            animate={reduceMotion ? { scaleX: 1 } : { scaleX: [0.08, 0.72, 0.28] }}
+            transition={{
+              duration: reduceMotion ? 0 : 1.35,
+              ease: [0.16, 1, 0.3, 1],
+              repeat: reduceMotion ? 0 : Infinity,
+              repeatType: "mirror",
+            }}
+          />
+        </span>
       </div>
     );
   }
 
-  if (status === "timeout" || status === "error" || initialProjects.length === 0) {
-    const title = status === "timeout" ? "Projects took too long to load." : "Projects are unavailable right now.";
+  if (status === "timeout" || status === "error" || availableProjects.length === 0) {
+    const title =
+      status === "timeout"
+        ? "Projects took too long to load."
+        : "Projects are unavailable right now.";
 
     return (
-      <div className="empty-state project-fallback" role="status">
+      <m.div
+        className="empty-state project-fallback"
+        role="status"
+        initial={reduceMotion ? false : { opacity: 0, clipPath: "inset(0 0 18% 0)" }}
+        animate={{ opacity: 1, clipPath: "inset(0 0 0% 0)" }}
+        transition={{ duration: reduceMotion ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
+      >
         <h3>{title}</h3>
         <p>
-          The case studies could not be retrieved. You can still inspect the source and recent work on GitHub.
+          The case studies could not be retrieved. You can still inspect the source and recent work
+          on GitHub.
         </p>
         <div className="empty-state-actions">
           <button className="button-secondary" type="button" onClick={retry}>
@@ -92,6 +130,7 @@ export default function ProjectShowcase({
           <a
             className="button-primary"
             href="https://github.com/KvassAndVodka"
+            aria-label="Javier Raut on GitHub (opens in a new tab)"
             rel="noreferrer"
             target="_blank"
           >
@@ -100,73 +139,96 @@ export default function ProjectShowcase({
             <FaArrowUpRightFromSquare aria-hidden="true" className="button-external-icon" />
           </a>
         </div>
-      </div>
+      </m.div>
     );
   }
 
   return (
-    <div>
-      {!compact && initialProjects.length > 0 && (
-        <div className="filter-toolbar">
-          <div className="filter-index">
-            <p className="project-result-count" aria-live="polite">
-              Showing {filteredProjects.length} of {initialProjects.length} projects
-            </p>
-            <div className="filter-tabs" aria-label="Filter projects by category">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setActiveCategory(category)}
-                  aria-pressed={activeCategory === category}
-                >
-                  {category}
-                </button>
-              ))}
+    <LayoutGroup id={compact ? "featured-projects" : "project-index"}>
+      <div>
+        {!compact && availableProjects.length > 0 && (
+          <m.div className="filter-toolbar" layout>
+            <div className="filter-index">
+              <p className="project-result-count" aria-live="polite">
+                Showing {filteredProjects.length} of {availableProjects.length} projects
+              </p>
+              <div className="filter-tabs" aria-label="Filter projects by category">
+                {categories.map((category) => (
+                  <m.button
+                    key={category}
+                    type="button"
+                    onClick={() => setActiveCategory(category)}
+                    aria-pressed={activeCategory === category}
+                    whileTap={reduceMotion ? undefined : { scale: 0.94 }}
+                  >
+                    <span>{category}</span>
+                    {activeCategory === category && (
+                      <m.span
+                        aria-hidden="true"
+                        className="filter-active-indicator"
+                        layoutId="project-filter-active"
+                        transition={{ type: "spring", stiffness: 430, damping: 36 }}
+                      />
+                    )}
+                  </m.button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <label className="search-field">
-            Search projects
-            <input
-              type="search"
-              placeholder="Title, summary, or technology"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-          </label>
-        </div>
-      )}
+            <label className="search-field">
+              Search projects
+              <input
+                type="search"
+                placeholder="Title, summary, or technology"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </label>
+          </m.div>
+        )}
 
-      {filteredProjects.length === 0 ? (
-        <div className="empty-state" role="status">
-          <p>No projects match those filters.</p>
-          <button
-            className="button-secondary mt-6"
-            type="button"
-            onClick={() => {
-              setSearch("");
-              setActiveCategory("All");
-            }}
-          >
-            Clear filters
-          </button>
-        </div>
-      ) : (
-        <div
-          className={`project-grid ${compact ? "project-grid-compact" : "project-grid-index"}`}
-          data-count={filteredProjects.length}
-        >
-          {filteredProjects.map((project, index) => (
-            <ProjectCard
-              compact={compact}
-              key={project.slug}
-              project={project}
-              featured={!compact && index === 0}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+        <AnimatePresence initial={false} mode="wait">
+          {filteredProjects.length === 0 ? (
+            <m.div
+              className="empty-state"
+              key="empty-project-filter"
+              role="status"
+              initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
+            >
+              <p>No projects match those filters.</p>
+              <button
+                className="button-secondary mt-6"
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setActiveCategory("All");
+                }}
+              >
+                Clear filters
+              </button>
+            </m.div>
+          ) : (
+            <m.div
+              className={`project-grid ${compact ? "project-grid-compact" : "project-grid-index"}`}
+              data-count={filteredProjects.length}
+              key="project-grid"
+              layout
+            >
+              {filteredProjects.map((project, index) => (
+                <ProjectCard
+                  compact={compact}
+                  index={index}
+                  key={project.slug}
+                  project={project}
+                  featured={!compact && index === 0}
+                />
+              ))}
+            </m.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </LayoutGroup>
   );
 }

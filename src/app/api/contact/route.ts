@@ -74,7 +74,6 @@ export async function POST(request: NextRequest) {
   const fields = payload as Record<string, unknown>;
   const name = typeof fields.name === "string" ? cleanHeaderValue(fields.name) : "";
   const email = typeof fields.email === "string" ? cleanHeaderValue(fields.email).toLowerCase() : "";
-  const subject = typeof fields.subject === "string" ? cleanHeaderValue(fields.subject) : "";
   const message = typeof fields.message === "string" ? fields.message.trim() : "";
   const website = typeof fields.website === "string" ? fields.website.trim() : "";
 
@@ -85,8 +84,6 @@ export async function POST(request: NextRequest) {
     name.length > 80 ||
     !EMAIL_PATTERN.test(email) ||
     email.length > 254 ||
-    subject.length < 3 ||
-    subject.length > 120 ||
     message.length < 10 ||
     message.length > 5_000
   ) {
@@ -125,7 +122,7 @@ export async function POST(request: NextRequest) {
         from,
         to: [to],
         reply_to: email,
-        subject: `[Portfolio] ${subject}`,
+        subject: `[Portfolio] Message from ${name}`,
         text: [`Name: ${name}`, `Email: ${email}`, "", message].join("\n"),
       }),
     });
