@@ -12,7 +12,7 @@ export default function MainWrapper({ children }: Readonly<{ children: React.Rea
     <m.main
       key={pathname}
       id="main-content"
-      className={isAdmin ? "" : "pt-[4.5rem]"}
+      className={isAdmin ? "" : undefined}
       tabIndex={-1}
       initial={
         reduceMotion || isAdmin

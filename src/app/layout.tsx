@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { ThemeProvider } from "next-themes";
@@ -12,6 +12,12 @@ export const metadata: Metadata = {
   },
   description:
     "Software developer building dependable products, data systems, infrastructure, and operational tools.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 import AnalyticsTracker from "@/components/AnalyticsTracker";

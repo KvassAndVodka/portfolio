@@ -5,13 +5,16 @@ A self-hosted personal portfolio and blog platform built with Next.js 16, featur
 ## Features
 
 - **Portfolio & Blog** – Showcase projects and publish blog posts with Markdown support
+- **Public Portfolio Experience** – Present selected work, technical practice, experience, and a direct contact path in a proof-led homepage
+- **Responsive Navigation** – Use a safe-area-aware header and an accessible mobile menu that returns visitors to the top of the homepage
+- **Intentional Motion** – Use an animated system trace and reduced-motion fallbacks to add hierarchy without hiding content
 - **Admin Dashboard** – Manage content, media, and view analytics from a premium dark-themed UI
 - **Media Library** – Upload and manage images for your posts
 - **Visit Analytics** – Track page views with geo-location data
 - **Authentication** – Secure admin access via NextAuth.js
 - **Self-Hosted** – Deploy on your own infrastructure with Docker
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Category | Technology |
 |----------|------------|
@@ -19,6 +22,7 @@ A self-hosted personal portfolio and blog platform built with Next.js 16, featur
 | Language | TypeScript |
 | Database | PostgreSQL + Prisma ORM |
 | Styling | Tailwind CSS 4 |
+| Motion | Framer Motion |
 | Auth | NextAuth.js v5 |
 | Deployment | Docker + Docker Compose |
 | Networking | Cloudflare Tunnel |
@@ -35,7 +39,7 @@ A self-hosted personal portfolio and blog platform built with Next.js 16, featur
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/portfolio.git
+   git clone https://github.com/KvassAndVodka/portfolio.git
    cd portfolio
    ```
 
@@ -48,7 +52,7 @@ A self-hosted personal portfolio and blog platform built with Next.js 16, featur
    ```bash
    cp .env.example .env
    ```
-   Edit `.env` and fill in your database URL and auth secrets.
+   Set the required values in `.env` before you start the app.
 
 4. Initialize the database:
    ```bash
@@ -61,6 +65,24 @@ A self-hosted personal portfolio and blog platform built with Next.js 16, featur
    ```
 
 Open [http://localhost:3000](http://localhost:3000) to view your portfolio.
+
+### Environment variables
+
+Use `.env.example` as the complete template. Do not commit `.env`.
+
+| Variable | When required | Purpose |
+|----------|---------------|---------|
+| `DATABASE_URL` | Always | Connects Prisma to PostgreSQL. |
+| `POSTGRES_PASSWORD` | Docker deployments | Sets the PostgreSQL password for Compose. |
+| `ADMIN_EMAIL` | Always | Identifies the administrator account. |
+| `ADMIN_PASSWORD_HASH` | Initial seed | Sets the bcrypt hash for the initial administrator password. |
+| `AUTH_SECRET` | Always | Signs Auth.js sessions. |
+| `AUTH_URL` and `NEXTAUTH_URL` | Production | Set the public site URL for authentication callbacks. |
+| `ANALYTICS_HASH_SECRET` | Recommended | Hashes visitor addresses for analytics. |
+| `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` | GitHub sign-in | Configure the optional GitHub OAuth provider. |
+| `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, and `CONTACT_FROM_EMAIL` | Contact form delivery | Send contact form email through Resend. |
+| `CLOUDFLARE_TUNNEL_TOKEN` | Cloudflare Tunnel | Authenticates the production tunnel. |
+| `DEV_ADMIN_BYPASS` | Local development only | Enables the local admin preview. Keep this value `false` outside local development. |
 
 ### One-switch local deployment
 
