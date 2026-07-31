@@ -5,6 +5,9 @@ A self-hosted personal portfolio and blog platform built with Next.js 16, featur
 ## Features
 
 - **Portfolio & Blog** – Showcase projects and publish blog posts with Markdown support
+- **Public Portfolio Experience** – Present selected work, technical practice, experience, and a direct contact path in a proof-led homepage
+- **Responsive Navigation** – Use a safe-area-aware header and an accessible mobile menu that returns visitors to the top of the homepage
+- **Intentional Motion** – Use an animated system trace and reduced-motion fallbacks to add hierarchy without hiding content
 - **Admin Dashboard** – Manage content, media, and view analytics from a premium dark-themed UI
 - **Media Library** – Upload and manage images for your posts
 - **Visit Analytics** – Track page views with geo-location data
@@ -19,6 +22,7 @@ A self-hosted personal portfolio and blog platform built with Next.js 16, featur
 | Language | TypeScript |
 | Database | PostgreSQL + Prisma ORM |
 | Styling | Tailwind CSS 4 |
+| Motion | Framer Motion |
 | Auth | NextAuth.js v5 |
 | Deployment | Docker + Docker Compose |
 | Networking | Cloudflare Tunnel |
@@ -35,7 +39,7 @@ A self-hosted personal portfolio and blog platform built with Next.js 16, featur
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/portfolio.git
+   git clone https://github.com/KvassAndVodka/portfolio.git
    cd portfolio
    ```
 
