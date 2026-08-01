@@ -79,6 +79,9 @@ export async function createPost(formData: FormData) {
     revalidatePath('/');
     revalidatePath('/projects');
     revalidatePath('/notes');
+    revalidatePath('/admin');
+    revalidatePath('/admin/projects');
+    revalidatePath('/admin/notes');
     revalidatePublicContent();
     redirect(type === 'PROJECT' ? '/admin/projects' : '/admin/notes');
 }
@@ -149,6 +152,8 @@ export async function updatePost(id: string, formData: FormData) {
     revalidatePath('/notes');
     revalidatePath(`/projects/${slug}`);
     revalidatePath(`/notes/${slug}`);
+    revalidatePath('/admin');
+    revalidatePath(`/admin/${existingPost.type === PostType.PROJECT ? 'projects' : 'notes'}`);
     revalidatePath(`/admin/${existingPost.type === PostType.PROJECT ? 'projects' : 'notes'}/${slug}`);
     revalidatePublicContent();
 }

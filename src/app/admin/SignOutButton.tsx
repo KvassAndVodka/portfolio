@@ -8,9 +8,9 @@ export default function SignOutButton() {
         <form action={logout}>
             <button 
                 type="submit"
-                className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium admin-muted hover:bg-[var(--admin-danger-soft)] hover:text-[var(--admin-danger)]"
+                className="admin-button-secondary w-full min-w-0 px-2 text-xs hover:!border-[var(--admin-danger)] hover:!bg-[var(--admin-danger-soft)] hover:!text-[var(--admin-danger)]"
             >
-                <FaRightFromBracket className="w-5" aria-hidden="true" />
+                <FaRightFromBracket className="shrink-0" aria-hidden="true" />
                 Sign out
             </button>
         </form>

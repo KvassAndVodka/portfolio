@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import sharp from 'sharp';
 
@@ -28,6 +29,8 @@ export async function POST(req: NextRequest) {
                 data: Uint8Array.from(processedBuffer)
             }
         });
+
+        revalidatePath('/admin/media');
 
         return NextResponse.json({ 
             success: true, 
