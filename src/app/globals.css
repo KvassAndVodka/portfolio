@@ -186,9 +186,9 @@ body {
 }
 
 .admin-page-title {
-  font-size: 1.875rem;
+  font-size: clamp(2rem, 3vw, 2.75rem);
   font-weight: 650;
-  line-height: 1.15;
+  line-height: 1.02;
   letter-spacing: -0.035em;
   text-wrap: balance;
 }
@@ -203,6 +203,15 @@ body {
   background: var(--admin-surface);
   border: 1px solid var(--admin-border);
   border-radius: 0.75rem;
+}
+
+.admin-skeleton {
+  background: color-mix(in srgb, var(--admin-border) 68%, var(--admin-surface));
+  animation: admin-skeleton-pulse 1.2s var(--ease-out-quart) infinite alternate;
+}
+
+@keyframes admin-skeleton-pulse {
+  to { opacity: 0.44; }
 }
 
 .admin-field,
@@ -321,6 +330,10 @@ body {
   .admin-shell *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .admin-skeleton {
+    animation: none;
   }
 }
 
