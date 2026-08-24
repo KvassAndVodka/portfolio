@@ -741,8 +741,6 @@ button {
   inset: 0;
   width: 100%;
   height: 100%;
-  opacity: 0;
-  animation: field-enter 900ms 80ms var(--ease-out-expo) forwards;
   touch-action: manipulation;
 }
 
@@ -879,7 +877,6 @@ button {
   position: relative;
   grid-column: span 5;
   padding: 0.75rem;
-  transform-style: preserve-3d;
   pointer-events: auto;
 }
 
@@ -1347,12 +1344,6 @@ button {
 
 .contact-footer a:hover {
   opacity: 0.65;
-}
-
-@keyframes field-enter {
-  to {
-    opacity: 1;
-  }
 }
 
 .proof-strip {

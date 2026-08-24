@@ -1,8 +1,7 @@
 "use client";
 
-import { m, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import Image from "next/image";
-import type { PointerEvent as ReactPointerEvent } from "react";
 import { FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6";
 
 import HeroBackground from "@/components/HeroBackground";
@@ -14,7 +13,7 @@ const containerVariants = {
   hidden: {},
   visible: {
     transition: {
-      delayChildren: 0.48,
+      delayChildren: 0.08,
       staggerChildren: 0.09,
     },
   },
@@ -45,24 +44,6 @@ const lineVariants = {
 
 export default function AnimatedHero() {
   const reduceMotion = useReducedMotion();
-  const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
-  const smoothX = useSpring(pointerX, { stiffness: 170, damping: 24, mass: 0.45 });
-  const smoothY = useSpring(pointerY, { stiffness: 170, damping: 24, mass: 0.45 });
-  const portraitRotateY = useTransform(smoothX, [-0.5, 0.5], [-3.5, 3.5]);
-  const portraitRotateX = useTransform(smoothY, [-0.5, 0.5], [3, -3]);
-
-  const handlePortraitPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (reduceMotion || event.pointerType !== "mouse") return;
-    const bounds = event.currentTarget.getBoundingClientRect();
-    pointerX.set((event.clientX - bounds.left) / bounds.width - 0.5);
-    pointerY.set((event.clientY - bounds.top) / bounds.height - 0.5);
-  };
-
-  const resetPortrait = () => {
-    pointerX.set(0);
-    pointerY.set(0);
-  };
 
   return (
     <section className="home-hero">
@@ -77,7 +58,7 @@ export default function AnimatedHero() {
         <div className="hero-copy">
           <m.p className="hero-kicker" variants={resolveVariants}>
             Hi, I&apos;m <strong>Javier Raut</strong> — a software developer at the House of
-            Representatives.
+            Representatives and a part-time instructor at USTP Cagayan de Oro.
           </m.p>
 
           <h1 className="display-title kinetic-title" aria-label="I build systems that hold up.">
@@ -168,13 +149,6 @@ export default function AnimatedHero() {
               transition: { duration: 0.86, delay: 0.22, ease: easeOutExpo },
             },
           }}
-          style={{
-            rotateX: reduceMotion ? 0 : portraitRotateX,
-            rotateY: reduceMotion ? 0 : portraitRotateY,
-            transformPerspective: 1200,
-          }}
-          onPointerMove={handlePortraitPointerMove}
-          onPointerLeave={resetPortrait}
         >
           <m.div
             className="hero-portrait-shell"

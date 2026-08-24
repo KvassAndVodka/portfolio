@@ -18,7 +18,8 @@ interface Disturbance {
 
 const TRACE_COUNT = 13;
 const TRACE_STEP = 12;
-const OPENING_DURATION_MS = 1_700;
+const OPENING_DELAY_MS = 60;
+const OPENING_DURATION_MS = 960;
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value));
@@ -142,29 +143,6 @@ export default function HeroBackground() {
       return y;
     };
 
-    const drawGate = (
-      x: number,
-      elapsed: number,
-      animate: boolean,
-      openingIntensity: number,
-    ) => {
-      const pulse = animate ? 0.78 + Math.sin(elapsed * 0.0012 + x) * 0.12 : 0.82;
-      const gateTop = height * 0.19;
-      const gateBottom = height * 0.87;
-      const notch = 11;
-
-      context.beginPath();
-      context.moveTo(x + notch, gateTop);
-      context.lineTo(x, gateTop);
-      context.lineTo(x, gateTop + 24);
-      context.moveTo(x, gateBottom - 24);
-      context.lineTo(x, gateBottom);
-      context.lineTo(x + notch, gateBottom);
-      context.strokeStyle = `rgba(${accent}, ${(0.28 + openingIntensity * 0.16) * pulse})`;
-      context.lineWidth = 1;
-      context.stroke();
-    };
-
     const draw = (elapsed: number, animate: boolean) => {
       context.clearRect(0, 0, width, height);
       context.lineCap = "round";
@@ -172,8 +150,10 @@ export default function HeroBackground() {
 
       const allowInteraction = animate && !reducedMotion.matches;
       if (!openingStartedAt) openingStartedAt = elapsed;
-      const openingProgress = clamp((elapsed - openingStartedAt) / OPENING_DURATION_MS, 0, 1);
+      const openingElapsed = elapsed - openingStartedAt - OPENING_DELAY_MS;
+      const openingProgress = clamp(openingElapsed / OPENING_DURATION_MS, 0, 1);
       const openingIntensity = 1 - smoothstep(0.56, 1, openingProgress);
+      const signalIndex = Math.floor(TRACE_COUNT * 0.62);
 
       disturbances = disturbances
         .map((disturbance) => ({
@@ -183,42 +163,49 @@ export default function HeroBackground() {
         .filter((disturbance) => disturbance.age < 1.6);
 
       for (let traceIndex = 0; traceIndex < TRACE_COUNT; traceIndex += 1) {
+        const distanceFromSignal = Math.abs(traceIndex - signalIndex);
+        const revealStart = 0.04 + distanceFromSignal * 0.018;
+        const revealProgress = smoothstep(revealStart, revealStart + 0.68, openingProgress);
+        const revealOpacity = smoothstep(revealStart, revealStart + 0.2, openingProgress);
+
+        if (revealProgress <= 0) continue;
+
+        const startX = -TRACE_STEP;
+        const revealX = startX + (width + TRACE_STEP * 2) * revealProgress;
         context.beginPath();
+        context.moveTo(startX, getTraceY(traceIndex, startX, elapsed, allowInteraction));
 
-        for (let x = -TRACE_STEP; x <= width + TRACE_STEP; x += TRACE_STEP) {
+        for (let x = 0; x < revealX; x += TRACE_STEP) {
           const y = getTraceY(traceIndex, x, elapsed, allowInteraction);
-
-          if (x === -TRACE_STEP) context.moveTo(x, y);
-          else context.lineTo(x, y);
+          context.lineTo(x, y);
         }
+        context.lineTo(revealX, getTraceY(traceIndex, revealX, elapsed, allowInteraction));
 
-        const isSignal = traceIndex === Math.floor(TRACE_COUNT * 0.62);
+        const isSignal = traceIndex === signalIndex;
         context.strokeStyle = isSignal
-          ? `rgba(${accent}, ${traceAlpha * (2.8 + openingIntensity * 1.1)})`
-          : `rgba(${trace}, ${traceAlpha * (0.7 + (traceIndex % 3) * 0.18 + openingIntensity * 0.28)})`;
+          ? `rgba(${accent}, ${traceAlpha * (2.8 + openingIntensity * 1.1) * revealOpacity})`
+          : `rgba(${trace}, ${traceAlpha * (0.7 + (traceIndex % 3) * 0.18 + openingIntensity * 0.28) * revealOpacity})`;
         context.lineWidth = isSignal ? 1.7 : 1;
         context.stroke();
       }
 
-      const gatePositions = [0.49, 0.66, 0.83];
-      gatePositions.forEach((position) =>
-        drawGate(width * position, elapsed, animate, openingIntensity),
-      );
-
+      const steadyElapsed = Math.max(0, openingElapsed - OPENING_DURATION_MS);
       const signalProgress =
         openingProgress < 1
-          ? smoothstep(0.02, 0.9, openingProgress)
+          ? smoothstep(0.12, 0.92, openingProgress) * 0.82
           : animate
-            ? (elapsed * 0.00007) % 1
+            ? (0.82 + steadyElapsed * 0.00007) % 1
             : 0.74;
       const signalX = signalProgress * width;
-      const signalIndex = Math.floor(TRACE_COUNT * 0.62);
       const signalY = getTraceY(signalIndex, signalX, elapsed, false);
+      const signalOpacity = smoothstep(0.12, 0.28, openingProgress);
 
       context.beginPath();
       context.arc(signalX, signalY, 3.2 + openingIntensity * 1.4, 0, Math.PI * 2);
-      context.fillStyle = `rgb(${accent})`;
+      context.fillStyle = `rgba(${accent}, ${signalOpacity})`;
       context.fill();
+
+      return openingProgress;
     };
 
     const renderFrame = (timestamp: number) => {
@@ -235,7 +222,7 @@ export default function HeroBackground() {
 
     const renderStatic = () => {
       lastTime = 0;
-      openingStartedAt = -OPENING_DURATION_MS;
+      openingStartedAt = -(OPENING_DELAY_MS + OPENING_DURATION_MS);
       disturbances = [];
       draw(0, false);
     };

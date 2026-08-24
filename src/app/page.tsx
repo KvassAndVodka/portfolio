@@ -25,8 +25,8 @@ const proofPoints = [
     href: "https://github.com/KvassAndVodka/RT-Transcript",
   },
   {
-    label: "Teaching next",
-    value: "Fundamentals of Database Systems at USTP's Department of Computer Science",
+    label: "Teaching now",
+    value: "Teaching Fundamentals of Database Systems at USTP Cagayan de Oro",
   },
 ];
 
@@ -41,12 +41,13 @@ const experience: ExperienceEntry[] = [
     current: true,
   },
   {
-    period: "Upcoming",
+    period: "2026 - Present",
     role: "Part-time Instructor",
     organization:
-      "University of Science and Technology of Southern Philippines · Department of Computer Science",
+      "University of Science and Technology of Southern Philippines · Cagayan de Oro Campus · Department of Computer Science",
     detail:
-      "Joining the department to teach Fundamentals of Database Systems alongside full-time software development work.",
+      "Teaching Fundamentals of Database Systems alongside full-time software development work.",
+    current: true,
   },
   {
     period: "2025",
