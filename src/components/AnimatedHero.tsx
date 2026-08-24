@@ -58,7 +58,7 @@ export default function AnimatedHero() {
         <div className="hero-copy">
           <m.p className="hero-kicker" variants={resolveVariants}>
             Hi, I&apos;m <strong>Javier Raut</strong> — a software developer at the House of
-            Representatives.
+            Representatives and a part-time instructor at USTP Cagayan de Oro.
           </m.p>
 
           <h1 className="display-title kinetic-title" aria-label="I build systems that hold up.">
