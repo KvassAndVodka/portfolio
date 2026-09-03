@@ -35,7 +35,7 @@ async function main() {
     try {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        const user = await prisma.user.update({
+        await prisma.user.update({
             where: { email: adminEmail },
             data: { password: hashedPassword },
         });
@@ -48,6 +48,7 @@ async function main() {
 
     } catch (error) {
         console.error("Error updating password:", error);
+        process.exitCode = 1;
     }
 }
 
