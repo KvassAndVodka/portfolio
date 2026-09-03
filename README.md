@@ -78,6 +78,7 @@ Use `.env.example` as the complete template. Do not commit `.env`.
 | `ADMIN_PASSWORD_HASH` | Initial seed | Sets the bcrypt hash for the initial administrator password. |
 | `AUTH_SECRET` | Always | Signs Auth.js sessions. |
 | `AUTH_URL` and `NEXTAUTH_URL` | Production | Set the public site URL for authentication callbacks. |
+| `SITE_URL` | Recommended | Sets the canonical public origin used by metadata, social cards, robots.txt, and sitemap.xml. |
 | `ANALYTICS_HASH_SECRET` | Recommended | Hashes visitor addresses for analytics. |
 | `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` | GitHub sign-in | Configure the optional GitHub OAuth provider. |
 | `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, and `CONTACT_FROM_EMAIL` | Contact form delivery | Send contact form email through Resend. |

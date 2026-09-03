@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   FaEnvelope,
@@ -12,6 +13,19 @@ import ExperienceTimeline, { type ExperienceEntry } from "@/components/Experienc
 import ProjectShowcase from "@/components/ProjectShowcase";
 import ScrollReveal from "@/components/ScrollReveal";
 import TechnologyStack from "@/components/TechnologyStack";
+import { getProjects, toProjectPreview } from "@/lib/projects";
+import { createPageMetadata, siteConfig } from "@/lib/seo";
+
+export const revalidate = 60;
+
+export const metadata: Metadata = {
+  ...createPageMetadata({
+    title: siteConfig.title,
+    description: siteConfig.description,
+    path: "/",
+  }),
+  title: { absolute: siteConfig.title },
+};
 
 const proofPoints = [
   {
@@ -72,7 +86,9 @@ const experience: ExperienceEntry[] = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const projects = (await getProjects()).map(toProjectPreview);
+
   return (
     <div>
       <AnimatedHero />
@@ -90,7 +106,7 @@ export default function Home() {
             </p>
           </ScrollReveal>
 
-          <ProjectShowcase compact featured />
+          <ProjectShowcase compact featured initialProjects={projects} />
         </div>
       </section>
 

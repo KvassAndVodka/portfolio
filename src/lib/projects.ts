@@ -4,20 +4,22 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 export interface Project {
-    slug: string;
-    title: string;
-    summary: string;
-    content: string;
-    techStack: string[];
-    githubUrl?: string;
-    demoUrl?: string;
-    projectUrl?: string;
-    category?: string;
-    isPinned?: boolean;
+  slug: string;
+  title: string;
+  summary: string;
+  content: string;
+  publishedAt: string;
+  updatedAt: string;
+  techStack: string[];
+  githubUrl?: string;
+  demoUrl?: string;
+  projectUrl?: string;
+  category?: string;
+  isPinned?: boolean;
   thumbnail?: string;
 }
 
-export type ProjectPreview = Omit<Project, "content">;
+export type ProjectPreview = Omit<Project, "content" | "publishedAt" | "updatedAt">;
 
 export function toProjectPreview(project: Project): ProjectPreview {
     return {
@@ -57,6 +59,8 @@ const getCachedProjects = unstable_cache(
             title: project.title,
             summary: project.summary,
             content: project.content,
+            publishedAt: project.publishedAt.toISOString(),
+            updatedAt: project.updatedAt.toISOString(),
             techStack: project.techStack,
             githubUrl: project.githubUrl || undefined,
             demoUrl: project.demoUrl || undefined,

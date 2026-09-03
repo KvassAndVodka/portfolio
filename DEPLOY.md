@@ -58,6 +58,7 @@ Set both Auth.js URLs to the production hostname:
 ```dotenv
 AUTH_URL=https://portfolio.jmraut.dev
 NEXTAUTH_URL=https://portfolio.jmraut.dev
+SITE_URL=https://portfolio.jmraut.dev
 CLOUDFLARE_TUNNEL_TOKEN=<secret copied from Cloudflare>
 ```
 
@@ -111,6 +112,20 @@ curl -sSIL --max-time 15 https://portfolio.jmraut.dev
 The public URL must load without `502`, `503`, or `525` responses. Test public
 pages, credentials login, GitHub OAuth, the admin dashboard, uploads, the
 contact form, analytics, and application rollback.
+
+Verify the discovery endpoints after every production deployment:
+
+```bash
+curl -sS --max-time 15 https://portfolio.jmraut.dev/robots.txt
+curl -sS --max-time 15 https://portfolio.jmraut.dev/sitemap.xml
+```
+
+The application owns both endpoints. Cloudflare Managed `robots.txt` can
+prepend separate AI-crawler directives to the origin response. In Cloudflare
+AI Crawl Control, check the Directives tab and confirm that search indexing is
+allowed and the application's `Sitemap` line and private-route exclusions are
+still present. Disable Managed `robots.txt` if the edge response must match the
+application response exactly.
 
 After the Cloudflare URL passes those checks, remove any legacy host-level
 Funnel configuration without disabling host-level Tailscale:

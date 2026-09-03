@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getPostsStrict } from "@/lib/posts";
+import { getPostsStrict, toPostPreview } from "@/lib/posts";
 import { withTimeout } from "@/lib/withTimeout";
 
 export const dynamic = "force-dynamic";
@@ -14,14 +14,7 @@ export async function GET() {
 
     return NextResponse.json(
       {
-        notes: notes.map((note) => ({
-          slug: note.slug,
-          title: note.title,
-          publishedAt: note.publishedAt,
-          summary: note.summary,
-          readTime: note.readTime,
-          category: note.category,
-        })),
+        notes: notes.map(toPostPreview),
       },
       { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } },
     );

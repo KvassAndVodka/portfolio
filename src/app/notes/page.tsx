@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 
 import NotesIndex from "@/components/NotesIndex";
+import { getPosts, toPostPreview } from "@/lib/posts";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Notes",
   description: "Technical notes on software engineering, data systems, infrastructure, and active projects by Javier Raut.",
-};
+  path: "/notes",
+});
 
-export default function NotesPage() {
+export default async function NotesPage() {
+  const notes = await getPosts();
+
   return (
     <div>
       <section className="subpage-hero">
@@ -21,7 +26,7 @@ export default function NotesPage() {
 
       <section className="min-h-[45vh] py-20 md:py-28">
         <div className="site-shell max-w-6xl">
-          <NotesIndex />
+          <NotesIndex initialNotes={notes.map(toPostPreview)} />
         </div>
       </section>
     </div>

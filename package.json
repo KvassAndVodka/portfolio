@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint --config eslint.config.mjs",
     "lint:staged": "node scripts/lint-staged-files.mjs",
+    "test:seo": "tsx --test tests/seo.test.tsx",
     "deploy": "node scripts/deployment.mjs",
     "deploy:up": "node scripts/deployment.mjs up",
     "deploy:down": "node scripts/deployment.mjs down",

@@ -52,6 +52,7 @@ async function ensureLocalEnvironment() {
       `NEXTAUTH_SECRET=${authSecret}`,
       `AUTH_SECRET=${authSecret}`,
       "NEXTAUTH_URL=http://localhost:3000",
+      "SITE_URL=http://localhost:3000",
       "RESEND_API_KEY=",
       "CONTACT_TO_EMAIL=javier.raut@gmail.com",
       "CONTACT_FROM_EMAIL=Portfolio <local@localhost>",

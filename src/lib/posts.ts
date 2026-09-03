@@ -4,16 +4,29 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 export interface Post {
-    slug: string;
-    title: string;
-    publishedAt: string;
-    summary: string;
-    content: string;
-    readTime: string;
+  slug: string;
+  title: string;
+  publishedAt: string;
+  updatedAt: string;
+  summary: string;
+  content: string;
+  readTime: string;
   category?: string | null;
 }
 
 export type PostPreview = Omit<Post, "content">;
+
+export function toPostPreview(post: Post): PostPreview {
+  return {
+    slug: post.slug,
+    title: post.title,
+    publishedAt: post.publishedAt,
+    updatedAt: post.updatedAt,
+    summary: post.summary,
+    readTime: post.readTime,
+    category: post.category,
+  };
+}
 
 function calculateReadTime(content: string): string {
     const words = content.trim().split(/\s+/).length;
@@ -45,6 +58,7 @@ const getCachedPosts = unstable_cache(
             slug: post.slug,
             title: post.title,
             publishedAt: post.publishedAt.toISOString(),
+            updatedAt: post.updatedAt.toISOString(),
             summary: post.summary,
             content: post.content,
             readTime: calculateReadTime(post.content),
@@ -80,6 +94,7 @@ export async function getPost(slug: string): Promise<Post | null> {
         slug: post.slug,
         title: post.title,
         publishedAt: post.publishedAt.toISOString(),
+        updatedAt: post.updatedAt.toISOString(),
         summary: post.summary,
         content: post.content,
         readTime: calculateReadTime(post.content),

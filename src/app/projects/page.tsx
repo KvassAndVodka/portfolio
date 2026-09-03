@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 
 import ProjectShowcase from "@/components/ProjectShowcase";
+import { getProjects, toProjectPreview } from "@/lib/projects";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Projects",
   description: "Selected product, data, infrastructure, and operational software projects by Javier Raut.",
-};
+  path: "/projects",
+});
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const projects = (await getProjects()).map(toProjectPreview);
+
   return (
     <div>
       <section className="subpage-hero">
@@ -21,7 +26,7 @@ export default function ProjectsPage() {
 
       <section className="py-20 md:py-28">
         <div className="site-shell">
-          <ProjectShowcase loadImmediately />
+          <ProjectShowcase initialProjects={projects} loadImmediately />
         </div>
       </section>
     </div>

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { FaArrowLeft, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6";
@@ -7,8 +8,11 @@ import { FaArrowLeft, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6
 import { formatProjectCategory } from "@/components/ProjectCard";
 import ProjectTechnologyList from "@/components/ProjectTechnologyList";
 import { getProject, getProjects } from "@/lib/projects";
+import { absoluteUrl, createPageMetadata, defaultSocialImage, serializeJsonLd } from "@/lib/seo";
 
 export const revalidate = 60;
+
+type Params = Promise<{ slug: string }>;
 
 export async function generateStaticParams() {
   const projects = await getProjects();
@@ -17,10 +21,32 @@ export async function generateStaticParams() {
 
 export const dynamicParams = true;
 
+export async function generateMetadata({ params }: Readonly<{ params: Params }>): Promise<Metadata> {
+  const { slug } = await params;
+  const project = await getProject(slug);
+
+  if (!project) {
+    return {
+      title: "Project not found",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  return createPageMetadata({
+    title: project.title,
+    description: project.summary,
+    path: `/projects/${project.slug}`,
+    image: project.thumbnail,
+    type: "article",
+    publishedTime: project.publishedAt,
+    modifiedTime: project.updatedAt,
+  });
+}
+
 export default async function ProjectPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Params;
 }) {
   const { slug } = await params;
   const project = await getProject(slug);
@@ -28,9 +54,32 @@ export default async function ProjectPage({
   if (!project) notFound();
 
   const liveProjectUrl = project.projectUrl || project.demoUrl;
+  const projectUrl = absoluteUrl(`/projects/${project.slug}`);
+  const projectJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    "@id": `${projectUrl}#project`,
+    url: projectUrl,
+    name: project.title,
+    headline: project.title,
+    description: project.summary,
+    image: project.thumbnail ? absoluteUrl(project.thumbnail) : absoluteUrl(defaultSocialImage.url),
+    dateCreated: project.publishedAt,
+    dateModified: project.updatedAt,
+    inLanguage: "en",
+    creator: { "@id": absoluteUrl("/#person") },
+    isPartOf: { "@id": absoluteUrl("/#website") },
+    keywords: project.techStack,
+    genre: formatProjectCategory(project.category),
+    sameAs: [project.githubUrl, project.demoUrl, project.projectUrl].filter(Boolean),
+  };
 
   return (
     <article>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(projectJsonLd) }}
+      />
       <header className="subpage-hero">
         <div className="site-shell max-w-5xl">
           <Link className="back-link mb-12" href="/projects">

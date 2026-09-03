@@ -996,6 +996,7 @@ button {
 }
 
 .experience-stage {
+  overflow-x: clip;
   padding-block: clamp(6rem, 12vw, 10rem);
   background: var(--surface);
 }

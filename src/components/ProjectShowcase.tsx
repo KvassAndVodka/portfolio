@@ -11,6 +11,7 @@ import type { ProjectPreview } from "@/lib/projects";
 type ProjectShowcaseProps = Readonly<{
   compact?: boolean;
   featured?: boolean;
+  initialProjects?: ProjectPreview[];
   limit?: number;
   loadImmediately?: boolean;
 }>;
@@ -37,6 +38,7 @@ function ProjectShowcaseContent({
   compact = false,
   enabled,
   featured = false,
+  initialProjects,
   limit,
 }: ProjectShowcaseProps & Readonly<{ enabled: boolean }>) {
   const reduceMotion = useReducedMotion();
@@ -45,7 +47,7 @@ function ProjectShowcaseContent({
   const { data, retry, status } = useTimedFetch<{ projects: ProjectPreview[] }>(
     "/api/projects",
     3_500,
-    undefined,
+    initialProjects === undefined ? undefined : { projects: initialProjects },
     enabled,
   );
 

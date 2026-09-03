@@ -8,8 +8,16 @@ import NoteSkeleton from "@/components/NoteSkeleton";
 import { useTimedFetch } from "@/hooks/useTimedFetch";
 import type { PostPreview } from "@/lib/posts";
 
-export default function NotesIndex() {
-  const { data, retry, status } = useTimedFetch<{ notes: PostPreview[] }>("/api/notes");
+type NotesIndexProps = Readonly<{
+  initialNotes?: PostPreview[];
+}>;
+
+export default function NotesIndex({ initialNotes }: NotesIndexProps) {
+  const { data, retry, status } = useTimedFetch<{ notes: PostPreview[] }>(
+    "/api/notes",
+    4_000,
+    initialNotes === undefined ? undefined : { notes: initialNotes },
+  );
 
   if (status === "loading") {
     return (
