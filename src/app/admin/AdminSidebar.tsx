@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { m, useReducedMotion } from "framer-motion";
 import {
   FaArrowRight,
   FaChartSimple,
@@ -24,7 +23,6 @@ const navItems = [
 export default function AdminSidebar({ onNavigate }: Readonly<{ onNavigate?: () => void }>) {
   const pathname = usePathname();
   const router = useRouter();
-  const reduceMotion = useReducedMotion();
 
   const warmRoute = (href: string) => {
     router.prefetch(href);
@@ -47,20 +45,20 @@ export default function AdminSidebar({ onNavigate }: Readonly<{ onNavigate?: () 
           const active = item.exact ? pathname === item.href : pathname.startsWith(item.href) || (item.href === "/admin/notes" && pathname.startsWith("/admin/archives"));
           const Icon = item.icon;
           return (
-            <m.li key={item.href} whileHover={reduceMotion ? undefined : { x: 2 }} whileTap={reduceMotion ? undefined : { scale: 0.985 }}>
+            <li className="admin-nav-item" key={item.href}>
               <Link href={item.href} onClick={onNavigate} onMouseEnter={() => warmRoute(item.href)} onFocus={() => warmRoute(item.href)} aria-current={active ? "page" : undefined} className={`relative flex min-h-11 items-center gap-3 overflow-hidden rounded-lg px-3 text-sm font-medium ${active ? "bg-[var(--accent-soft)] text-[var(--accent-hover)]" : "admin-muted hover:bg-[var(--admin-surface-subtle)] hover:text-[var(--admin-foreground)]"}`}>
                 <Icon className="w-5 shrink-0" aria-hidden="true" />
                 <span>{item.label}</span>
-                {active && <m.span aria-hidden="true" className="absolute bottom-0 left-3 right-3 h-0.5 bg-[var(--accent)]" layoutId="admin-navigation-indicator" transition={{ type: "spring", stiffness: 520, damping: 38 }} />}
+                {active && <span aria-hidden="true" className="admin-nav-indicator absolute bottom-0 left-3 right-3 h-0.5 bg-[var(--accent)]" />}
               </Link>
-            </m.li>
+            </li>
           );
         })}
       </ul>
       <div className="my-5 border-t border-[var(--admin-border)]" />
-      <m.div whileHover={reduceMotion ? undefined : { x: 2 }} whileTap={reduceMotion ? undefined : { scale: 0.985 }}>
-        <Link href="/admin/settings" onClick={onNavigate} onMouseEnter={() => warmRoute("/admin/settings")} onFocus={() => warmRoute("/admin/settings")} aria-current={pathname === "/admin/settings" ? "page" : undefined} className={`relative flex min-h-11 items-center gap-3 overflow-hidden rounded-lg px-3 text-sm font-medium ${pathname === "/admin/settings" ? "bg-[var(--accent-soft)] text-[var(--accent-hover)]" : "admin-muted hover:bg-[var(--admin-surface-subtle)] hover:text-[var(--admin-foreground)]"}`}><FaGear className="w-5 shrink-0" aria-hidden="true" /><span>Settings</span>{pathname === "/admin/settings" && <m.span aria-hidden="true" className="absolute bottom-0 left-3 right-3 h-0.5 bg-[var(--accent)]" layoutId="admin-navigation-indicator" transition={{ type: "spring", stiffness: 520, damping: 38 }} />}</Link>
-      </m.div>
+      <div className="admin-nav-item">
+        <Link href="/admin/settings" onClick={onNavigate} onMouseEnter={() => warmRoute("/admin/settings")} onFocus={() => warmRoute("/admin/settings")} aria-current={pathname === "/admin/settings" ? "page" : undefined} className={`relative flex min-h-11 items-center gap-3 overflow-hidden rounded-lg px-3 text-sm font-medium ${pathname === "/admin/settings" ? "bg-[var(--accent-soft)] text-[var(--accent-hover)]" : "admin-muted hover:bg-[var(--admin-surface-subtle)] hover:text-[var(--admin-foreground)]"}`}><FaGear className="w-5 shrink-0" aria-hidden="true" /><span>Settings</span>{pathname === "/admin/settings" && <span aria-hidden="true" className="admin-nav-indicator absolute bottom-0 left-3 right-3 h-0.5 bg-[var(--accent)]" />}</Link>
+      </div>
     </nav>
   );
 }

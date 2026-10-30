@@ -6,12 +6,12 @@ import {
   FaLinkedin,
 } from "react-icons/fa6";
 
-import AnimatedHero from "@/components/AnimatedHero";
-import AnimatedProofStrip from "@/components/AnimatedProofStrip";
 import ContactForm from "@/components/ContactForm";
-import ExperienceTimeline, { type ExperienceEntry } from "@/components/ExperienceTimeline";
 import ProjectShowcase from "@/components/ProjectShowcase";
 import ScrollReveal from "@/components/ScrollReveal";
+import CloudField from "@/components/story/CloudField";
+import { places } from "@/components/story/places";
+import StoryJourney from "@/components/story/StoryJourney";
 import TechnologyStack from "@/components/TechnologyStack";
 import { getProjects, toProjectPreview } from "@/lib/projects";
 import { createPageMetadata, siteConfig } from "@/lib/seo";
@@ -27,74 +27,14 @@ export const metadata: Metadata = {
   title: { absolute: siteConfig.title },
 };
 
-const proofPoints = [
-  {
-    label: "Current work",
-    value: "Building dependable internal systems at the House of Representatives",
-    href: "https://emap.padayn.com/",
-  },
-  {
-    label: "Legislative transcription",
-    value: "RT Transcript, built in one day for SONA, with budget plenary support planned",
-    href: "https://github.com/KvassAndVodka/RT-Transcript",
-  },
-  {
-    label: "Teaching now",
-    value: "Teaching Fundamentals of Database Systems at USTP Cagayan de Oro",
-  },
-];
-
-const experience: ExperienceEntry[] = [
-  {
-    period: "2026 - Present",
-    role: "Software Developer",
-    organization: "House of Representatives of the Philippines",
-    detail:
-      "Maintaining and hardening eMap, the House's infrastructure management and project-tracking system, with a focus on reliability, security, and code quality.",
-    url: "https://emap.padayn.com/",
-    current: true,
-  },
-  {
-    period: "2026 - Present",
-    role: "Part-time Instructor",
-    organization:
-      "University of Science and Technology of Southern Philippines · Cagayan de Oro Campus · Department of Computer Science",
-    detail:
-      "Teaching Fundamentals of Database Systems alongside full-time software development work.",
-    current: true,
-  },
-  {
-    period: "2025",
-    role: "ML/AI Intern",
-    organization: "meldCX",
-    detail:
-      "Built and containerized a real-time license plate recognition pipeline with YOLO, PaddleOCR, and OpenVINO.",
-  },
-  {
-    period: "2022 - 2026",
-    role: "BS Computer Science, Magna Cum Laude",
-    organization: "University of Science and Technology of Southern Philippines",
-    detail:
-      "Received the department's Alan Turing Award and completed the degree as a national science and technology scholar.",
-  },
-  {
-    period: "2023 - 2024",
-    role: "Vice President, Internal",
-    organization: "Computer Science Student Society",
-    detail:
-      "Helped establish the organization, write its governance, and complete its annual work and financial plan.",
-  },
-];
-
 export default async function Home() {
   const projects = (await getProjects()).map(toProjectPreview);
 
   return (
     <div>
-      <AnimatedHero />
-      <AnimatedProofStrip points={proofPoints} />
+      <StoryJourney places={places} />
 
-      <section id="work" className="projects-stage">
+      <CloudField id="work" className="projects-stage">
         <div className="site-shell">
           <ScrollReveal className="projects-heading" variant="clip">
             <h2 className="section-title section-title-wide">
@@ -108,23 +48,9 @@ export default async function Home() {
 
           <ProjectShowcase compact featured initialProjects={projects} />
         </div>
-      </section>
+      </CloudField>
 
       <TechnologyStack />
-
-      <section className="experience-stage">
-        <div className="site-shell experience-composition">
-          <ScrollReveal className="experience-intro" variant="slide">
-            <h2 className="section-title">Where I&apos;ve done the work.</h2>
-            <p className="body-large">
-              My path runs through dependable production software, fast-turnaround tools,
-              leadership, and personal systems I keep pushing after hours.
-            </p>
-          </ScrollReveal>
-
-          <ExperienceTimeline entries={experience} />
-        </div>
-      </section>
 
       <section id="contact" className="contact-stage">
         <div className="site-shell">

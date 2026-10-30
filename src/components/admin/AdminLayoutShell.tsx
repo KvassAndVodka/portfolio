@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { FaBars, FaXmark } from "react-icons/fa6";
 import AdminSidebar from "@/app/admin/AdminSidebar";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -25,7 +24,6 @@ export default function AdminLayoutShell({ children, user }: AdminLayoutShellPro
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
-  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     const destinations = ["/admin/notes", "/admin/media", "/admin/projects"];
@@ -64,19 +62,15 @@ export default function AdminLayoutShell({ children, user }: AdminLayoutShellPro
         <div><Link href="/admin" className="brand-lockup"><span className="font-semibold tracking-[-0.025em]">Javier Raut</span><span aria-hidden="true" className="brand-signal" /></Link><p className="text-xs admin-muted">Portfolio admin</p></div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <m.button ref={menuButtonRef} type="button" className="admin-icon-button" onClick={() => setIsSidebarOpen((open) => !open)} aria-label={isSidebarOpen ? "Close admin navigation" : "Open admin navigation"} aria-expanded={isSidebarOpen} aria-controls="admin-navigation" whileTap={reduceMotion ? undefined : { scale: 0.94 }}>
-            <AnimatePresence initial={false} mode="wait">
-              <m.span key={isSidebarOpen ? "close" : "open"} initial={reduceMotion ? false : { opacity: 0, rotate: -45, scale: 0.86 }} animate={{ opacity: 1, rotate: 0, scale: 1 }} exit={reduceMotion ? undefined : { opacity: 0, rotate: 45, scale: 0.86 }} transition={{ duration: reduceMotion ? 0 : 0.16 }}>
-                {isSidebarOpen ? <FaXmark aria-hidden="true" /> : <FaBars aria-hidden="true" />}
-              </m.span>
-            </AnimatePresence>
-          </m.button>
+          <button ref={menuButtonRef} type="button" className="admin-icon-button" onClick={() => setIsSidebarOpen((open) => !open)} aria-label={isSidebarOpen ? "Close admin navigation" : "Open admin navigation"} aria-expanded={isSidebarOpen} aria-controls="admin-navigation">
+            <span className="admin-icon-swap inline-flex" key={isSidebarOpen ? "close" : "open"}>
+              {isSidebarOpen ? <FaXmark aria-hidden="true" /> : <FaBars aria-hidden="true" />}
+            </span>
+          </button>
         </div>
       </header>
 
-      <AnimatePresence initial={false}>
-        {isSidebarOpen && <m.button type="button" className="fixed inset-0 z-20 bg-black/55 md:hidden" onClick={() => setIsSidebarOpen(false)} aria-label="Close admin navigation" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={reduceMotion ? undefined : { opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.16 }} />}
-      </AnimatePresence>
+      {isSidebarOpen && <button type="button" className="admin-overlay fixed inset-0 z-20 bg-black/55 md:hidden" onClick={() => setIsSidebarOpen(false)} aria-label="Close admin navigation" />}
 
       <aside id="admin-navigation" aria-label="Admin navigation" className={`admin-surface fixed inset-y-0 left-0 z-30 flex h-dvh w-64 flex-col border-r transition-transform duration-200 ease-[var(--ease-out-expo)] md:static md:h-full md:shrink-0 md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="border-b border-[var(--admin-border)] px-5 py-5">

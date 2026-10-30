@@ -1,8 +1,9 @@
 "use client";
 
-import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { FormEvent, useRef, useState } from "react";
 import { FaCircleCheck, FaCircleExclamation, FaPaperPlane } from "react-icons/fa6";
+
+import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
 type FormStatus = "idle" | "sending" | "success" | "error";
 type ContactField = "name" | "email" | "message";
@@ -30,11 +31,41 @@ function validateField(field: ContactField, value: string) {
 }
 
 export default function ContactForm() {
-  const reduceMotion = useReducedMotion();
+  const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<FormStatus>("idle");
   const [feedback, setFeedback] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const isSubmitting = useRef(false);
+  const errorKey = Object.keys(fieldErrors).sort().join(",");
+
+  // Shake newly invalid fields and lift their messages in.
+  useGSAP(
+    () => {
+      if (!errorKey || prefersReducedMotion()) return;
+      gsap.fromTo(
+        '[aria-invalid="true"]',
+        { x: 0 },
+        { keyframes: { x: [0, -5, 5, -3, 3, 0] }, duration: 0.24, ease: "none" },
+      );
+      gsap.from(".contact-field-error-motion", { autoAlpha: 0, y: -6, duration: 0.24 });
+    },
+    { dependencies: [errorKey], scope: formRef },
+  );
+
+  useGSAP(
+    () => {
+      if (prefersReducedMotion()) return;
+      if (status === "sending") {
+        gsap.to(".contact-submit-icon", { keyframes: { x: [0, 5, 2], y: [0, -5, -2], rotate: [0, -8, -3] }, duration: 0.24 });
+      } else {
+        gsap.to(".contact-submit-icon", { x: 0, y: 0, rotate: 0, duration: 0.24 });
+      }
+      if (feedback) {
+        gsap.from(".contact-feedback", { autoAlpha: 0, y: 8, clipPath: "inset(0 0 50% 0)", duration: 0.28 });
+      }
+    },
+    { dependencies: [status, feedback], scope: formRef },
+  );
 
   function updateFieldError(field: ContactField, value: string) {
     setFieldErrors((current) => {
@@ -119,11 +150,11 @@ export default function ContactForm() {
   }
 
   return (
-    <form className="contact-form" onSubmit={handleSubmit} noValidate aria-busy={status === "sending"}>
+    <form className="contact-form" ref={formRef} onSubmit={handleSubmit} noValidate aria-busy={status === "sending"}>
       <div className="contact-form-row">
         <label>
           Name
-          <m.input
+          <input
             name="name"
             type="text"
             autoComplete="name"
@@ -133,30 +164,19 @@ export default function ContactForm() {
             aria-invalid={Boolean(fieldErrors.name)}
             aria-describedby="name-error"
             onChange={(event) => updateFieldError("name", event.currentTarget.value)}
-            animate={
-              fieldErrors.name && !reduceMotion ? { x: [0, -5, 5, -3, 3, 0] } : { x: 0 }
-            }
-            transition={{ duration: 0.24 }}
           />
           <span className="contact-field-error" id="name-error" aria-live="polite" aria-atomic="true">
-            <AnimatePresence initial={false}>
-              {fieldErrors.name && (
-                <m.span
-                  className="contact-field-error-motion"
-                  initial={reduceMotion ? false : { opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
-                >
+            {fieldErrors.name && (
+                <span className="contact-field-error-motion">
                   <FaCircleExclamation aria-hidden="true" />
                   {fieldErrors.name}
-                </m.span>
+                </span>
               )}
-            </AnimatePresence>
           </span>
         </label>
         <label>
           Email
-          <m.input
+          <input
             name="email"
             type="email"
             autoComplete="email"
@@ -165,32 +185,21 @@ export default function ContactForm() {
             aria-invalid={Boolean(fieldErrors.email)}
             aria-describedby="email-error"
             onChange={(event) => updateFieldError("email", event.currentTarget.value)}
-            animate={
-              fieldErrors.email && !reduceMotion ? { x: [0, -5, 5, -3, 3, 0] } : { x: 0 }
-            }
-            transition={{ duration: 0.24 }}
           />
           <span className="contact-field-error" id="email-error" aria-live="polite" aria-atomic="true">
-            <AnimatePresence initial={false}>
-              {fieldErrors.email && (
-                <m.span
-                  className="contact-field-error-motion"
-                  initial={reduceMotion ? false : { opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
-                >
+            {fieldErrors.email && (
+                <span className="contact-field-error-motion">
                   <FaCircleExclamation aria-hidden="true" />
                   {fieldErrors.email}
-                </m.span>
+                </span>
               )}
-            </AnimatePresence>
           </span>
         </label>
       </div>
 
       <label>
         Message
-        <m.textarea
+        <textarea
           name="message"
           rows={6}
           maxLength={5_000}
@@ -199,25 +208,14 @@ export default function ContactForm() {
           aria-invalid={Boolean(fieldErrors.message)}
           aria-describedby="message-error message-helper"
           onChange={(event) => updateFieldError("message", event.currentTarget.value)}
-          animate={
-            fieldErrors.message && !reduceMotion ? { x: [0, -5, 5, -3, 3, 0] } : { x: 0 }
-          }
-          transition={{ duration: 0.24 }}
         />
         <span className="contact-field-error" id="message-error" aria-live="polite" aria-atomic="true">
-          <AnimatePresence initial={false}>
-            {fieldErrors.message && (
-              <m.span
-                className="contact-field-error-motion"
-                initial={reduceMotion ? false : { opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
-              >
+          {fieldErrors.message && (
+              <span className="contact-field-error-motion">
                 <FaCircleExclamation aria-hidden="true" />
                 {fieldErrors.message}
-              </m.span>
+              </span>
             )}
-          </AnimatePresence>
         </span>
         <span className="contact-form-helper" id="message-helper">
           A short note on what you are building, fixing, or trying to understand is enough.
@@ -230,41 +228,20 @@ export default function ContactForm() {
       </label>
 
       <div className="contact-form-submit">
-        <m.button
-          className="contact-submit"
-          type="submit"
-          disabled={status === "sending"}
-          whileTap={reduceMotion ? undefined : { scale: 0.97 }}
-        >
-          <m.span
-            animate={
-              status === "sending" && !reduceMotion
-                ? { x: [0, 5, 2], y: [0, -5, -2], rotate: [0, -8, -3] }
-                : { x: 0, y: 0, rotate: 0 }
-            }
-            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-          >
+        <button className="contact-submit" type="submit" disabled={status === "sending"}>
+          <span className="contact-submit-icon inline-flex">
             <FaPaperPlane aria-hidden="true" />
-          </m.span>
+          </span>
           {status === "sending" ? "Sending..." : "Send message"}
-        </m.button>
+        </button>
         <div className="contact-feedback-slot" aria-live="polite" aria-atomic="true">
-          <AnimatePresence initial={false} mode="wait">
             {feedback && (
-              <m.p
-                className={`contact-feedback contact-feedback-${status}`}
-                key={`${status}-${feedback}`}
-                initial={reduceMotion ? false : { opacity: 0, y: 8, clipPath: "inset(0 0 50% 0)" }}
-                animate={{ opacity: 1, y: 0, clipPath: "inset(0 0 0% 0)" }}
-                exit={reduceMotion ? undefined : { opacity: 0, y: -5 }}
-                transition={{ duration: reduceMotion ? 0 : 0.28 }}
-              >
+              <p className={`contact-feedback contact-feedback-${status}`} key={`${status}-${feedback}`}>
                 {status === "success" && <FaCircleCheck aria-hidden="true" />}
                 {status === "error" && <FaCircleExclamation aria-hidden="true" />}
                 {feedback}
-              </m.p>
+              </p>
             )}
-          </AnimatePresence>
         </div>
       </div>
     </form>

@@ -61,7 +61,6 @@ export const viewport: Viewport = {
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 
 import MainWrapper from "@/components/MainWrapper";
-import MotionProvider from "@/components/MotionProvider";
 import NextLoader from "@/components/NextLoader";
 import ScrollProgress from "@/components/ScrollProgress";
 
@@ -124,11 +123,9 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
         >
-          <MotionProvider>
-            <ScrollProgress />
-            <Header />
-            <MainWrapper>{children}</MainWrapper>
-          </MotionProvider>
+          <ScrollProgress />
+          <Header />
+          <MainWrapper>{children}</MainWrapper>
         </ThemeProvider>
       </body>
     </html>

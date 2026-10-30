@@ -1,16 +1,12 @@
 "use client";
 
-import {
-  AnimatePresence,
-  m,
-  useMotionValueEvent,
-  useReducedMotion,
-  useScroll,
-} from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { FaArrowRight, FaBars, FaXmark } from "react-icons/fa6";
+
+import useReducedMotion from "@/hooks/useReducedMotion";
+import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 
 import ThemeToggle from "./ThemeToggle";
 
@@ -24,12 +20,15 @@ const navigation = [
 export default function Header() {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
-  const { scrollY } = useScroll();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuRendered, setIsMenuRendered] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [currentHash, setCurrentHash] = useState("");
   const headerRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuIconRef = useRef<HTMLSpanElement>(null);
+  const navigationRef = useRef<HTMLElement>(null);
+  const indicatorRef = useRef<HTMLSpanElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const firstMenuLinkRef = useRef<HTMLAnchorElement>(null);
   const restoreFocusRef = useRef(false);
@@ -114,16 +113,87 @@ export default function Header() {
     return () => desktopNavigation.removeEventListener("change", closeAtDesktopWidth);
   }, []);
 
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      setIsScrolled(window.scrollY > 20);
+  useGSAP(() => {
+    ScrollTrigger.create({
+      start: 20,
+      end: "max",
+      onToggle: (self) => setIsScrolled(self.isActive),
+      onRefresh: (self) => setIsScrolled(self.isActive),
     });
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
-
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    setIsScrolled(latest > 20);
   });
+
+  // Keep the panel mounted while it animates out, then unmount it.
+  useGSAP(
+    () => {
+      if (isMenuOpen) {
+        setIsMenuRendered(true);
+        return;
+      }
+      const panel = menuRef.current;
+      if (!panel || reduceMotion) {
+        setIsMenuRendered(false);
+        return;
+      }
+      gsap.to(panel, {
+        autoAlpha: 0,
+        clipPath: "inset(0 0 100% 0)",
+        duration: 0.28,
+        onComplete: () => setIsMenuRendered(false),
+      });
+    },
+    { dependencies: [isMenuOpen, reduceMotion] },
+  );
+
+  useGSAP(
+    () => {
+      const panel = menuRef.current;
+      if (!isMenuOpen || !isMenuRendered || !panel || reduceMotion) return;
+      gsap
+        .timeline()
+        .fromTo(
+          panel,
+          { autoAlpha: 0, clipPath: "inset(0 0 100% 0)" },
+          { autoAlpha: 1, clipPath: "inset(0 0 0% 0)", duration: 0.28 },
+        )
+        .from(panel.querySelectorAll(".mobile-nav-item"), { autoAlpha: 0, x: -32, duration: 0.24, stagger: 0.04 }, 0.04);
+    },
+    { dependencies: [isMenuOpen, isMenuRendered, reduceMotion] },
+  );
+
+  useGSAP(
+    () => {
+      if (reduceMotion) return;
+      gsap.fromTo(menuIconRef.current, { autoAlpha: 0, rotate: -45, scale: 0.9 }, { autoAlpha: 1, rotate: 0, scale: 1, duration: 0.18 });
+    },
+    { dependencies: [isMenuOpen], revertOnUpdate: false },
+  );
+
+  const activeHref = navigation.find(({ href }) => {
+    if (href === "/") return pathname === "/" && currentHash !== "#contact";
+    if (href.startsWith("/#")) return pathname === "/" && currentHash === href.slice(1);
+    return pathname?.startsWith(href);
+  })?.href;
+
+  // One indicator that glides to whichever link is active.
+  useGSAP(
+    () => {
+      const indicator = indicatorRef.current;
+      const link = navigationRef.current?.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!indicator) return;
+      if (!link) {
+        gsap.to(indicator, { autoAlpha: 0, duration: 0.2 });
+        return;
+      }
+      const wasHidden = gsap.getProperty(indicator, "autoAlpha") === 0;
+      gsap.to(indicator, {
+        x: link.offsetLeft,
+        width: link.offsetWidth,
+        autoAlpha: 1,
+        duration: reduceMotion || wasHidden ? 0 : 0.42,
+      });
+    },
+    { dependencies: [activeHref, reduceMotion], revertOnUpdate: false },
+  );
 
   if (pathname?.startsWith("/admin")) return null;
 
@@ -135,17 +205,15 @@ export default function Header() {
     event.preventDefault();
     if (window.location.hash) window.history.replaceState(null, "", "/");
     setCurrentHash("");
-    window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    // On the story homepage, cut straight back to the intro instead of scrolling back through it.
+    const handledByStory = !window.dispatchEvent(new CustomEvent("story:jump", { cancelable: true, detail: { top: 0 } }));
+    if (!handledByStory) window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
   };
   const toggleMenu = () => {
     if (isMenuOpen) restoreFocusRef.current = true;
     setIsMenuOpen((open) => !open);
   };
-  const isActive = (href: string) => {
-    if (href === "/") return pathname === "/" && currentHash !== "#contact";
-    if (href.startsWith("/#")) return pathname === "/" && currentHash === href.slice(1);
-    return pathname?.startsWith(href);
-  };
+  const isActive = (href: string) => href === activeHref;
 
   return (
     <header
@@ -159,7 +227,11 @@ export default function Header() {
           <span aria-hidden="true" className="brand-signal" />
         </Link>
 
-        <nav aria-label="Primary navigation" className="primary-navigation hidden items-center md:flex">
+        <nav
+          aria-label="Primary navigation"
+          className="primary-navigation relative hidden items-center md:flex"
+          ref={navigationRef}
+        >
           {navigation.map((item) => (
             <Link
               aria-current={isActive(item.href) ? "page" : undefined}
@@ -172,16 +244,9 @@ export default function Header() {
                 <span>{item.label}</span>
                 <span aria-hidden="true">{item.label}</span>
               </span>
-              {isActive(item.href) && (
-                <m.span
-                  aria-hidden="true"
-                  className="primary-nav-indicator"
-                  layoutId="primary-navigation-indicator"
-                  transition={{ type: "spring", stiffness: 420, damping: 36 }}
-                />
-              )}
             </Link>
           ))}
+          <span aria-hidden="true" className="primary-nav-indicator" ref={indicatorRef} />
           <span className="header-theme-toggle">
             <ThemeToggle />
           </span>
@@ -191,7 +256,7 @@ export default function Header() {
           <span className="header-theme-toggle">
             <ThemeToggle />
           </span>
-          <m.button
+          <button
             ref={menuButtonRef}
             type="button"
             className="header-menu-button flex min-h-11 min-w-11 items-center justify-center rounded-[0.75rem] border site-rule px-3 text-xs font-semibold"
@@ -199,56 +264,23 @@ export default function Header() {
             aria-expanded={isMenuOpen}
             aria-label={isMenuOpen ? "Close navigation" : "Open navigation"}
             onClick={toggleMenu}
-            whileTap={reduceMotion ? undefined : { scale: 0.97 }}
           >
-            <AnimatePresence initial={false} mode="wait">
-              <m.span
-                key={isMenuOpen ? "close" : "menu"}
-                initial={reduceMotion ? false : { opacity: 0, rotate: -45, scale: 0.9 }}
-                animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                exit={reduceMotion ? undefined : { opacity: 0, rotate: 45, scale: 0.9 }}
-                transition={{ duration: reduceMotion ? 0 : 0.18 }}
-              >
-                {isMenuOpen ? <FaXmark aria-hidden="true" /> : <FaBars aria-hidden="true" />}
-              </m.span>
-            </AnimatePresence>
-          </m.button>
+            <span ref={menuIconRef} className="inline-flex">
+              {isMenuOpen ? <FaXmark aria-hidden="true" /> : <FaBars aria-hidden="true" />}
+            </span>
+          </button>
         </div>
       </div>
 
-      <AnimatePresence initial={false}>
-        {isMenuOpen && (
-          <m.div
+      {isMenuRendered && (
+          <div
             ref={menuRef}
             id="mobile-navigation"
             className="mobile-navigation-panel absolute inset-x-0 top-full overflow-y-auto border-t site-rule bg-[var(--background)] py-6 md:hidden sm:py-10"
-            initial={reduceMotion ? false : { opacity: 0, clipPath: "inset(0 0 100% 0)" }}
-            animate={{ opacity: 1, clipPath: "inset(0 0 0% 0)" }}
-            exit={reduceMotion ? undefined : { opacity: 0, clipPath: "inset(0 0 100% 0)" }}
-            transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.16, 1, 0.3, 1] }}
           >
-            <m.nav
-              aria-label="Mobile navigation"
-              className="site-shell flex flex-col"
-              initial={reduceMotion ? false : "hidden"}
-              animate="visible"
-              variants={{
-                hidden: {},
-                visible: { transition: { delayChildren: 0.04, staggerChildren: 0.04 } },
-              }}
-            >
+            <nav aria-label="Mobile navigation" className="site-shell flex flex-col">
               {navigation.map((item, index) => (
-                <m.div
-                  key={item.href}
-                  variants={{
-                    hidden: { opacity: 0, x: -32 },
-                    visible: {
-                      opacity: 1,
-                      x: 0,
-                      transition: { duration: 0.24, ease: [0.16, 1, 0.3, 1] },
-                    },
-                  }}
-                >
+                <div className="mobile-nav-item" key={item.href}>
                   <Link
                     ref={index === 0 ? firstMenuLinkRef : undefined}
                     aria-current={isActive(item.href) ? "page" : undefined}
@@ -259,12 +291,11 @@ export default function Header() {
                     {item.label}
                     <FaArrowRight aria-hidden="true" className="text-[var(--accent)]" />
                   </Link>
-                </m.div>
+                </div>
               ))}
-            </m.nav>
-          </m.div>
+            </nav>
+          </div>
         )}
-      </AnimatePresence>
     </header>
   );
 }
