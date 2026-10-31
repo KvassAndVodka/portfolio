@@ -376,10 +376,8 @@ button {
   margin-inline: auto;
 }
 
-.home-hero-layout > *,
 .projects-heading > *,
 .technology-groups > *,
-.experience-composition > *,
 .contact-layout > *,
 .filter-toolbar > *,
 .project-card-heading > * {
@@ -492,9 +490,13 @@ button {
 
 .primary-nav-indicator {
   position: absolute;
-  inset: auto 0 0.25rem;
+  bottom: 0.25rem;
+  left: 0;
+  width: 0;
   height: 2px;
   background: var(--accent);
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .primary-navigation .header-theme-toggle {
@@ -630,15 +632,21 @@ button {
   color: var(--accent-ink);
 }
 
+/* Glass secondary: a frosted chip that reads over both the map and plain surfaces. */
 .button-secondary {
-  border-color: var(--line-strong);
-  background: transparent;
+  border-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+  background: color-mix(in srgb, var(--background) 45%, transparent);
   color: var(--foreground);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 35%),
+    0 8px 24px -12px color-mix(in srgb, var(--foreground) 25%, transparent);
 }
 
 .button-secondary:hover {
-  border-color: var(--foreground);
-  background: var(--surface);
+  border-color: color-mix(in srgb, var(--foreground) 32%, transparent);
+  background: color-mix(in srgb, var(--background) 70%, transparent);
 }
 
 .button-primary:active,
@@ -689,45 +697,6 @@ button {
   content: "/";
 }
 
-.hero-portrait {
-  position: relative;
-  min-height: clamp(25rem, 44vw, 39rem);
-  overflow: hidden;
-  border-radius: 0.25rem;
-  background:
-    radial-gradient(
-      circle at 50% 30%,
-      var(--portrait-highlight) 0,
-      var(--portrait-surface) 42%,
-      var(--portrait-background) 72%
-    );
-}
-
-.hero-portrait::after {
-  position: absolute;
-  inset: auto 0 0;
-  height: 28%;
-  background: linear-gradient(to top, rgb(39 29 29 / 0.3), transparent);
-  content: "";
-  pointer-events: none;
-}
-
-.hero-portrait img {
-  object-position: 50% 43%;
-  transform: scale(1.42);
-}
-
-/* Expressive home */
-.home-hero {
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  min-height: calc(100dvh - var(--header-offset));
-  align-items: stretch;
-  overflow: hidden;
-  background: var(--background);
-}
-
 .hero-field {
   position: absolute;
   inset: 0;
@@ -759,24 +728,6 @@ button {
   pointer-events: none;
 }
 
-.home-hero-layout {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  min-height: calc(100dvh - var(--header-offset));
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: clamp(1.5rem, 4vw, 4.5rem);
-  align-items: center;
-  padding-block: clamp(2.5rem, 6vw, 5.5rem);
-  pointer-events: none;
-}
-
-.hero-copy {
-  grid-column: span 7;
-  padding-right: clamp(0rem, 3vw, 3rem);
-  pointer-events: auto;
-}
-
 .hero-kicker {
   max-width: 31rem;
   margin-bottom: 1.35rem;
@@ -791,81 +742,6 @@ button {
   font-weight: 720;
 }
 
-.kinetic-title {
-  max-width: 12ch;
-}
-
-.kinetic-line {
-  display: block;
-  overflow: hidden;
-  padding-bottom: 0.06em;
-}
-
-.kinetic-line > span {
-  display: block;
-  transform-origin: left bottom;
-}
-
-.kinetic-line em {
-  color: var(--accent);
-  font-style: normal;
-}
-
-.hero-summary {
-  margin-top: 1.75rem;
-}
-
-.hero-process-shell {
-  position: relative;
-  max-width: 35rem;
-  margin-top: 1.5rem;
-}
-
-.hero-process-line {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 1px;
-  background: var(--line-strong);
-  transform-origin: left center;
-}
-
-.hero-process {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 0;
-  padding: 0;
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 620;
-  list-style: none;
-}
-
-.hero-process li {
-  position: relative;
-  padding-top: 0.7rem;
-}
-
-.hero-process-checkpoint {
-  position: absolute;
-  top: -0.25rem;
-  left: 0;
-  display: block;
-  width: 0.45rem;
-  height: 0.45rem;
-  border: 1px solid var(--accent);
-  background: var(--background);
-}
-
-.hero-process li:last-child {
-  color: var(--foreground);
-}
-
-.hero-process li:last-child .hero-process-checkpoint {
-  background: var(--accent);
-}
-
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
@@ -873,31 +749,11 @@ button {
   margin-top: 1.75rem;
 }
 
-.portrait-stage {
-  position: relative;
-  grid-column: span 5;
-  padding: 0.75rem;
-  pointer-events: auto;
-}
-
-.hero-portrait-shell {
-  display: block;
-  overflow: hidden;
-  border-radius: 0.25rem;
-}
-
-.portrait-stage .hero-portrait {
-  border: 1px solid color-mix(in srgb, var(--foreground) 16%, transparent);
-}
-
-.proof-band {
-  position: relative;
-  z-index: 2;
-  border-block: 1px solid var(--line);
-  background: var(--background);
-}
-
-.projects-stage {
+/*
+ * Spacing lives on the inner shell, not the section: the section's sticky cloud canvas can only travel
+ * within the section's content box, so section padding made it stop short and leave a blank strip.
+ */
+.projects-stage > .site-shell {
   padding-block: clamp(6rem, 11vw, 9rem);
 }
 
@@ -988,97 +844,79 @@ button {
   font-weight: 640;
 }
 
+/* Full toolkit: every technology, grouped, under the four practice areas. */
+.toolkit {
+  margin-top: clamp(3.5rem, 7vw, 6rem);
+  border-top: 2px solid var(--foreground);
+  padding-top: 1rem;
+}
+
+.toolkit-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.toolkit-heading span {
+  color: var(--accent);
+}
+
+.toolkit-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: 2rem 2.5rem;
+  margin-top: 1.75rem;
+}
+
+.toolkit-group h4 {
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.5rem;
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.toolkit-group ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.toolkit-group li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--line);
+  padding: 0.3rem 0.55rem;
+  color: var(--muted-strong);
+  font-size: 0.78rem;
+  font-weight: 560;
+}
+
+.toolkit-group li svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex: none;
+  color: var(--accent);
+}
+
 .technology-group li svg {
   width: 1.05rem;
   height: 1.05rem;
   flex: none;
   color: var(--accent);
-}
-
-.experience-stage {
-  overflow-x: clip;
-  padding-block: clamp(6rem, 12vw, 10rem);
-  background: var(--surface);
-}
-
-.experience-composition {
-  display: grid;
-  grid-template-columns: minmax(17rem, 0.8fr) minmax(0, 1.5fr);
-  gap: clamp(3rem, 9vw, 9rem);
-  align-items: start;
-}
-
-.experience-intro {
-  position: sticky;
-  top: 8.5rem;
-}
-
-.experience-intro .body-large {
-  margin-top: 1.5rem;
-}
-
-.experience-list .experience-item {
-  position: relative;
-  grid-template-columns: minmax(7rem, 0.62fr) minmax(0, 1.7fr);
-  padding-block: clamp(1.5rem, 3vw, 2.25rem);
-  transition: border-color 240ms ease;
-}
-
-.experience-list .experience-item:hover {
-  border-color: var(--accent);
-}
-
-.experience-list .experience-item h3 {
-  font-size: clamp(1.05rem, 1.7vw, 1.35rem);
-  letter-spacing: -0.025em;
-}
-
-.experience-item h3 {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
-}
-
-.experience-item h3 svg {
-  flex: none;
-  margin-top: 0.2rem;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.experience-item-current::before {
-  position: absolute;
-  top: 1.5rem;
-  bottom: 1.5rem;
-  left: -1rem;
-  width: 2px;
-  background: var(--accent);
-  content: "";
-}
-
-.experience-item-current h3 svg,
-.experience-item-current time {
-  color: var(--accent);
-}
-
-.experience-item-current h3 {
-  font-weight: 690;
-}
-
-.experience-period {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  align-items: flex-start;
-}
-
-.experience-period > span {
-  color: var(--accent);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .contact-stage {
@@ -1347,45 +1185,6 @@ button {
   opacity: 0.65;
 }
 
-.proof-strip {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.proof-strip > div {
-  padding: 1.5rem clamp(1rem, 2.6vw, 2.2rem);
-}
-
-.proof-strip > div + div {
-  border-left: 1px solid var(--line);
-}
-
-.proof-strip dt {
-  margin-bottom: 0.55rem;
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 620;
-}
-
-.proof-strip dd {
-  max-width: 34ch;
-  font-size: 0.9rem;
-  font-weight: 540;
-  line-height: 1.5;
-  text-wrap: pretty;
-}
-
-.proof-strip dd a {
-  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
-  text-decoration-line: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
-}
-
-.proof-strip dd a:hover {
-  color: var(--accent);
-}
-
 .project-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -1650,62 +1449,6 @@ button {
   grid-template-columns: minmax(0, 1.7fr) minmax(17rem, 0.8fr);
   gap: clamp(3rem, 7vw, 7rem);
   align-items: start;
-}
-
-.experience-item {
-  display: grid;
-  grid-template-columns: minmax(7rem, 0.7fr) minmax(0, 2.3fr);
-  gap: clamp(1rem, 3vw, 2.5rem);
-  padding-block: 1.45rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.experience-item:first-child {
-  border-top: 1px solid var(--line);
-}
-
-.experience-item time {
-  color: var(--muted);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 0.7rem;
-}
-
-.experience-item h3 {
-  font-size: 1rem;
-  font-weight: 650;
-  line-height: 1.4;
-}
-
-.experience-organization {
-  margin-top: 0.2rem;
-  color: var(--accent);
-  font-size: 0.85rem;
-  font-weight: 560;
-  line-height: 1.5;
-}
-
-.experience-organization-link {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.45rem;
-}
-
-.experience-organization-link:hover {
-  color: var(--accent-hover);
-}
-
-.experience-organization-link svg {
-  width: 0.72rem;
-  height: 0.72rem;
-  flex: none;
-}
-
-.experience-detail {
-  max-width: 56ch;
-  margin-top: 0.7rem;
-  color: var(--muted);
-  font-size: 0.86rem;
-  line-height: 1.6;
 }
 
 .toolkit {
@@ -2071,17 +1814,9 @@ button {
 }
 
 @media (max-width: 900px) {
-  .experience-composition,
+
   .contact-layout {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .experience-composition {
-    gap: 3.5rem;
-  }
-
-  .experience-intro {
-    position: static;
   }
 
   .contact-layout {
@@ -2117,46 +1852,9 @@ button {
     padding-block: 4rem 3.5rem;
   }
 
-  .home-hero {
-    min-height: 0;
-  }
-
-  .home-hero-layout {
-    min-height: 0;
-    grid-template-columns: 1fr;
-    gap: 3rem;
-    align-content: start;
-    padding-block: 3.5rem 4rem;
-  }
-
-  .hero-copy,
-  .portrait-stage {
-    grid-column: auto;
-  }
-
-  .hero-copy {
-    padding-right: 0;
-  }
 
   .hero-kicker {
     margin-bottom: 1rem;
-  }
-
-  .hero-summary {
-    max-width: 34ch;
-    margin-top: 1.2rem;
-    font-size: 1rem;
-    line-height: 1.55;
-  }
-
-  .hero-process-shell {
-    max-width: 100%;
-    margin-top: 1.25rem;
-  }
-
-  .hero-process {
-    margin-top: 0;
-    font-size: 0.67rem;
   }
 
   .hero-actions {
@@ -2168,18 +1866,6 @@ button {
   .hero-actions .button-primary,
   .hero-actions .button-secondary {
     width: 100%;
-  }
-
-  .portrait-stage {
-    width: min(100%, 24rem);
-    justify-self: start;
-    margin-top: 0;
-    padding: 0.6rem;
-  }
-
-  .portrait-stage .hero-portrait {
-    min-height: 0;
-    aspect-ratio: 5 / 6;
   }
 
   .hero-field-vignette {
@@ -2271,30 +1957,8 @@ button {
     min-height: 2.75rem;
   }
 
-  .proof-strip {
-    grid-template-columns: 1fr;
-  }
-
-  .proof-strip > div {
-    padding: 1.25rem 0;
-  }
-
-  .proof-strip > div + div {
-    border-top: 1px solid var(--line);
-    border-left: 0;
-  }
-
   .evidence-layout {
     grid-template-columns: 1fr;
-  }
-
-  .experience-list .experience-item {
-    grid-template-columns: 1fr;
-    gap: 0.6rem;
-  }
-
-  .experience-item-current::before {
-    left: -0.5rem;
   }
 
   .technology-groups {
@@ -2481,4 +2145,992 @@ button {
     animation: none;
     transform: scaleX(1);
   }
+}
+
+/* Press feedback. Uses the standalone `scale` property so it never fights GSAP transforms. */
+.button-primary,
+.button-secondary,
+.theme-toggle,
+.header-menu-button,
+.contact-submit,
+.filter-tabs button,
+.admin-icon-button,
+.admin-nav-item {
+  transition-property: scale, translate, background-color, border-color, color;
+  transition-duration: 140ms;
+  transition-timing-function: var(--ease-out-expo);
+}
+
+.button-primary:active,
+.button-secondary:active,
+.theme-toggle:active,
+.header-menu-button:active,
+.contact-submit:active,
+.filter-tabs button:active {
+  scale: 0.97;
+}
+
+.admin-icon-button:active {
+  scale: 0.94;
+}
+
+.admin-nav-item:hover {
+  translate: 2px 0;
+}
+
+.admin-nav-item:active {
+  scale: 0.985;
+}
+
+.admin-overlay,
+.admin-icon-swap {
+  transition: opacity 160ms ease, rotate 160ms ease;
+}
+
+@starting-style {
+  .admin-overlay {
+    opacity: 0;
+  }
+
+  .admin-icon-swap {
+    opacity: 0;
+    rotate: -45deg;
+  }
+}
+
+/* ---------- Story homepage ---------- */
+
+/* Static mode (no JS, reduced motion, no WebGL): a plain column with all the content. */
+.story-stage {
+  position: relative;
+}
+
+.story-map,
+.story-cloud,
+.story-haze,
+.story-scroll-cue {
+  display: none;
+}
+
+.story-frame {
+  display: grid;
+  gap: clamp(4rem, 9vw, 7rem);
+  padding-block: clamp(4rem, 9vw, 7rem);
+}
+
+.story-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: center;
+  max-width: 62rem;
+}
+
+.story-summary {
+  max-width: 34rem;
+  margin-top: 1.5rem;
+}
+
+/* Current roles under the summary: a short label, then where. */
+.story-now {
+  display: grid;
+  gap: 0.55rem;
+  max-width: 34rem;
+  margin: 1.25rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+}
+
+.story-now > div {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.story-now dt {
+  color: var(--accent);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.story-now dd {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 767px) {
+  .story-now > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.1rem;
+  }
+}
+
+.story-intro .display-title em {
+  color: var(--accent);
+  font-style: normal;
+}
+
+.story-portrait {
+  position: relative;
+  width: clamp(12rem, 20vw, 17rem);
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+  border-radius: 0.75rem;
+  background: var(--portrait-background);
+}
+
+/* Crop in to head and shoulders: the photo is a full seated shot, so zoom toward the face. */
+.story-portrait img {
+  scale: 1.5;
+  transform-origin: 50% 26%;
+}
+
+.story-places ol {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+
+.story-place {
+  max-width: 40rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1.5rem;
+}
+
+.story-place-index {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+}
+
+.story-place-index span {
+  color: var(--accent);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.story-place-index em {
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.story-place-role {
+  margin-top: 0.7rem;
+  font-size: clamp(2rem, 4.6vw, 4.4rem);
+  font-weight: 640;
+  /* Roomy enough that SplitText's line masks don't clip descenders. */
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.story-place-organization {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 1rem;
+  color: var(--foreground);
+  font-size: clamp(1rem, 1.3vw, 1.15rem);
+  font-weight: 560;
+}
+
+.story-place-organization svg {
+  flex: none;
+  font-size: 0.7rem;
+}
+
+a.story-place-organization:hover {
+  color: var(--accent);
+}
+
+.story-place-detail {
+  max-width: 34rem;
+  margin-top: 0.75rem;
+  color: var(--muted-strong);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.story-place-detail-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--foreground) 30%, transparent);
+  transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+
+.story-place-detail-link:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
+.story-place-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.1rem;
+  margin-top: 1.1rem;
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+}
+
+.story-place-meta > * + *::before {
+  margin-right: 1.1rem;
+  color: var(--line-strong);
+  content: "/";
+}
+
+/* Phones: one fact per line instead of a wrapped row, and no slashes. */
+@media (max-width: 767px) {
+  .story-place-meta {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .story-place-meta > * + *::before {
+    content: none;
+  }
+}
+
+.story-rail {
+  display: none;
+}
+
+/* Live mode: a tall track with a sticky stage the timeline plays over. */
+.story:not([data-mode="static"]) {
+  height: 760svh;
+  margin-top: calc(var(--header-offset) * -1);
+}
+
+.story:not([data-mode="static"]) .story-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--background);
+}
+
+.story:not([data-mode="static"]) .story-map,
+.story:not([data-mode="static"]) .story-cloud,
+.story:not([data-mode="static"]) .story-haze {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.story:not([data-mode="static"]) .story-cloud,
+.story:not([data-mode="static"]) .story-haze {
+  pointer-events: none;
+}
+
+/*
+ * Tilt-shift: the map blurs above and below a sharp band through the middle, so the city reads
+ * like a miniature. The far (top) edge also fades toward the page for distance fall-off.
+ */
+.story:not([data-mode="static"]) .story-haze {
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--background) 65%, transparent), transparent 38%);
+  -webkit-backdrop-filter: blur(var(--tilt-blur, 6px));
+  backdrop-filter: blur(var(--tilt-blur, 6px));
+  mask-image: linear-gradient(to bottom, #000 6%, transparent 40%, transparent 62%, #000 96%);
+}
+
+.story:not([data-mode="static"]) .story-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Same width as the header, so the intro lines up with the logo. */
+.story:not([data-mode="static"]) .story-frame {
+  position: relative;
+  display: block;
+  height: 100%;
+  padding: 0;
+}
+
+.story:not([data-mode="static"]) .story-intro,
+.story:not([data-mode="static"]) .story-places,
+.story:not([data-mode="static"]) .story-scroll-cue {
+  position: absolute;
+}
+
+/* Keeps each soft wash (::before, z-index -1) behind its own text but above the map. */
+.story:not([data-mode="static"]) .story-intro,
+.story:not([data-mode="static"]) .story-places {
+  isolation: isolate;
+}
+
+/* No card: copy and portrait sit centred in the view, lifted off the map by a soft wash. */
+.story:not([data-mode="static"]) .story-intro {
+  inset: var(--header-offset) 0 0;
+  max-width: none;
+  align-content: center;
+  justify-content: center;
+  grid-template-columns: minmax(0, 36rem) auto;
+  pointer-events: none;
+}
+
+.story:not([data-mode="static"]) .story-intro::before {
+  position: absolute;
+  z-index: -1;
+  inset: 8% -6%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--background) 92%, transparent) 55%, transparent);
+  content: "";
+}
+
+.story:not([data-mode="static"]) .story-intro .hero-actions {
+  pointer-events: auto;
+}
+
+.story:not([data-mode="static"]) .story-intro .display-title {
+  font-size: clamp(2.6rem, 4.6vw, 4.4rem);
+}
+
+.story:not([data-mode="static"]) .story-scroll-cue {
+  bottom: 2rem;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  translate: -50% 0;
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.story:not([data-mode="static"]) .story-scroll-cue svg {
+  animation: story-cue 1.6s var(--ease-out-expo) infinite;
+}
+
+@keyframes story-cue {
+  50% {
+    translate: 0 4px;
+  }
+}
+
+/* Overview stop: names the city and says what the pins are, until the first chapter takes over. */
+
+/* ---- Overview map plate: brutalist title block ---------------------------------------------- */
+.story-plate {
+  display: none;
+}
+
+.story:not([data-mode="static"]) .story-plate {
+  --rule: 1;
+  position: absolute;
+  top: calc(var(--header-offset) + 2rem);
+  left: 0;
+  display: block;
+  width: min(44rem, 100%);
+  color: var(--foreground);
+  pointer-events: none;
+}
+
+/* Hard rules drawn by GSAP through --rule (0 to 1), no softening anywhere. */
+.story-plate-head,
+.story-plate-data {
+  position: relative;
+}
+
+.story-plate-head::before,
+.story-plate-data::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  transform: scaleX(var(--rule));
+  transform-origin: left center;
+  content: "";
+}
+
+.story-plate-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.55rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: pre;
+}
+
+.story-plate-title {
+  display: grid;
+  margin: 0.35rem 0 0.7rem;
+  font-size: clamp(3.6rem, 9vw, 8.5rem);
+  font-weight: 800;
+  line-height: 0.84;
+  letter-spacing: -0.065em;
+  text-transform: uppercase;
+}
+
+/* Each line clips its own rise, like type set in a slot. */
+.story-plate-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.04em;
+}
+
+.story-plate-line {
+  clip-path: inset(0 -0.2em 0 0);
+}
+
+/* The text moves inside the line; moving the line itself would carry its clip along. */
+.story-plate-line > span {
+  display: block;
+}
+
+.story-plate-data {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding-top: 2px;
+}
+
+.story-plate-data > div {
+  padding: 0.55rem 0.75rem 0;
+  border-left: 2px solid currentColor;
+}
+
+.story-plate-data > div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.story-plate-data dt {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.story-plate-data dd {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: clamp(1rem, 1.6vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 767px) {
+  /* Phones: the bottom of the screen is open sky over the map, so the plate sits there. */
+  .story:not([data-mode="static"]) .story-plate {
+    top: auto;
+    bottom: 3.25rem;
+  }
+
+  .story-plate-title {
+    font-size: clamp(3rem, 17vw, 4.4rem);
+  }
+
+  .story-plate-head span:last-child {
+    display: none;
+  }
+
+  .story-plate-data {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .story-plate-data > div:nth-child(3) {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+/* Chapters: big type bottom left on a soft wash, above the journey rail. */
+.story:not([data-mode="static"]) .story-places {
+  bottom: 8rem;
+  left: 0;
+  display: grid;
+  gap: 1rem;
+  width: min(44rem, 100%);
+}
+
+/*
+ * The chapter text's wash lives in its own layer below the cloud canvas (see .story-wash), so cloud
+ * passes drift over it instead of being blocked. It sits where .story-places does, sized to a chapter.
+ */
+.story-wash {
+  display: none;
+}
+
+.story:not([data-mode="static"]) .story-wash {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.story-places-wash {
+  position: absolute;
+  bottom: 8rem;
+  left: 0;
+  width: min(44rem, 100%);
+  height: 22rem;
+}
+
+.story-places-wash::before {
+  position: absolute;
+  inset: -30% -25% -40% -30%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--background) 90%, transparent) 50%, transparent);
+  content: "";
+}
+
+.story-places-heading {
+  color: var(--muted-strong);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* All cards share one grid cell, so the column is as tall as the tallest and the heading never jumps. */
+.story:not([data-mode="static"]) .story-places ol {
+  display: grid;
+  margin: 0;
+}
+
+.story:not([data-mode="static"]) .story-place {
+  grid-area: 1 / 1;
+  align-self: end;
+  max-width: none;
+  border: 0;
+  padding: 0;
+  pointer-events: auto;
+}
+
+.story-char {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* Journey rail: every stop by year; the fill tracks the scroll, and each stop flies the camera there. */
+.story:not([data-mode="static"]) .story-rail {
+  position: absolute;
+  right: 0;
+  bottom: 2rem;
+  left: 0;
+  display: block;
+  pointer-events: auto;
+}
+
+.story-rail-track {
+  position: absolute;
+  top: 0.45rem;
+  right: 12.5%;
+  left: 12.5%;
+  height: 2px;
+  background: color-mix(in srgb, var(--foreground) 14%, transparent);
+}
+
+.story-rail-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform-origin: left center;
+}
+
+/* Positioned above the track (later in the document, same stacking phase),
+   so the fill line runs under the stop nodes instead of through their rings. */
+.story-rail ol {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.story-rail button {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--font-geist-mono), monospace;
+  transition: color 200ms ease;
+}
+
+.story-rail-node {
+  width: 0.9rem;
+  aspect-ratio: 1;
+  border: 2px solid color-mix(in srgb, var(--foreground) 30%, transparent);
+  border-radius: 999px;
+  background: var(--background);
+  transition:
+    scale 260ms var(--ease-out-expo),
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+
+.story-rail-year {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+}
+
+.story-rail-label {
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 0.85rem;
+  font-weight: 560;
+}
+
+.story-rail button:hover,
+.story-rail button[data-active] {
+  color: var(--accent);
+}
+
+.story-rail button:hover .story-rail-node,
+.story-rail button[data-active] .story-rail-node {
+  border-color: var(--accent);
+  background: var(--accent);
+  scale: 1.3;
+}
+
+.story-pin-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+
+/*
+ * The card above each pin: a small map label set in the page's ink, with the years in mono over the
+ * place name and a pointer down to the pin. Solid, not frosted: a backdrop blur would re-blur the map
+ * under it on every frame of the always-moving camera.
+ */
+.story-pin-label {
+  position: relative;
+  display: grid;
+  gap: 0.2rem;
+  min-width: 7.5rem;
+  max-width: 15rem;
+  border: 1px solid color-mix(in srgb, var(--foreground) 16%, transparent);
+  border-radius: 0.55rem;
+  padding: 0.5rem 0.7rem 0.55rem;
+  background: var(--background);
+  box-shadow:
+    0 1px 0 0 color-mix(in srgb, var(--foreground) 8%, transparent) inset,
+    0 14px 28px -14px rgb(0 0 0 / 55%);
+  color: var(--foreground);
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+/* The pointer: a small turned square sharing the card's fill and border. */
+.story-pin-label::after {
+  position: absolute;
+  bottom: -0.3rem;
+  left: 50%;
+  width: 0.55rem;
+  aspect-ratio: 1;
+  border-right: 1px solid color-mix(in srgb, var(--foreground) 16%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--foreground) 16%, transparent);
+  background: var(--background);
+  content: "";
+  transform: translateX(-50%) rotate(45deg);
+  transition: border-color 160ms ease;
+}
+
+.story-pin-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.story-pin-meta em {
+  border-radius: 999px;
+  padding: 0.05rem 0.4rem;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.story-pin-name {
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.story-pin-inner:hover .story-pin-label,
+.story-pin-inner:focus-visible .story-pin-label {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.story-pin-inner:hover .story-pin-label::after,
+.story-pin-inner:focus-visible .story-pin-label::after {
+  border-color: var(--accent);
+}
+
+.story-pin-inner:focus-visible {
+  outline: none;
+}
+
+/* The pin and its shadow on the ground. */
+.story-pin-marker {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+/*
+ * A map pin: a square with three round corners, turned so the sharp one points down. Turned, that corner
+ * reaches 0.207 of the width past the box, so it's lifted by that much to land the tip on the spot.
+ */
+.story-pin-dot {
+  position: relative;
+  width: 1.5rem;
+  aspect-ratio: 1;
+  border-radius: 50% 50% 50% 0;
+  /* Flat, like the plate and the rail: one accent fill, no shading. */
+  background: var(--accent);
+  transform: translateY(-0.31rem) rotate(-45deg);
+}
+
+/* The hole in the pin's head. */
+.story-pin-dot::after {
+  position: absolute;
+  inset: 31%;
+  border-radius: 999px;
+  background: var(--background);
+  content: "";
+}
+
+/* Where the tip meets the ground: holds the "now" pulse below. */
+.story-pin-ground {
+  position: absolute;
+  bottom: -0.2rem;
+  width: 0.9rem;
+  height: 0.32rem;
+}
+
+/* Places you are at now pulse a ring out from the tip. */
+.story-pin-inner[data-current] .story-pin-ground::after {
+  position: absolute;
+  inset: -0.35rem -0.8rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  content: "";
+  opacity: 0;
+  animation: story-pin-pulse 2.4s ease-out infinite;
+}
+
+@keyframes story-pin-pulse {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-pin-inner[data-current] .story-pin-ground::after {
+    animation: none;
+  }
+}
+
+/* Map credits: a quiet mono line tucked into the bottom-right corner instead of MapLibre's white pill. */
+.story .maplibregl-ctrl-bottom-right {
+  right: 0.75rem;
+  bottom: 0.5rem;
+}
+
+.story .maplibregl-ctrl.maplibregl-ctrl-attrib {
+  margin: 0;
+  border-radius: 0;
+  padding: 0;
+  background: none;
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  transition: opacity 200ms ease;
+}
+
+.story .maplibregl-ctrl.maplibregl-ctrl-attrib:hover {
+  opacity: 1;
+}
+
+.story .maplibregl-ctrl-attrib a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.story .maplibregl-ctrl-attrib a:hover {
+  color: var(--accent);
+}
+
+@media (max-width: 767px) {
+  .story-intro {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .story-portrait {
+    grid-row: 1;
+    width: 7rem;
+  }
+
+  .story:not([data-mode="static"]) {
+    height: 680svh;
+  }
+
+  .story:not([data-mode="static"]) .story-intro {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .story:not([data-mode="static"]) .story-intro .display-title {
+    font-size: clamp(2.1rem, 9.5vw, 2.8rem);
+  }
+
+  .story:not([data-mode="static"]) .story-summary {
+    margin-top: 1rem;
+    font-size: 0.95rem;
+  }
+
+  /* Lighter blur on phones: backdrop blur is one of the costlier things a phone composites. */
+  .story:not([data-mode="static"]) .story-haze {
+    --tilt-blur: 3px;
+  }
+
+  .story:not([data-mode="static"]) .story-places {
+    bottom: 5.5rem;
+    width: 100%;
+  }
+
+  .story-places-wash {
+    bottom: 5.5rem;
+    width: 100%;
+  }
+
+  .story:not([data-mode="static"]) .story-place-role {
+    font-size: clamp(1.9rem, 9vw, 2.5rem);
+  }
+
+  .story:not([data-mode="static"]) .story-place-detail {
+    font-size: 0.92rem;
+  }
+
+  /* Years only on phones, lifted clear of the map attribution. */
+  .story:not([data-mode="static"]) .story-rail {
+    bottom: 2.6rem;
+  }
+
+  .story-rail-label {
+    display: none;
+  }
+
+  .story-pin-label {
+    min-width: 0;
+    max-width: 11rem;
+    padding: 0.4rem 0.55rem 0.45rem;
+  }
+
+  .story-pin-name {
+    font-size: 0.72rem;
+  }
+}
+
+/* Projects sit on the drifting ASCII cloud the story condenses into. */
+.cloud-field {
+  position: relative;
+  isolation: isolate;
+  /* Cuts the screen-fixed canvas to this section's box (overflow can't clip a fixed child; clip-path can). */
+  clip-path: inset(0);
+}
+
+/*
+ * One screen, fixed to the viewport: the shader only ever draws what is visible, and the section shows it
+ * wherever the section is on screen. Sticky positioning stopped short at the section's end, which left
+ * the bottom rows stale while the rest moved.
+ */
+.cloud-field-canvas {
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: 100svh;
+  pointer-events: none;
+}
+
+/*
+ * The projects rise straight out of the story's cloud: the section overlaps the stage's last screen, so
+ * the heading and cards climb in while the cloud forms. Until the story has scrolled away, the story's
+ * own cloud shows behind it and this canvas stays hidden and idle (see CloudField).
+ */
+.story:not([data-mode="static"]) + .cloud-field {
+  z-index: 1;
+  margin-top: -100svh;
+}
+
+.story:not([data-mode="static"]) + .cloud-field:not([data-cloud-active]) .cloud-field-canvas {
+  visibility: hidden;
+}
+
+/* Once this cloud takes over, cover the story's so the two never show at once. */
+.story:not([data-mode="static"]) + .cloud-field[data-cloud-active] {
+  background: var(--background);
+}
+
+/* Pins start hidden; the timeline reveals them at the overview (GSAP's inline visibility wins). */
+.story-pin-inner {
+  visibility: hidden;
+}
+
+/* Until the timeline takes over, keep later chapters out of the first paint. */
+.story[data-mode="loading"] :is(.story-plate, .story-places, .story-places-wash, .story-rail) {
+  visibility: hidden;
 }

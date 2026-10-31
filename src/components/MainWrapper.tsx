@@ -1,31 +1,26 @@
 "use client";
 
-import { m, useReducedMotion } from "framer-motion";
 import { usePathname } from 'next/navigation';
+import { useRef } from "react";
+
+import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
 export default function MainWrapper({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
-  const reduceMotion = useReducedMotion();
+  const ref = useRef<HTMLElement>(null);
 
-  if (isAdmin) {
-    return (
-      <main id="main-content" tabIndex={-1}>
-        {children}
-      </main>
-    );
-  }
+  useGSAP(
+    () => {
+      if (isAdmin || prefersReducedMotion()) return;
+      gsap.from(ref.current, { autoAlpha: 0.86, y: 4, duration: 0.18, clearProps: "transform" });
+    },
+    { dependencies: [pathname, isAdmin] },
+  );
 
   return (
-    <m.main
-      key={pathname}
-      id="main-content"
-      tabIndex={-1}
-      initial={reduceMotion ? false : { opacity: 0.86, transform: "translateY(4px)" }}
-      animate={{ opacity: 1, transform: "translateY(0px)" }}
-      transition={{ duration: reduceMotion ? 0 : 0.18, ease: [0.23, 1, 0.32, 1] }}
-    >
+    <main id="main-content" tabIndex={-1} ref={ref}>
       {children}
-    </m.main>
+    </main>
   );
 }

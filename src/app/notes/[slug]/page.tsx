@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { FaArrowLeft } from "react-icons/fa6";
 
+import { markdownComponents } from "@/components/markdownComponents";
 import { getPost, getPosts } from "@/lib/posts";
 import { absoluteUrl, createPageMetadata, defaultSocialImage, serializeJsonLd } from "@/lib/seo";
 
@@ -88,7 +89,7 @@ export default async function NotePage({ params }: Readonly<{ params: Params }>)
 
       <div className="site-shell max-w-3xl py-16 md:py-24">
         <div className="prose prose-lg article-prose max-w-none">
-          <MDXRemote source={post.content} />
+          <MDXRemote source={post.content} components={markdownComponents} />
         </div>
       </div>
     </article>

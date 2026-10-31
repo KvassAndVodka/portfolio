@@ -1,18 +1,28 @@
 "use client";
 
-import { m, useScroll, useSpring } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { useRef } from "react";
+
+import { gsap, useGSAP } from "@/lib/gsap";
 
 export default function ScrollProgress() {
   const pathname = usePathname();
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 220,
-    damping: 34,
-    mass: 0.35,
-  });
+  const ref = useRef<HTMLDivElement>(null);
+  const isAdmin = pathname?.startsWith("/admin");
 
-  if (pathname?.startsWith("/admin")) return null;
+  useGSAP(
+    () => {
+      if (isAdmin) return;
+      gsap.fromTo(
+        ref.current,
+        { scaleX: 0 },
+        { scaleX: 1, ease: "none", scrollTrigger: { start: 0, end: "max", scrub: 0.3 } },
+      );
+    },
+    { dependencies: [pathname, isAdmin] },
+  );
 
-  return <m.div aria-hidden="true" className="scroll-progress" style={{ scaleX }} />;
+  if (isAdmin) return null;
+
+  return <div aria-hidden="true" className="scroll-progress" ref={ref} />;
 }

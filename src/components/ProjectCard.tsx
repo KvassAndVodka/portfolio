@@ -1,13 +1,13 @@
 "use client";
 
-import { m, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import { useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { FaArrowRight, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6";
 
 import ProjectTechnologyList, { ProjectTechnologyMarks } from "@/components/ProjectTechnologyList";
-import useSafeReveal from "@/hooks/useSafeReveal";
+import useScrollReveal from "@/hooks/useScrollReveal";
+import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 import type { ProjectPreview } from "@/lib/projects";
 
 type ProjectCardProps = Readonly<{
@@ -32,62 +32,39 @@ export default function ProjectCard({
   project,
 }: ProjectCardProps) {
   const liveProjectUrl = project.projectUrl || project.demoUrl;
-  const {
-    ref: revealRef,
-    isRevealed,
-    reduceMotion,
-  } = useSafeReveal<HTMLElement>({ amount: 0.16 });
-  const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
-  const smoothX = useSpring(pointerX, { stiffness: 240, damping: 28, mass: 0.4 });
-  const smoothY = useSpring(pointerY, { stiffness: 240, damping: 28, mass: 0.4 });
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-2.4, 2.4]);
-  const rotateX = useTransform(smoothY, [-0.5, 0.5], [2.2, -2.2]);
+  const revealRef = useScrollReveal<HTMLElement>({
+    from: { autoAlpha: 0, y: 56, clipPath: "inset(0 0 18% 0)", scale: 0.985 },
+    delay: Math.min(index * 0.1, 0.34),
+    start: "top 90%",
+  });
+  const tiltRef = useRef<{ x: gsap.QuickToFunc; y: gsap.QuickToFunc } | null>(null);
+
+  useGSAP(() => {
+    const card = revealRef.current;
+    if (!card) return;
+    gsap.set(card, { transformPerspective: 1200 });
+    tiltRef.current = {
+      x: gsap.quickTo(card, "rotateX", { duration: 0.5, ease: "power3.out" }),
+      y: gsap.quickTo(card, "rotateY", { duration: 0.5, ease: "power3.out" }),
+    };
+  });
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
-    if (reduceMotion || event.pointerType !== "mouse") return;
+    if (event.pointerType !== "mouse" || prefersReducedMotion()) return;
     const bounds = event.currentTarget.getBoundingClientRect();
-    pointerX.set((event.clientX - bounds.left) / bounds.width - 0.5);
-    pointerY.set((event.clientY - bounds.top) / bounds.height - 0.5);
+    tiltRef.current?.y(((event.clientX - bounds.left) / bounds.width - 0.5) * 4.8);
+    tiltRef.current?.x(-((event.clientY - bounds.top) / bounds.height - 0.5) * 4.4);
   };
 
   const resetTilt = () => {
-    pointerX.set(0);
-    pointerY.set(0);
+    tiltRef.current?.x(0);
+    tiltRef.current?.y(0);
   };
 
   return (
-    <m.article
+    <article
       className={`project-card group${featured ? " project-card-featured" : ""}${compact ? " project-card-bento" : ""}`}
       ref={revealRef}
-      layout="position"
-      initial={
-        reduceMotion
-          ? false
-          : { opacity: 0, y: 56, clipPath: "inset(0 0 18% 0)", scale: 0.985 }
-      }
-      animate={
-        isRevealed
-          ? { opacity: 1, y: 0, clipPath: "inset(0 0 0% 0)", scale: 1 }
-          : { opacity: 0, y: 56, clipPath: "inset(0 0 18% 0)", scale: 0.985 }
-      }
-      exit={
-        reduceMotion
-          ? undefined
-          : { opacity: 0, scale: 0.96, clipPath: "inset(0 0 12% 0)", transition: { duration: 0.2 } }
-      }
-      transition={{
-        duration: reduceMotion ? 0 : 0.76,
-        delay: reduceMotion ? 0 : Math.min(index * 0.1, 0.34),
-        ease: [0.16, 1, 0.3, 1],
-        layout: { type: "spring", stiffness: 320, damping: 34 },
-      }}
-      style={{
-        rotateX: reduceMotion ? 0 : rotateX,
-        rotateY: reduceMotion ? 0 : rotateY,
-        transformPerspective: 1200,
-      }}
-      whileTap={reduceMotion ? undefined : { scale: 0.992 }}
       onPointerMove={handlePointerMove}
       onPointerLeave={resetTilt}
     >
@@ -149,6 +126,6 @@ export default function ProjectCard({
           )}
         </div>
       </div>
-    </m.article>
+    </article>
   );
 }
