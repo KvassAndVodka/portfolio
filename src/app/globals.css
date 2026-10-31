@@ -749,7 +749,11 @@ button {
   margin-top: 1.75rem;
 }
 
-.projects-stage {
+/*
+ * Spacing lives on the inner shell, not the section: the section's sticky cloud canvas can only travel
+ * within the section's content box, so section padding made it stop short and leave a blank strip.
+ */
+.projects-stage > .site-shell {
   padding-block: clamp(6rem, 11vw, 9rem);
 }
 
@@ -2227,6 +2231,46 @@ button {
   margin-top: 1.5rem;
 }
 
+/* Current roles under the summary: a short label, then where. */
+.story-now {
+  display: grid;
+  gap: 0.55rem;
+  max-width: 34rem;
+  margin: 1.25rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+}
+
+.story-now > div {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.story-now dt {
+  color: var(--accent);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.story-now dd {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 767px) {
+  .story-now > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.1rem;
+  }
+}
+
 .story-intro .display-title em {
   color: var(--accent);
   font-style: normal;
@@ -2558,6 +2602,11 @@ a.story-place-organization:hover {
   clip-path: inset(0 -0.2em 0 0);
 }
 
+/* The text moves inside the line; moving the line itself would carry its clip along. */
+.story-plate-line > span {
+  display: block;
+}
+
 .story-plate-data {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2627,9 +2676,31 @@ a.story-place-organization:hover {
   width: min(44rem, 100%);
 }
 
-.story:not([data-mode="static"]) .story-places::before {
+/*
+ * The chapter text's wash lives in its own layer below the cloud canvas (see .story-wash), so cloud
+ * passes drift over it instead of being blocked. It sits where .story-places does, sized to a chapter.
+ */
+.story-wash {
+  display: none;
+}
+
+.story:not([data-mode="static"]) .story-wash {
   position: absolute;
-  z-index: -1;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.story-places-wash {
+  position: absolute;
+  bottom: 8rem;
+  left: 0;
+  width: min(44rem, 100%);
+  height: 22rem;
+}
+
+.story-places-wash::before {
+  position: absolute;
   inset: -30% -25% -40% -30%;
   background: radial-gradient(closest-side, color-mix(in srgb, var(--background) 90%, transparent) 50%, transparent);
   content: "";
@@ -2752,40 +2823,160 @@ a.story-place-organization:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.65rem;
   border: 0;
   padding: 0;
   background: none;
   cursor: pointer;
 }
 
+/*
+ * The card above each pin: a small map label set in the page's ink, with the years in mono over the
+ * place name and a pointer down to the pin. Solid, not frosted: a backdrop blur would re-blur the map
+ * under it on every frame of the always-moving camera.
+ */
 .story-pin-label {
+  position: relative;
+  display: grid;
+  gap: 0.2rem;
+  min-width: 7.5rem;
   max-width: 15rem;
-  border-radius: 0.4rem;
-  padding: 0.35rem 0.6rem;
-  background: var(--foreground);
-  color: var(--background);
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1.3;
-  text-align: center;
-  transition: background-color 160ms ease;
+  border: 1px solid color-mix(in srgb, var(--foreground) 16%, transparent);
+  border-radius: 0.55rem;
+  padding: 0.5rem 0.7rem 0.55rem;
+  background: var(--background);
+  box-shadow:
+    0 1px 0 0 color-mix(in srgb, var(--foreground) 8%, transparent) inset,
+    0 14px 28px -14px rgb(0 0 0 / 55%);
+  color: var(--foreground);
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
 }
 
+/* The pointer: a small turned square sharing the card's fill and border. */
+.story-pin-label::after {
+  position: absolute;
+  bottom: -0.3rem;
+  left: 50%;
+  width: 0.55rem;
+  aspect-ratio: 1;
+  border-right: 1px solid color-mix(in srgb, var(--foreground) 16%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--foreground) 16%, transparent);
+  background: var(--background);
+  content: "";
+  transform: translateX(-50%) rotate(45deg);
+  transition: border-color 160ms ease;
+}
+
+.story-pin-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.story-pin-meta em {
+  border-radius: 999px;
+  padding: 0.05rem 0.4rem;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.story-pin-name {
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
 
 .story-pin-inner:hover .story-pin-label,
 .story-pin-inner:focus-visible .story-pin-label {
-  background: var(--accent);
-  color: var(--accent-ink);
+  border-color: var(--accent);
+  transform: translateY(-2px);
 }
 
+.story-pin-inner:hover .story-pin-label::after,
+.story-pin-inner:focus-visible .story-pin-label::after {
+  border-color: var(--accent);
+}
+
+.story-pin-inner:focus-visible {
+  outline: none;
+}
+
+/* The pin and its shadow on the ground. */
+.story-pin-marker {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+/*
+ * A map pin: a square with three round corners, turned so the sharp one points down. Turned, that corner
+ * reaches 0.207 of the width past the box, so it's lifted by that much to land the tip on the spot.
+ */
 .story-pin-dot {
-  width: 0.85rem;
+  position: relative;
+  width: 1.5rem;
   aspect-ratio: 1;
-  border: 3px solid var(--background);
-  border-radius: 999px;
+  border-radius: 50% 50% 50% 0;
+  /* Flat, like the plate and the rail: one accent fill, no shading. */
   background: var(--accent);
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent);
+  transform: translateY(-0.31rem) rotate(-45deg);
+}
+
+/* The hole in the pin's head. */
+.story-pin-dot::after {
+  position: absolute;
+  inset: 31%;
+  border-radius: 999px;
+  background: var(--background);
+  content: "";
+}
+
+/* Where the tip meets the ground: holds the "now" pulse below. */
+.story-pin-ground {
+  position: absolute;
+  bottom: -0.2rem;
+  width: 0.9rem;
+  height: 0.32rem;
+}
+
+/* Places you are at now pulse a ring out from the tip. */
+.story-pin-inner[data-current] .story-pin-ground::after {
+  position: absolute;
+  inset: -0.35rem -0.8rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  content: "";
+  opacity: 0;
+  animation: story-pin-pulse 2.4s ease-out infinite;
+}
+
+@keyframes story-pin-pulse {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-pin-inner[data-current] .story-pin-ground::after {
+    animation: none;
+  }
 }
 
 /* Map credits: a quiet mono line tucked into the bottom-right corner instead of MapLibre's white pill. */
@@ -2858,6 +3049,11 @@ a.story-place-organization:hover {
     width: 100%;
   }
 
+  .story-places-wash {
+    bottom: 5.5rem;
+    width: 100%;
+  }
+
   .story:not([data-mode="static"]) .story-place-role {
     font-size: clamp(1.9rem, 9vw, 2.5rem);
   }
@@ -2876,8 +3072,13 @@ a.story-place-organization:hover {
   }
 
   .story-pin-label {
+    min-width: 0;
     max-width: 11rem;
-    font-size: 0.68rem;
+    padding: 0.4rem 0.55rem 0.45rem;
+  }
+
+  .story-pin-name {
+    font-size: 0.72rem;
   }
 }
 
@@ -2885,19 +3086,23 @@ a.story-place-organization:hover {
 .cloud-field {
   position: relative;
   isolation: isolate;
-  /* Clips the pinned canvas to this section; "clip" (unlike "hidden") keeps sticky positioning working. */
-  overflow: clip;
+  /* Cuts the screen-fixed canvas to this section's box (overflow can't clip a fixed child; clip-path can). */
+  clip-path: inset(0);
 }
 
-/* One screen tall and pinned while the section scrolls: the shader only ever draws what is visible. */
+/*
+ * One screen, fixed to the viewport: the shader only ever draws what is visible, and the section shows it
+ * wherever the section is on screen. Sticky positioning stopped short at the section's end, which left
+ * the bottom rows stale while the rest moved.
+ */
 .cloud-field-canvas {
-  position: sticky;
+  position: fixed;
   z-index: -1;
   top: 0;
+  left: 0;
   display: block;
   width: 100%;
   height: 100svh;
-  margin-bottom: -100svh;
   pointer-events: none;
 }
 
@@ -2915,12 +3120,17 @@ a.story-place-organization:hover {
   visibility: hidden;
 }
 
+/* Once this cloud takes over, cover the story's so the two never show at once. */
+.story:not([data-mode="static"]) + .cloud-field[data-cloud-active] {
+  background: var(--background);
+}
+
 /* Pins start hidden; the timeline reveals them at the overview (GSAP's inline visibility wins). */
 .story-pin-inner {
   visibility: hidden;
 }
 
 /* Until the timeline takes over, keep later chapters out of the first paint. */
-.story[data-mode="loading"] :is(.story-plate, .story-places, .story-rail) {
+.story[data-mode="loading"] :is(.story-plate, .story-places, .story-places-wash, .story-rail) {
   visibility: hidden;
 }

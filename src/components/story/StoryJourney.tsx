@@ -239,8 +239,21 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
           button.className = "story-pin-inner";
           button.dataset.pin = String(pinIndex);
           button.setAttribute("aria-label", `Show ${pin.name}`);
-          button.innerHTML = `<span class="story-pin-label"></span><span class="story-pin-dot"></span>`;
-          button.querySelector(".story-pin-label")!.textContent = pin.name;
+          // The card: years at this place over its name, plus a "Now" chip if any role here is current.
+          const here = pin.places.map((index) => places[index]);
+          const from = here[0].period.split(" - ")[0];
+          const to = here[here.length - 1].period.split(" - ").at(-1)!;
+          const current = here.some((place) => place.current);
+          if (current) button.dataset.current = "";
+          button.innerHTML = `
+            <span class="story-pin-label">
+              <span class="story-pin-meta"><span class="story-pin-years"></span></span>
+              <span class="story-pin-name"></span>
+            </span>
+            <span class="story-pin-marker"><span class="story-pin-ground"></span><span class="story-pin-dot"></span></span>`;
+          button.querySelector(".story-pin-years")!.textContent = from === to ? from : `${from} – ${to}`;
+          if (current) button.querySelector(".story-pin-meta")!.insertAdjacentHTML("beforeend", `<em>Now</em>`);
+          button.querySelector(".story-pin-name")!.textContent = pin.name;
           button.addEventListener("click", () => jumpToPin.current?.(pin.places));
           element.append(button);
           return new maplibre.Marker({ element, anchor: "bottom" }).setLngLat(pin.coordinates).addTo(map);
@@ -435,21 +448,30 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
           trigger: rootRef.current,
           start: "top top",
           end: "bottom bottom",
-          // Smoothing behind the scrollbar: enough to soften wheel jitter, short enough that a
-          // landed stop settles almost straight away.
-          scrub: 0.8,
+          // Smoothing behind the scrollbar: enough to soften wheel jitter, short enough that the
+          // story reacts to a scroll right away and a landed stop settles almost straight away.
+          scrub: 0.5,
         },
       });
-      // Draw whenever any part of the stage is on screen, including while the scrub catches up at the end.
+      // Draw whenever the stage shows. Past the end the projects section covers it with its own cloud
+      // (see CloudField), so stop there; the extra pixel lets that cloud take over before this one stops.
       const visibility = ScrollTrigger.create({
         trigger: rootRef.current,
         start: "top bottom",
-        end: "bottom top",
+        end: "bottom bottom-=1",
         onToggle: (self) => (self.isActive ? start() : stop()),
       });
 
       // Role titles rise in letter by letter; the mask keeps each line clipped while they do.
       SplitText.create(".story-place-role", { type: "lines,chars", mask: "lines", charsClass: "story-char" });
+
+      // The plate's entrance runs on its own clock: the hop into the overview snaps in a third of a
+      // second, and tied to the scroll the title would flash past. Exits stay on the scroll below.
+      const plateIn = gsap
+        .timeline({ paused: true })
+        .fromTo(".story-plate-head, .story-plate-data", { "--rule": 0 }, { "--rule": 1, duration: 0.9, ease: "power3.out" }, 0)
+        .fromTo(".story-plate-line > span", { yPercent: 105 }, { yPercent: 0, stagger: 0.15, duration: 0.9, ease: "power4.out" }, 0.1)
+        .fromTo(".story-plate-head span, .story-plate-data > div", { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, stagger: 0.08, duration: 0.6, ease: "power2.out" }, 0.45);
 
       // Act 1: the overlook. The intro gives way, and every fade lands by the overview stop
       // (time 1.1), so the snapped state is clean: no hero ghost, no half-faded pins.
@@ -467,19 +489,20 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         // The map plate slams in with the overview: rules draw across, the title rises line by line,
         // the data cells stamp in. It clears out as the camera dives to the first stop.
         .fromTo(".story-plate", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.05, ease: "none" }, 0.62)
-        .fromTo(".story-plate-head, .story-plate-data", { "--rule": 0 }, { "--rule": 1, duration: 0.3, ease: "power3.out" }, 0.62)
-        .fromTo(".story-plate-line", { yPercent: 105 }, { yPercent: 0, stagger: 0.07, duration: 0.32, ease: "power4.out" }, 0.66)
-        .fromTo(".story-plate-head span, .story-plate-data > div", { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, stagger: 0.03, duration: 0.2, ease: "power2.out" }, 0.74)
-        .to(".story-plate-line", { yPercent: -105, stagger: 0.04, duration: 0.25, ease: "power2.in" }, 1.38)
+        // Scrolling down past here plays the entrance; scrolling back up resets it for next time.
+        .call(() => (timeline.scrollTrigger!.direction > 0 ? plateIn.restart() : plateIn.pause(0)), [], 0.62)
+        .to(".story-plate-line > span", { yPercent: -105, stagger: 0.04, duration: 0.25, ease: "power2.in" }, 1.38)
         .to(".story-plate", { autoAlpha: 0, duration: 0.2, ease: "none" }, 1.45)
-        .fromTo(".story-places", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 1.5)
+        .fromTo(".story-places, .story-places-wash", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 1.5)
         .fromTo(".story-places-heading", { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.4 }, 1.5)
         .fromTo(".story-rail", { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.4 }, 1.2);
 
       // Act 2: fly down to each workplace and hover there until the next scroll.
       const visitStart = 1.2;
-      const visit = 1.6;
-      const arrivalOf = (index: number) => visitStart + index * visit + 1.15;
+      const visit = 2;
+      // The chapter text starts rising once the cloud has cleared.
+      const textDelay = 1;
+      const arrivalOf = (index: number) => visitStart + index * visit + textDelay + 0.65;
       places.forEach((place, index) => {
         const at = visitStart + index * visit;
         const card = `.story-place[data-place="${index}"]`;
@@ -491,20 +514,27 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
           zoom: closeUpZoom,
           bearing: -30 + index * 25,
         });
-        // Rise a little mid-flight so the hop between places reads as travel.
+        // Into each place (the first from the overview): pass through a cloud instead of flying. Flying drew
+        // every tile along the way, and crossing zoom 12.5-14.5 re-draped the terrain step by step, which
+        // stuttered. Behind the cloud the camera jumps, so the map only draws where it leaves and lands.
         timeline
-          .to(view, { lng: close.lng, lat: close.lat, bearing: close.bearing, pitch: close.pitch, place: index, duration: 0.9 }, at)
-          .to(view, { zoom: index === 0 ? closeUpZoom : 13.2, duration: 0.45, ease: "power1.out" }, at)
-          .to(view, { zoom: closeUpZoom, duration: 0.45, ease: "power1.in" }, at + 0.45)
-          .fromTo(card, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2 }, at + 0.5)
-          .fromTo(`${card} .story-place-role .story-char`, { yPercent: 110 }, { yPercent: 0, stagger: 0.008, duration: 0.4, ease: "power3.out" }, at + 0.5)
+          // Not quite 0: the map keeps rendering under the cloud, so the new place loads before it clears.
+          // Eases out, so the cloud shows up the moment the scroll starts instead of building slowly.
+          .to(view, { cloud: 0.75, mapAlpha: 0.02, duration: 0.7, ease: "power1.out" }, at)
+          .set(view, { ...close, zoom: closeUpZoom - 0.8, place: index }, at + 0.75)
+          .to(view, { cloud: 0, mapAlpha: 1, duration: 0.8, ease: "power1.out" }, at + 0.8)
+          .to(view, { zoom: closeUpZoom, duration: 0.9, ease: "power2.out" }, at + 0.8);
+        const shown = at + textDelay;
+        timeline
+          .fromTo(card, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2 }, shown)
+          .fromTo(`${card} .story-place-role .story-char`, { yPercent: 110 }, { yPercent: 0, stagger: 0.008, duration: 0.4, ease: "power3.out" }, shown)
           .fromTo(
             `${card} .story-place-index, ${card} .story-place-organization, ${card} .story-place-detail, ${card} .story-place-meta`,
             { autoAlpha: 0, y: 18 },
             { autoAlpha: 1, y: 0, stagger: 0.05, duration: 0.35, ease: "power2.out" },
-            at + 0.6,
+            shown + 0.1,
           )
-          .to(pin, { scale: 1.2, duration: 0.3 }, at + 0.5)
+          .to(pin, { scale: 1.2, duration: 0.3 }, shown)
           .to(pin, { scale: 1, duration: 0.3 }, at + visit - 0.3);
         if (index < places.length - 1) timeline.to(card, { autoAlpha: 0, y: -32, duration: 0.3 }, at + visit - 0.3);
       });
@@ -520,14 +550,17 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         arrivalOf(0),
       );
       timeline
-        .to([".story-places", ".story-pin-inner", ".story-rail"], { autoAlpha: 0, duration: 0.4 }, sky)
-        .to(view, { ...shot({ ...overlook, zoom: 12.6, pitch: 85, bearing: 0 }), hover: 0.3, duration: 1.6 }, sky)
+        .to([".story-places", ".story-places-wash", ".story-pin-inner", ".story-rail"], { autoAlpha: 0, duration: 0.4 }, sky)
+        // The climb stays over the last place and above zoom 14.5: pulling back to the overview loaded the
+        // whole region at a near-horizontal tilt and brought the terrain back, which stuttered.
+        .to(view, { zoom: Math.max(closeUpZoom - 1.5, 14.6), pitch: flat ? 0 : 80, hover: 0.3, duration: 1.6 }, sky)
         // Clouds start gathering as soon as the camera begins to tilt up, and the map dims with them,
         // so the page darkens gradually instead of dropping out at the end. The gathering gets the
         // spotlight: it plays longest, and the title waits until the sky has filled.
         // Stops short of a solid sheet so the billows keep their shape for the hand-off.
         .to(view, { cloud: 0.8, duration: 3.2, ease: "power1.inOut" }, sky + 0.2)
-        .to(view, { mapAlpha: 0, duration: 2.6, ease: "sine.inOut" }, sky + 0.6)
+        // Gone well before the cloud fills: once hidden, the map stops drawing altogether.
+        .to(view, { mapAlpha: 0, duration: 1.8, ease: "sine.inOut" }, sky + 0.3)
         // The billows turn into the ASCII cloud the projects sit on, at the same strength as there.
         .to(view, { dots: 1, duration: 1.4, ease: "power1.inOut" }, sky + 3.4);
 
@@ -549,28 +582,45 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
       // At the end of the timeline the projects are already in view, so going further down is plain page
       // scrolling, not another step.
       const handsOff = (direction: number) => !inStory() || (direction > 0 && window.scrollY >= trigger.end - 2);
-      const MAX_QUEUED = 2;
+      const MAX_QUEUED = 3;
       // Hero → overview covers no camera flight, only quick fades, so that hop snaps instead of gliding.
       const INTRO_HOP = 0.35;
       const GLIDE = 1.5;
+      // Hops between places pass through a cloud, which needs time to gather and clear.
+      const PLACE_GLIDE = 2.4;
       // Scrolling up to the cloud is the showpiece, so it flies slower than any other hop.
       const CLOUD_GLIDE = 3;
       // A beat at each stop when gestures are chained, so the journey doesn't blur past.
       const CHAIN_PAUSE = 0.4;
+      // Hurry: each extra scroll made while a glide is running (or a hard flick) speeds the journey up,
+      // so someone racing through skips ahead instead of sitting through every animation. Speed 1 is the
+      // reading pace; it resets once the page comes to rest.
+      const MAX_URGENCY = 3;
+      let urgency = 0;
+      const speed = () => 1 + urgency * 1.5;
       let gliding = false;
       let glideDirection: 1 | -1 = 1;
       let queued = 0;
+      let glideTween: gsap.core.Tween | null = null;
+      // Applies the pace to the glide underway and to the scrub, whose 0.8 s smoothing would otherwise
+      // keep the animation trailing behind a fast glide. (The scrub tween keeps its time scale between updates.)
+      const hurry = (level: number) => {
+        urgency = Math.min(Math.max(level, 0), MAX_URGENCY);
+        glideTween?.timeScale(speed());
+        trigger.getTween()?.timeScale(speed());
+      };
 
       // The page uses CSS smooth scrolling for anchor links. During a glide it would smooth every
       // frame GSAP sets on top of GSAP's own easing, so the page lags behind and lands late.
       const root = document.documentElement;
-      const goTo = (top: number, duration: number, onArrive?: () => void) => {
+      const goTo = (top: number, duration: number, onArrive?: () => void, ease = "power2.inOut") => {
         gliding = true;
         root.style.scrollBehavior = "auto";
-        gsap.to(window, {
+        trigger.getTween()?.timeScale(speed());
+        glideTween = gsap.to(window, {
           scrollTo: { y: top, autoKill: false },
           duration,
-          ease: "power2.inOut",
+          ease,
           overwrite: true,
           onComplete: () => {
             gliding = false;
@@ -594,8 +644,12 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         // After the last place, the next state is the end of the timeline: the climb through the clouds,
         // with the projects section rising over the stage until it fills the screen.
         const top = next !== -1 ? scrollFor(times[next]) : direction > 0 ? trigger.end : null;
-        if (top === null) {
+        // Nowhere further to go (a chained gesture ran past the first or last state): release the page.
+        // Gliding to where we already are would hold the scroll still for the whole glide.
+        if (top === null || Math.abs(top - window.scrollY) < 2) {
           queued = 0;
+          hurry(0);
+          gliding = false;
           return;
         }
         // A fresh gesture glides at reading pace — unless it is the hop in or out of the hero, which
@@ -603,54 +657,120 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         const introHop = (direction > 0 && now < 0.9) || (direction < 0 && times[next] < 0.15);
         // The last hop (next === -1) is the climb through the clouds into the projects.
         const cloudHop = direction > 0 && (next === -1 || times[next] > sky);
-        goTo(top, duration ?? (introHop ? INTRO_HOP : cloudHop ? CLOUD_GLIDE : GLIDE), () => {
+        // Overview to first place counts too: it passes through the cloud as well.
+        const firstPlace = timeline.labels.overview - 0.02;
+        const lastPlace = arrivalOf(places.length - 1) + 0.02;
+        const placeHop = next !== -1 && Math.min(now, times[next]) >= firstPlace && Math.max(now, times[next]) <= lastPlace;
+        const pace = duration ?? (introHop ? INTRO_HOP : cloudHop ? CLOUD_GLIDE : placeHop ? PLACE_GLIDE : GLIDE) / speed();
+        goTo(top, pace, () => {
           // Chained gestures play out one after another at full pace, with a short beat at each
           // stop so every frame registers. Input during the beat still counts toward the chain.
+          // In a hurry, the beat shrinks to almost nothing.
           if (queued > 0 && inStory()) {
             queued -= 1;
             gliding = true;
-            gsap.delayedCall(CHAIN_PAUSE, () => glide(glideDirection));
+            gsap.delayedCall(urgency ? 0.08 : CHAIN_PAUSE, () => glide(glideDirection));
           } else {
             queued = 0;
+            // Stay hurried for a moment: another separate input soon after landing is still urgent.
+            gsap.delayedCall(URGENT_WINDOW / 1000, () => {
+              if (!gliding && performance.now() - lastInput >= URGENT_WINDOW) hurry(0);
+            });
           }
-        });
+        // Hops between places start at full speed, so the scroll answers at once; they still land softly.
+        }, placeHop ? "power2.out" : undefined);
       };
 
+      // Separate inputs (a new swipe, a new flick of the wheel) this close together mean hurry.
+      const URGENT_WINDOW = 1200;
+      let lastInput = -Infinity;
       const request = (direction: 1 | -1) => {
+        const now = performance.now();
+        const quick = now - lastInput < URGENT_WINDOW;
+        lastInput = now;
         if (!gliding) {
           queued = 0;
+          if (quick && direction === glideDirection) hurry(urgency + 1);
           glide(direction);
         } else if (direction === glideDirection) {
           queued = Math.min(queued + 1, MAX_QUEUED);
+          // More input while already moving: hurry, including the glide that is underway.
+          hurry(urgency + 1);
         } else {
           // Changed your mind: drop the queue and head back right away.
           queued = 0;
+          hurry(0);
           glide(direction, 0.9);
         }
       };
 
-      // A new gesture is a pause of more than 150 ms, or a wheel event stronger than the last once the
-      // gesture is underway: momentum only ever fades, so a spike means a fresh flick, not the old tail.
+      // One input, one step: a whole swipe or a whole spin of the wheel moves one state, however long it
+      // runs. Browsers don't report fingers lifting, so a new input is read from the stream itself:
+      // - a pause (the previous input ended), or
+      // - the stream speeding up again: momentum after a lift only ever fades, so a rise is a new swipe.
+      // Separate inputs close together then hurry the journey (see request).
       let lastWheel = 0;
       let lastMagnitude = 0;
       let gestureStart = 0;
+      // Smoothed speed of the stream, so a single wobbly momentum event doesn't read as a new swipe.
+      let pace = 0;
+      // Scrolling back up from the projects, momentum carries the page into the story between two stops.
+      // The rest of that gesture would be blocked without counting, freezing the page; it moves on instead.
+      let wasFree = true;
+      // Trackpads send a steady stream of small pixel deltas with a long momentum tail; mouse wheels send
+      // whole notches of 50 px or more.
+      let trackpad = false;
+      // A trackpad swipe only counts once it has travelled this far, so a brush of the fingers does nothing.
+      const TRACKPAD_STEP = 40;
+      let gestureDistance = 0;
+      let armed = false;
       const handleWheel = (event: WheelEvent) => {
-        if (handsOff(event.deltaY) || event.ctrlKey) return;
-        event.preventDefault();
+        if (event.ctrlKey) return;
         const now = performance.now();
-        const magnitude = Math.abs(event.deltaY);
-        const paused = now - lastWheel > 150;
-        const spiked = now - gestureStart > 200 && magnitude > lastMagnitude * 1.5 + 4;
+        // Some mouse wheels report lines, not pixels.
+        const delta = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY;
+        const magnitude = Math.abs(delta);
+        // Fingers and momentum leave short gaps mid-gesture, so a trackpad needs a longer pause.
+        const paused = now - lastWheel > (trackpad ? 220 : 150);
+        if (handsOff(delta)) {
+          // Momentum left over from an input the story handled (say, after the climb into the projects
+          // lands) is absorbed, or it would carry the page on past the stop. A pause frees it.
+          if (!wasFree && !paused) {
+            event.preventDefault();
+            lastWheel = now;
+            pace = pace * 0.7 + magnitude * 0.3;
+            return;
+          }
+          wasFree = true;
+          return;
+        }
+        event.preventDefault();
+        const entered = wasFree;
+        wasFree = false;
+        const rising = now - gestureStart > 250 && magnitude > pace * 2 + 10 && magnitude > lastMagnitude;
         lastWheel = now;
         lastMagnitude = magnitude;
-        if (magnitude < 3 || !(paused || spiked)) return;
-        gestureStart = now;
-        request(event.deltaY > 0 ? 1 : -1);
+        pace = paused ? magnitude : pace * 0.7 + magnitude * 0.3;
+        const direction = delta > 0 ? 1 : -1;
+        if (entered || paused || rising) {
+          gestureStart = now;
+          gestureDistance = 0;
+          trackpad = event.deltaMode === 0 && (magnitude < 40 || event.deltaX !== 0);
+          armed = true;
+        }
+        // Each input makes its one step: a wheel notch at once, a trackpad swipe once it has travelled.
+        gestureDistance += magnitude;
+        if (armed && (!trackpad || gestureDistance >= TRACKPAD_STEP)) {
+          armed = false;
+          request(direction);
+        }
       };
 
       let touchStartY = 0;
+      let touchStartTime = 0;
       const handleTouchStart = (event: TouchEvent) => {
         touchStartY = event.touches[0].clientY;
+        touchStartTime = performance.now();
       };
       const handleTouchMove = (event: TouchEvent) => {
         // The first move of a swipe barely moves, so its direction reads as 0. Blocking it would cancel
@@ -658,12 +778,15 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         // that is clearly heading back up is taken over.
         const distance = touchStartY - event.touches[0].clientY;
         const atEnd = window.scrollY >= trigger.end - 2;
-        if (inStory() && !(atEnd && distance >= 0)) event.preventDefault();
+        // Once the browser has started scrolling, the event can't be cancelled (and warns if we try).
+        if (event.cancelable && inStory() && !(atEnd && distance >= 0)) event.preventDefault();
       };
       // Each swipe is one gesture.
       const handleTouchEnd = (event: TouchEvent) => {
         const distance = touchStartY - event.changedTouches[0].clientY;
         if (handsOff(distance) || Math.abs(distance) < 30) return;
+        // A fast flick (over 1.5 px per ms) is in a hurry from the start.
+        if (Math.abs(distance) / Math.max(performance.now() - touchStartTime, 1) > 1.5) hurry(Math.max(urgency, 1));
         request(distance > 0 ? 1 : -1);
       };
 
@@ -693,6 +816,7 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
       const cutTo = (top: number) => {
         gsap.killTweensOf(window);
         queued = 0;
+        hurry(0);
         gliding = true;
         gsap.to(stage, {
           autoAlpha: 0,
@@ -776,6 +900,12 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
       <div className="story-stage">
         <div className="story-map" ref={mapRef} aria-hidden="true" />
         <div className="story-haze" aria-hidden="true" />
+        {/* The chapter text's wash sits under the cloud, so cloud passes drift over it; the text stays on top. */}
+        <div className="story-wash" aria-hidden="true">
+          <div className="story-frame site-shell">
+            <div className="story-places-wash" />
+          </div>
+        </div>
         <canvas className="story-cloud" ref={cloudRef} aria-hidden="true" />
 
         <div className="story-overlay">
@@ -783,18 +913,25 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
             <div className="story-intro">
               <div className="story-intro-copy">
                 <p className="hero-kicker">
-                  Hi, I&apos;m <strong>Javier Raut</strong>, a software developer from Cagayan de Oro.
+                  Software Engineer · <strong>Cagayan de Oro, Philippines</strong>
                 </p>
-                <h1 className="display-title">
-                  Mapping out solutions towards <em>a better future.</em>
-                </h1>
+                <h1 className="display-title">Javier Raut</h1>
                 <p className="body-large story-summary">
-                  I am building GIS systems and automation pipelines used to
-                  make impactful legislative decisions in the House of
-                  Representatives. I am also teaching Computer Science students at
-                  the University of Science and Technology of Southern
-                  Philippines.
+                  I learn computing from the ground up, from software down to infrastructure. Currently
+                  working on Geographic Information Systems, and teaching Fundamentals of Database Systems
+                  on the side.
                 </p>
+                {/* For visitors who want specifics: the current roles, straight from the journey's places. */}
+                <dl className="story-now">
+                  {places
+                    .filter((place) => place.current)
+                    .map((place) => (
+                      <div key={place.id}>
+                        <dt>{place.role}</dt>
+                        <dd>{place.organization}</dd>
+                      </div>
+                    ))}
+                </dl>
                 <div className="hero-actions">
                   <Link className="button-primary" href="/projects">
                     View projects
@@ -837,8 +974,8 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
                 <span>{mapFacts(places).position}</span>
               </p>
               <p className="story-plate-title">
-                <span className="story-plate-line">The work</span>
-                <span className="story-plate-line">so far</span>
+                <span className="story-plate-line"><span>The work</span></span>
+                <span className="story-plate-line"><span>so far</span></span>
               </p>
               <dl className="story-plate-data">
                 <div>
