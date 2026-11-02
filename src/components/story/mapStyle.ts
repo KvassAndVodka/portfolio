@@ -86,7 +86,7 @@ export async function buildMapStyle(theme: MapTheme, lite: boolean): Promise<Sty
     // ponytail: the public terrarium tiles carry occasional bad pixels that render as needle spikes
     // (one sat on Camiguin). Coarser tiles average most of them out; self-hosted cleaned DEM if any remain.
     style.sources.terrain = { type: "raster-dem", tiles: [TERRAIN_TILES], encoding: "terrarium", tileSize: 256, maxzoom: 11 };
-    style.sources.hillshade = { type: "raster-dem", tiles: [TERRAIN_TILES], encoding: "terrarium", tileSize: 256, maxzoom: 14 };
+    style.sources.hillshade = { type: "raster-dem", tiles: [TERRAIN_TILES], encoding: "terrarium", tileSize: 256, maxzoom: 12 };
     style.terrain = { source: "terrain", exaggeration: 1.2 };
     style.sky = {
       "sky-color": theme.background,
