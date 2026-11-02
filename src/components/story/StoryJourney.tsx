@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
+import { preconnect } from "react-dom";
 import { FaArrowDown, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6";
 
 import { gsap, prefersReducedMotion, ScrollTrigger, SplitText, useGSAP } from "@/lib/gsap";
@@ -157,14 +158,34 @@ function pinIndexOf(places: readonly StoryPlace[], placeIndex: number) {
   return pinsFor(places).findIndex((pin) => pin.places.includes(placeIndex));
 }
 
+/** The WebGL renderer name, or "" when the browser hides it. */
+function gpuRenderer() {
+  const gl = document.createElement("canvas").getContext("webgl");
+  if (!gl) return "";
+  const info = gl.getExtension("WEBGL_debug_renderer_info");
+  const name = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+  gl.getExtension("WEBGL_lose_context")?.loseContext();
+  return name;
+}
+
+// ponytail: name matching, not a benchmark. Misses unusual iGPUs; time the first frames if that matters.
+const SOFTWARE_GPU = /swiftshader|llvmpipe|softpipe|software|basic render/i;
+const INTEGRATED_GPU = /intel|radeon(\(tm\))? graphics|radeon vega|vega \d/i;
+
+/** Integrated graphics: full story, but drawn at 1x density and with the map at 30 fps. */
+function hasIntegratedGpu() {
+  return INTEGRATED_GPU.test(gpuRenderer());
+}
+
 /**
- * Phones and low-end machines get the lighter story: flat 2D map, no terrain
- * or buildings, fewer cars, a coarser cloud. Same scroll, same acts.
+ * Phones, low-end machines, and software rendering get the lighter story: flat 2D map,
+ * no terrain or buildings, fewer cars, a coarser cloud. Same scroll, same acts.
  */
 function isLiteDevice() {
   const navigatorWithMemory = navigator as Navigator & { deviceMemory?: number };
   return (
     window.matchMedia("(max-width: 767px)").matches ||
+    SOFTWARE_GPU.test(gpuRenderer()) ||
     (navigator.hardwareConcurrency ?? 8) <= 4 ||
     (navigatorWithMemory.deviceMemory ?? 8) <= 4
   );
@@ -184,11 +205,16 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
   const [mapReady, setMapReady] = useState(false);
   const { resolvedTheme } = useTheme();
   const lite = useRef(false);
+  const weakGpu = useRef(false);
   const styledDark = useRef<boolean | null>(null);
   // The style's own terrain settings, so close-ups can flatten it and the overview can restore it.
   const styledTerrain = useRef<TerrainSpecification | null>(null);
   const terrainScale = useRef(-1);
   const jumpToPin = useRef<((placeIndexes: number[]) => void) | null>(null);
+
+  // Start the tile connections while the map code is still loading.
+  preconnect("https://tiles.openfreemap.org", { crossOrigin: "anonymous" });
+  preconnect("https://s3.amazonaws.com", { crossOrigin: "anonymous" });
 
   const carCount = () => (lite.current ? 14 : 40);
 
@@ -201,6 +227,7 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
     }
     let cancelled = false;
     lite.current = isLiteDevice();
+    weakGpu.current = !lite.current && hasIntegratedGpu();
 
     (async () => {
       const maplibre = (await import("maplibre-gl")).default;
@@ -220,8 +247,8 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
           maxPitch: 85,
           interactive: false,
           // Performance: render at no more than 1.5x pixel density (2x/3x screens otherwise draw
-          // 1.8-4x the pixels), and keep a smaller tile cache.
-          pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),
+          // 1.8-4x the pixels), and keep a smaller tile cache. Integrated graphics get 1x.
+          pixelRatio: Math.min(window.devicePixelRatio || 1, weakGpu.current ? 1 : 1.5),
           maxTileCacheZoomLevels: 3,
           // Always shown as one plain line (the OSM licence needs it), styled to match the page.
           attributionControl: { compact: false },
@@ -256,7 +283,14 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
           button.querySelector(".story-pin-name")!.textContent = pin.name;
           button.addEventListener("click", () => jumpToPin.current?.(pin.places));
           element.append(button);
-          return new maplibre.Marker({ element, anchor: "bottom" }).setLngLat(pin.coordinates).addTo(map);
+          const marker = new maplibre.Marker({ element, anchor: "bottom" });
+          // With terrain on, every marker checks whether a hill hides it by reading the depth buffer back
+          // from the GPU, up to 10 times a second while the camera moves (and the hover keeps it moving).
+          // Measured: those reads stalled the main thread ~240 ms through the overview-to-first-stop
+          // transition, which made the text stutter. The pins sit on the coast in front of the camera,
+          // so they are never hidden; skip the check.
+          marker._updateOpacity = () => {};
+          return marker.setLngLat(pin.coordinates).addTo(map);
         });
 
         // Not "load": that waits for every tile and font, which the always-moving camera may never allow.
@@ -379,6 +413,8 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
       let frame = 0;
       let last = 0;
       let seconds = 0;
+      let mapStep = 0;
+      let skipMapFrame = false;
       let lastPlace = -2;
       let activeRail = -2;
       let refreshTimers: number[] = [];
@@ -399,8 +435,11 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         const step = last ? Math.min((now - last) / 1000, 0.1) : 0;
         last = now;
         seconds += step;
+        mapStep += step;
+        // Integrated graphics: move the map every other frame; the cloud and page stay at full rate.
+        skipMapFrame = weakGpu.current && !skipMapFrame;
 
-        if (view.mapAlpha > 0.01) {
+        if (view.mapAlpha > 0.01 && !skipMapFrame) {
           flattenTerrainUpClose();
           const hover = hoverOffset(seconds);
           map.jumpTo({
@@ -425,7 +464,8 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
             refreshTimers = [600, 2000].map((delay) => window.setTimeout(() => traffic.current?.refresh(), delay));
           }
           // Cars only exist in close-ups: elsewhere they'd be under a pixel wide.
-          traffic.current?.tick(step, view.cloud < 0.95 && view.zoom > 14.5);
+          traffic.current?.tick(mapStep, view.cloud < 0.95 && view.zoom > 14.5);
+          mapStep = 0;
         }
         mapRef.current!.style.opacity = String(view.mapAlpha * reveal.amount);
         cloud.current?.render(view.cloud, cloudClock(), view.dots, ASCII_FIELD_STRENGTH);

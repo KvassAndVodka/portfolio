@@ -79,7 +79,6 @@ const toRgb = (hex: string) => {
 };
 
 export async function createTraffic(map: MapLibreMap, count: number, palette: readonly string[]) {
-  // deck.gl only loads when the first close-up needs cars.
   const [{ MapboxOverlay }, { SimpleMeshLayer }] = await Promise.all([import("@deck.gl/mapbox"), import("@deck.gl/mesh-layers")]);
   // Interleaved: drawn inside MapLibre's own WebGL context, so cars sort correctly against buildings.
   const overlay = new MapboxOverlay({ interleaved: true, layers: [] });
@@ -234,14 +233,37 @@ export async function createTraffic(map: MapLibreMap, count: number, palette: re
     car.sway += step * 1.7;
   };
 
-  let empty = true;
+  const draw = (byKind: RenderedCar[][], visible: boolean) =>
+    overlay.setProps({
+      layers: byKind.map(
+        (data, kind) =>
+          new SimpleMeshLayer<RenderedCar>({
+            id: `story-traffic-${kind}`,
+            data,
+            visible,
+            mesh: meshes[kind],
+            getPosition: (car) => car.position,
+            getOrientation: (car) => [0, car.yaw, 0],
+            getScale: (car) => car.scale,
+            getColor: (car) => car.color as [number, number, number],
+          }),
+      ),
+    });
+
+  // Warm-up: draw one zero-size car of each kind now, so the layers and their shaders already exist
+  // at the first close-up. Measured cold, creating them there cost a ~60 ms frame mid-transition.
+  const unseen: RenderedCar = { position: [ref.lng, ref.lat, 0], yaw: 0, scale: [0, 0, 0], color: [0, 0, 0] };
+  draw([[unseen], [unseen]], true);
+  let hidden = false;
+
   const render = (visible: boolean) => {
+    // Hidden, not removed: removing the layers would throw away the warmed-up shaders.
     if (!visible) {
-      if (!empty) overlay.setProps({ layers: [] });
-      empty = true;
+      if (!hidden) draw([[], []], false);
+      hidden = true;
       return;
     }
-    empty = false;
+    hidden = false;
     const byKind: RenderedCar[][] = [[], []];
     for (const car of cars) {
       if (car.grow <= 0) continue;
@@ -259,20 +281,7 @@ export async function createTraffic(map: MapLibreMap, count: number, palette: re
         color: colors[car.tone],
       });
     }
-    overlay.setProps({
-      layers: byKind.map(
-        (data, kind) =>
-          new SimpleMeshLayer<RenderedCar>({
-            id: `story-traffic-${kind}`,
-            data,
-            mesh: meshes[kind],
-            getPosition: (car) => car.position,
-            getOrientation: (car) => [0, car.yaw, 0],
-            getScale: (car) => car.scale,
-            getColor: (car) => car.color as [number, number, number],
-          }),
-      ),
-    });
+    draw(byKind, true);
   };
 
   return {
