@@ -222,9 +222,10 @@ export default function Header() {
       data-scrolled={isScrolled}
     >
       <div className="header-inner site-shell flex h-full items-center justify-between">
-        <Link className="brand-lockup" href="/" onClick={handleHomeClick}>
-          <strong>Javier Raut</strong>
-          <span aria-hidden="true" className="brand-signal" />
+        <Link className="brand-lockup" href="/" aria-label="Javier Raut, home" onClick={handleHomeClick}>
+          <strong aria-hidden="true">
+            JR<span className="brand-dot">.</span>
+          </strong>
         </Link>
 
         <nav
@@ -235,7 +236,7 @@ export default function Header() {
           {navigation.map((item) => (
             <Link
               aria-current={isActive(item.href) ? "page" : undefined}
-              className="primary-nav-link"
+              className={item.href === "/#contact" ? "primary-nav-link primary-nav-contact" : "primary-nav-link"}
               href={item.href}
               key={item.href}
               onClick={item.href === "/" ? handleHomeClick : undefined}
@@ -252,7 +253,7 @@ export default function Header() {
           </span>
         </nav>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 pr-1.5 md:hidden">
           <span className="header-theme-toggle">
             <ThemeToggle />
           </span>

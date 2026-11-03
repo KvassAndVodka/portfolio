@@ -6,22 +6,22 @@
   --header-height: 4.5rem;
   --header-safe-area: env(safe-area-inset-top, 0px);
   --header-offset: calc(var(--header-height) + var(--header-safe-area));
-  --background: #f8f8f5;
+  --background: #f3ede2;
   --foreground: #161616;
-  --surface: #ecebe6;
-  --surface-raised: #ffffff;
+  --surface: #e9e1d3;
+  --surface-raised: #fbf7f0;
   --surface-strong: #161616;
   --muted: #5f5d57;
   --muted-strong: #3d3c38;
-  --line: #d8d6cf;
-  --line-strong: #aaa69b;
-  --accent: #c63c12;
+  --line: #dcd3c4;
+  --line-strong: #ada393;
+  --accent: #b2350f;
   --accent-hover: #9f2c0b;
   --accent-soft: #ffe1d6;
   --accent-ink: #ffffff;
   --accent-fill: #ff5a24;
   --accent-fill-ink: #161616;
-  --focus: #c63c12;
+  --focus: #b2350f;
   --selection: #ffc0a8;
   --portrait-highlight: #976e63;
   --portrait-surface: #493736;
@@ -31,22 +31,6 @@
   --canvas-trace-alpha: 0.15;
   --accent-stage: #ff5a24;
   --accent-stage-ink: #161616;
-  --contact-stage-foreground: #161616;
-  --contact-panel-background: transparent;
-  --contact-panel-foreground: #161616;
-  --contact-panel-border: color-mix(in srgb, #161616 40%, transparent);
-  --contact-field-background: #ffffff;
-  --contact-field-foreground: #161616;
-  --contact-field-border: #161616;
-  --contact-field-focus: #161616;
-  --contact-error-indicator: #74160b;
-  --contact-error-text: #161616;
-  --contact-success-text: #123f2a;
-  --contact-helper: #2c201c;
-  --contact-button-background: #161616;
-  --contact-button-foreground: #ffffff;
-  --contact-button-hover-background: #ffffff;
-  --contact-button-hover-foreground: #161616;
   --rail-background: #ffffff;
   --rail-foreground: #161616;
   --rail-line: #d8d6cf;
@@ -85,15 +69,15 @@
 
 html.dark,
 .dark {
-  --background: #0c0c0d;
+  --background: #1b1916;
   --foreground: #f8f8f2;
-  --surface: #171719;
-  --surface-raised: #202024;
+  --surface: #23201c;
+  --surface-raised: #2c2925;
   --surface-strong: #f8f8f2;
   --muted: #b7b5ae;
   --muted-strong: #deddd6;
-  --line: #303036;
-  --line-strong: #5b5a60;
+  --line: #3a3631;
+  --line-strong: #615c55;
   --accent: #ff7342;
   --accent-hover: #ff926d;
   --accent-soft: #482012;
@@ -107,23 +91,7 @@ html.dark,
   --canvas-trace-alpha: 0.12;
   --accent-stage: #ff5a24;
   --accent-stage-ink: #161616;
-  --contact-stage-foreground: #161616;
-  --contact-panel-background: color-mix(in srgb, #ffffff 12%, transparent);
-  --contact-panel-foreground: #161616;
-  --contact-panel-border: color-mix(in srgb, #161616 44%, transparent);
-  --contact-field-background: #161616;
-  --contact-field-foreground: #f8f8f2;
-  --contact-field-border: #161616;
-  --contact-field-focus: #161616;
-  --contact-error-indicator: #74160b;
-  --contact-error-text: #161616;
-  --contact-success-text: #123f2a;
-  --contact-helper: #2c201c;
-  --contact-button-background: #161616;
-  --contact-button-foreground: #ffffff;
-  --contact-button-hover-background: #ffffff;
-  --contact-button-hover-foreground: #161616;
-  --rail-background: #171719;
+  --rail-background: #23201c;
   --rail-foreground: #f8f8f2;
   --rail-line: #303036;
   --admin-background: #09090a;
@@ -377,8 +345,6 @@ button {
 }
 
 .projects-heading > *,
-.technology-groups > *,
-.contact-layout > *,
 .filter-toolbar > *,
 .project-card-heading > * {
   min-width: 0;
@@ -396,22 +362,31 @@ button {
   color: var(--accent);
 }
 
+/* The header is a ticket strip in the postcard colours, as wide as the page shell. */
 .site-header {
+  display: flex;
   height: var(--header-offset);
+  align-items: center;
   padding-top: var(--header-safe-area);
-  background: var(--background);
-  transition:
-    border-color 240ms ease,
-    background-color 240ms ease,
-    box-shadow 320ms var(--ease-out-expo);
+  border: 0;
+  background: transparent;
 }
 
-.site-header[data-scrolled="true"] {
-  box-shadow: 0 14px 34px -30px color-mix(in srgb, var(--foreground) 72%, transparent);
-}
-
-.header-inner {
+.site-header .header-inner {
+  --foreground: var(--postcard-ink);
+  --muted: var(--postcard-muted);
+  --line: var(--postcard-tear);
+  --accent: var(--postcard-rust);
   position: relative;
+  height: 3.25rem;
+  background: var(--postcard-paper);
+  box-shadow: 0 12px 30px -18px rgb(0 0 0 / 35%);
+  color: var(--postcard-ink);
+  transition: box-shadow 320ms var(--ease-out-expo);
+}
+
+.site-header[data-scrolled="true"] .header-inner {
+  box-shadow: 0 16px 34px -16px rgb(0 0 0 / 45%);
 }
 
 .mobile-navigation-panel {
@@ -428,41 +403,61 @@ button {
   pointer-events: none;
 }
 
+/* The ticket's stub: the wordmark, torn off from the links by a dashed line. */
 .brand-lockup {
   position: relative;
   display: inline-flex;
+  width: 9.375rem;
+  height: 100%;
   align-items: center;
-  gap: 0.48rem;
+  padding-inline: 1.375rem;
+  box-sizing: border-box;
+  border-right: 2px dashed var(--postcard-tear);
   color: var(--foreground);
 }
 
 .brand-lockup strong {
-  font-size: 0.93rem;
-  font-weight: 680;
-  letter-spacing: -0.025em;
+  font-size: 1.375rem;
+  font-weight: 900;
+  letter-spacing: -0.05em;
 }
 
-.brand-signal {
-  width: 0.33rem;
-  aspect-ratio: 1;
-  background: var(--accent);
-  transition: transform 220ms var(--ease-out-expo);
+.brand-dot {
+  color: var(--postcard-orange);
 }
 
 .primary-navigation {
-  gap: 1.55rem;
+  height: 100%;
+  gap: 0.25rem;
+  padding-right: 0.5rem;
 }
 
 .primary-nav-link {
   position: relative;
   display: inline-flex;
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   align-items: center;
-  padding-block: 0.7rem;
+  padding: 0.7rem 0.75rem;
   color: var(--muted);
-  font-size: 0.81rem;
-  font-weight: 560;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   line-height: 1;
+  text-transform: uppercase;
+}
+
+/* Contact is the ticket's orange tab. */
+.primary-nav-contact {
+  min-height: 2.5rem;
+  margin-left: 0.5rem;
+  padding-inline: 1.125rem;
+  background: var(--postcard-orange);
+  color: var(--postcard-on-orange);
+}
+
+.primary-nav-contact .primary-nav-label > span:last-child {
+  color: var(--postcard-on-orange);
 }
 
 .primary-nav-link[aria-current="page"] {
@@ -788,293 +783,353 @@ button {
 
 .technology-stage {
   padding-block: clamp(6rem, 11vw, 9rem);
-  background: var(--surface);
+  background: var(--background);
 }
 
-.technology-heading .body-large {
-  margin-top: 1.5rem;
-}
-
-.technology-groups {
+/* How I build: numbered practice rows read across like a spec sheet, then the full toolkit folded away. */
+.stack-heading {
   display: grid;
-  grid-template-columns: 1fr;
-  margin-top: clamp(3rem, 6vw, 5rem);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.5rem clamp(2rem, 6vw, 6rem);
+  align-items: end;
 }
 
-.technology-group {
-  display: grid;
-  grid-template-columns: minmax(12rem, 1fr) minmax(0, 1.618fr);
-  column-gap: clamp(2rem, 6vw, 6rem);
-  align-items: start;
-  border-top: 2px solid var(--foreground);
-  padding-block: 1.5rem 2rem;
-}
-
-.technology-group h3 {
-  font-size: clamp(1.2rem, 2vw, 1.55rem);
-  font-weight: 650;
-  letter-spacing: -0.03em;
-}
-
-.technology-group > p {
-  grid-column: 2;
-  max-width: 38ch;
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-
-.technology-group ul {
-  display: flex;
-  grid-column: 2;
-  flex-wrap: wrap;
-  gap: 0.65rem 1.2rem;
-  margin-top: 1rem;
+.stack-areas {
+  margin: clamp(3rem, 6vw, 4.5rem) 0 0;
   padding: 0;
+  border-top: 2px solid var(--foreground);
   list-style: none;
 }
 
-.technology-group li {
-  display: inline-flex;
-  min-height: 2.5rem;
-  align-items: center;
-  gap: 0.55rem;
-  color: var(--muted-strong);
-  font-size: 0.8rem;
-  font-weight: 640;
-}
-
-/* Full toolkit: every technology, grouped, under the four practice areas. */
-.toolkit {
-  margin-top: clamp(3.5rem, 7vw, 6rem);
-  border-top: 2px solid var(--foreground);
-  padding-top: 1rem;
-}
-
-.toolkit-heading {
-  display: flex;
+.stack-area {
+  display: grid;
+  grid-template-columns: 3rem minmax(11rem, 0.9fr) minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 0.5rem 2rem;
   align-items: baseline;
+  padding-block: 1.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.stack-index {
+  color: var(--accent);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.stack-area h3 {
+  font-size: 1.125rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.stack-description {
+  max-width: 52ch;
+  color: var(--muted);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.stack-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted-strong);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.stack-tools li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.stack-tools svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: none;
+  color: var(--accent);
+}
+
+.stack-toolkit {
+  margin-top: 2rem;
+}
+
+.stack-toolkit summary {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
   gap: 0.75rem;
+  cursor: pointer;
   font-family: var(--font-geist-mono), monospace;
   font-size: 0.75rem;
   font-weight: 650;
   letter-spacing: 0.12em;
+  list-style: none;
   text-transform: uppercase;
 }
 
-.toolkit-heading span {
+.stack-toolkit summary::-webkit-details-marker {
+  display: none;
+}
+
+.stack-toolkit summary::after {
+  color: var(--accent);
+  content: "+";
+  font-size: 1rem;
+}
+
+.stack-toolkit[open] summary::after {
+  content: "−";
+}
+
+.stack-toolkit summary span {
   color: var(--accent);
 }
 
-.toolkit-groups {
+.stack-toolkit dl {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
-  gap: 2rem 2.5rem;
-  margin-top: 1.75rem;
+  margin: 1rem 0 0;
 }
 
-.toolkit-group h4 {
-  margin-bottom: 0.75rem;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 0.5rem;
+.stack-toolkit dl > div {
+  display: grid;
+  grid-template-columns: 12rem minmax(0, 1fr);
+  gap: 0.25rem 2rem;
+  padding-block: 0.875rem;
+  border-top: 1px solid var(--line);
+}
+
+.stack-toolkit dt {
   color: var(--muted);
   font-family: var(--font-geist-mono), monospace;
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
-.toolkit-group ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+.stack-toolkit dd {
   margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.toolkit-group li {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  border: 1px solid var(--line);
-  padding: 0.3rem 0.55rem;
   color: var(--muted-strong);
-  font-size: 0.78rem;
-  font-weight: 560;
+  font-size: 0.875rem;
+  line-height: 1.6;
 }
 
-.toolkit-group li svg {
-  width: 0.85rem;
-  height: 0.85rem;
-  flex: none;
-  color: var(--accent);
+/* Tablets: name and tools share a line under the number; the description runs full width below. */
+@media (max-width: 1023px) {
+  .stack-area {
+    grid-template-columns: 3rem minmax(0, 1fr);
+  }
+
+  .stack-area > :nth-child(n + 3) {
+    grid-column: 2;
+  }
 }
 
-.technology-group li svg {
-  width: 1.05rem;
-  height: 1.05rem;
-  flex: none;
-  color: var(--accent);
+@media (max-width: 767px) {
+  .stack-heading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stack-area {
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    gap: 0.5rem 0.75rem;
+  }
+
+  .stack-toolkit dl > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
+/* Contact: the back of the hero's postcard. The message is written on ruled lines at left; the
+   address side at right carries the stamp, who it goes to, and the sender's details. */
 .contact-stage {
-  overflow: hidden;
-  background: var(--accent-stage);
-  color: var(--contact-stage-foreground);
-  padding-block: clamp(6rem, 12vw, 10rem) 2rem;
+  padding-block: clamp(6rem, 11vw, 9rem);
+  background: var(--background);
+  color: var(--foreground);
 }
 
-.contact-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(22rem, 1fr);
-  gap: clamp(3rem, 8vw, 8rem);
-  align-items: start;
-}
-
-.contact-kicker {
-  margin-bottom: 1.25rem;
-  font-size: clamp(1rem, 2vw, 1.25rem);
-  font-weight: 600;
-}
-
-.contact-copy h2 {
-  max-width: 10ch;
-  font-size: clamp(3.5rem, 8vw, 6rem);
-  font-weight: 650;
-  line-height: 0.94;
-  letter-spacing: -0.04em;
-  text-wrap: balance;
+/* Centred like the hero, so the page opens and closes on the same centred card. */
+.contact-copy {
+  max-width: 40rem;
+  margin-inline: auto;
+  text-align: center;
 }
 
 .contact-intro {
-  max-width: 36ch;
-  margin-top: 1.75rem;
-  font-size: 1rem;
+  margin-inline: auto;
+}
+
+.contact-kicker {
+  color: var(--accent);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.contact-copy h2 {
+  margin-top: 0.75rem;
+  font-size: clamp(2.6rem, 5.5vw, 4.5rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+}
+
+.contact-intro {
+  max-width: 34rem;
+  margin-top: 1.25rem;
+  color: var(--muted);
+  font-size: 1.0625rem;
   line-height: 1.65;
 }
 
-.contact-email-link {
-  display: inline-flex;
-  min-height: 3rem;
-  align-items: center;
-  gap: 0.65rem;
-  margin-top: 1.5rem;
-  font-size: 0.9rem;
-  font-weight: 650;
-  overflow-wrap: anywhere;
-}
-
-.contact-email-link:hover {
-  opacity: 0.7;
-}
-
 .contact-form {
-  border: 1px solid var(--contact-panel-border);
-  border-radius: 0.75rem;
-  padding: clamp(1.25rem, 3vw, 2rem);
-  background: var(--contact-panel-background);
-  color: var(--contact-panel-foreground);
-  color-scheme: light;
-}
-
-.dark .contact-form {
-  color-scheme: dark;
-}
-
-.contact-form,
-.contact-form label {
   display: grid;
-  gap: 0.6rem;
-}
-
-.contact-form {
-  gap: 1.1rem;
-}
-
-.contact-form-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  width: min(100%, 65.25rem);
+  margin: clamp(2.5rem, 5vw, 3.5rem) auto 0;
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+  box-sizing: border-box;
+  background-color: var(--postcard-paper);
+  background-image:
+    linear-gradient(var(--postcard-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--postcard-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+  box-shadow: var(--postcard-shadow);
+  color: var(--postcard-ink);
 }
 
 .contact-form label {
-  align-content: start;
-  font-size: 0.78rem;
-  font-weight: 680;
+  display: grid;
+  gap: 0.375rem;
+  color: var(--postcard-muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.contact-form input,
-.contact-form textarea {
+.contact-message {
+  padding-right: clamp(1.25rem, 3vw, 2.25rem);
+}
+
+/* Ruled like the back of a postcard: the text sits on the lines. */
+.contact-message textarea {
   width: 100%;
-  border: 1px solid var(--contact-field-border);
-  border-radius: 0.5rem;
-  background: var(--contact-field-background);
-  color: var(--contact-field-foreground);
-  font: inherit;
-  font-size: 1rem;
-  font-weight: 450;
-  transition:
-    border-color 180ms ease,
-    outline-color 180ms ease,
-    background-color 180ms ease;
-}
-
-.contact-form input {
-  min-height: 3.25rem;
-  padding: 0.75rem 0.9rem;
-}
-
-.contact-form textarea {
-  min-height: 9.5rem;
+  min-height: 16rem;
+  padding: 0;
+  border: 0;
+  background: repeating-linear-gradient(transparent 0 calc(2rem - 1px), var(--postcard-tear) calc(2rem - 1px) 2rem);
+  color: var(--postcard-ink);
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 1.0625rem;
+  font-style: italic;
+  letter-spacing: normal;
+  line-height: 2rem;
   resize: vertical;
-  padding: 0.9rem;
-  line-height: 1.55;
+  text-transform: none;
 }
 
-.contact-form input:focus,
-.contact-form textarea:focus {
-  border-color: var(--contact-field-focus);
-  outline: 3px solid var(--contact-field-focus);
-  outline-offset: 3px;
+/* The address side, split off by the postcard's centre line. */
+.contact-address {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 1.25rem;
+  padding: 0 0 0 clamp(1.25rem, 3vw, 2.25rem);
+  border-left: 1px solid var(--postcard-tear);
+}
+
+.contact-address .postcard-stamp {
+  top: 0;
+  right: 0;
+}
+
+.contact-to {
+  display: grid;
+  gap: 0.125rem;
+  min-height: 8.25rem;
+  padding-right: 7rem;
+  color: var(--postcard-ink-soft);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.contact-to span {
+  color: var(--postcard-muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.contact-to strong {
+  color: var(--postcard-ink);
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.contact-to a {
+  color: var(--postcard-rust);
+  font-weight: 600;
+}
+
+.contact-address input {
+  min-height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-bottom: 1.5px solid var(--postcard-ink);
+  background: transparent;
+  color: var(--postcard-ink);
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 1rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.contact-form :is(input, textarea):focus {
+  outline: 2px solid var(--postcard-orange);
+  outline-offset: 4px;
 }
 
 .contact-form :is(input, textarea)[aria-invalid="true"] {
-  border-color: var(--contact-error-indicator);
-  outline: 2px solid var(--contact-error-indicator);
-  outline-offset: 2px;
+  border-bottom-color: var(--postcard-rust);
 }
 
-.contact-form :is(input, textarea)[aria-invalid="true"]:focus {
-  outline-width: 3px;
+.contact-field-error,
+.contact-form-helper {
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  line-height: 1.45;
+  text-transform: none;
 }
 
 .contact-field-error {
-  display: inline-flex;
-  min-height: 1.4em;
-  align-items: flex-start;
-  gap: 0.4rem;
-  color: var(--contact-error-text);
-  font-size: 0.72rem;
-  font-weight: 680;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
+  color: var(--postcard-rust);
+}
+
+.contact-field-error:empty {
+  display: none;
 }
 
 .contact-field-error svg {
-  width: 0.82rem;
-  height: 0.82rem;
   flex: none;
-  margin-top: 0.08rem;
-  color: var(--contact-error-indicator);
 }
 
 .contact-form-helper {
-  color: var(--contact-helper);
-  font-size: 0.72rem;
-  font-weight: 520;
-  line-height: 1.45;
+  color: var(--postcard-muted);
 }
 
 .contact-honeypot {
@@ -1087,102 +1142,266 @@ button {
 }
 
 .contact-form-submit {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 0.25rem;
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .contact-submit {
   display: inline-flex;
-  min-height: 3.25rem;
-  flex: none;
+  min-height: 2.75rem;
   align-items: center;
   justify-content: center;
-  gap: 0.65rem;
-  border: 1px solid var(--contact-button-background);
-  border-radius: 0.75rem;
-  background: var(--contact-button-background);
-  color: var(--contact-button-foreground);
-  padding: 0.8rem 1.1rem;
-  font-size: 0.88rem;
-  font-weight: 720;
+  gap: 0.625rem;
+  border-radius: 0.5rem;
+  background: var(--postcard-ink);
+  color: var(--postcard-paper);
+  font-size: 0.9375rem;
+  font-weight: 600;
 }
 
 .contact-submit:hover:not(:disabled) {
-  background: var(--contact-button-hover-background);
-  color: var(--contact-button-hover-foreground);
+  background: var(--postcard-rust);
 }
 
 .contact-submit:active:not(:disabled) {
-  opacity: 0.9;
+  transform: scale(0.985);
 }
 
 .contact-submit:disabled {
-  cursor: wait;
-  opacity: 0.68;
+  cursor: progress;
+  opacity: 0.7;
 }
 
 .contact-submit > span,
 .contact-field-error-motion {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-}
-
-.contact-feedback-slot {
-  min-height: 1.4rem;
+  gap: 0.375rem;
 }
 
 .contact-feedback {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin: 0;
-  font-size: 0.78rem;
-  font-weight: 620;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
+  color: var(--postcard-ink-soft);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .contact-feedback-error {
-  color: var(--contact-error-text);
-  font-weight: 720;
-}
-
-.contact-feedback-success {
-  color: var(--contact-success-text);
+  color: var(--postcard-rust);
 }
 
 .contact-feedback svg {
   flex: none;
 }
 
-.contact-footer a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
+@media (max-width: 767px) {
+  .contact-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .contact-message {
+    padding-right: 0;
+  }
+
+  .contact-message textarea {
+    min-height: 12rem;
+  }
+
+  /* The address side drops below the message; the centre line turns into a top rule. */
+  .contact-address {
+    margin-top: 1.5rem;
+    padding: 1.5rem 0 0;
+    border-top: 1px solid var(--postcard-tear);
+    border-left: 0;
+  }
+
+  .contact-address .postcard-stamp {
+    top: 1.25rem;
+  }
 }
 
-.contact-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
-  margin-top: clamp(7rem, 14vw, 12rem);
-  border-top: 1px solid color-mix(in srgb, currentColor 36%, transparent);
-  padding-top: 1.5rem;
-  font-size: 0.875rem;
+/* Footer: a dark legend strip, the same in both themes, with a faint contour map and a giant wordmark. */
+.site-footer {
+  position: relative;
+  overflow: hidden;
+  padding-top: clamp(3.5rem, 7vw, 5.5rem);
+  background: #161616;
+  color: #f8f8f2;
 }
 
-.contact-footer > div {
+/* A topographic sheet: fine contours, heavier index contours with elevations, a summit, and a route. */
+.site-footer-contours {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: rgb(248 248 242 / 9%);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.site-footer-contours .is-index {
+  stroke: rgb(248 248 242 / 18%);
+  stroke-width: 1.6;
+}
+
+.site-footer-elevation,
+.site-footer-spot {
+  fill: rgb(248 248 242 / 35%);
+  stroke: none;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.site-footer-elevation {
+  paint-order: stroke;
+  stroke: #161616;
+  stroke-width: 6px;
+}
+
+.site-footer-spot {
+  fill: rgb(255 115 66 / 80%);
+}
+
+.site-footer-route {
+  stroke: rgb(255 90 36 / 70%);
+  stroke-width: 2;
+  stroke-dasharray: 2 7;
+  stroke-linecap: round;
+}
+
+.site-footer-pin {
+  fill: #161616;
+  stroke: #ff5a24;
+  stroke-width: 2.5;
+}
+
+/* Phones stack the text over the whole map, so the small labels would always sit under something. */
+@media (max-width: 767px) {
+  .site-footer-elevation,
+  .site-footer-spot {
+    display: none;
+  }
+}
+
+/* A halo in the strip's own colour, so contour lines fade out around text instead of running through it. */
+.site-footer .site-shell {
+  position: relative;
+  text-shadow:
+    0 0 4px #161616,
+    0 0 10px #161616,
+    0 0 18px #161616;
+}
+
+.site-footer-links svg {
+  filter: drop-shadow(0 0 4px #161616) drop-shadow(0 0 10px #161616);
+}
+
+.site-footer-top {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5rem;
+  justify-content: space-between;
+  gap: 2.5rem;
 }
 
-.contact-footer a:hover {
-  opacity: 0.65;
+.site-footer-place {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  color: #b7b5ae;
+  font-size: 0.9375rem;
+}
+
+.site-footer-place > span:first-child {
+  color: #ff7342;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.site-footer-place time {
+  color: #f8f8f2;
+  font-family: var(--font-geist-mono), monospace;
+  font-weight: 600;
+}
+
+.site-footer-links {
+  display: flex;
+  gap: clamp(2.5rem, 6vw, 5rem);
+}
+
+.site-footer-links > div {
+  display: grid;
+  align-content: start;
+  gap: 0.25rem;
+}
+
+.site-footer-links h2 {
+  margin-bottom: 0.25rem;
+  color: #b7b5ae;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.site-footer-links a {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  gap: 0.5rem;
+  color: #f8f8f2;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: color 180ms ease;
+}
+
+.site-footer-links a:hover {
+  color: #ff7342;
+}
+
+.site-footer-links svg {
+  font-size: 0.9rem;
+}
+
+/* The wordmark closes the page and bleeds off its bottom edge: cropped just under the baseline, so it
+   reads as too big for the screen while every letter stays legible. */
+.site-footer-wordmark {
+  margin: clamp(1.5rem, 3vw, 2.25rem) 0 0;
+  font-size: clamp(3.25rem, 14.5vw, 14rem);
+  font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.site-footer-dot {
+  display: inline-block;
+  color: #ff5a24;
+}
+
+.site-footer-bottom {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-top: clamp(3rem, 7vw, 5rem);
+  padding-top: 1.25rem;
+  border-top: 1px dashed rgb(248 248 242 / 25%);
+  color: #b7b5ae;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .project-grid {
@@ -1449,36 +1668,6 @@ button {
   grid-template-columns: minmax(0, 1.7fr) minmax(17rem, 0.8fr);
   gap: clamp(3rem, 7vw, 7rem);
   align-items: start;
-}
-
-.toolkit {
-  border-radius: 0.75rem;
-  background: var(--surface);
-  padding: clamp(1.5rem, 3vw, 2.25rem);
-}
-
-.toolkit > h2 {
-  margin-bottom: 1.75rem;
-  font-size: 1.25rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-}
-
-.toolkit-group + .toolkit-group {
-  margin-top: 1.5rem;
-}
-
-.toolkit-group h3 {
-  margin-bottom: 0.4rem;
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 620;
-}
-
-.toolkit-group p {
-  color: var(--foreground);
-  font-size: 0.86rem;
-  line-height: 1.55;
 }
 
 .archive-row {
@@ -1813,16 +2002,6 @@ button {
   }
 }
 
-@media (max-width: 900px) {
-
-  .contact-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .contact-layout {
-    gap: 3.5rem;
-  }
-}
 
 @media (max-width: 767px) {
   .display-title {
@@ -1961,23 +2140,6 @@ button {
     grid-template-columns: 1fr;
   }
 
-  .technology-groups {
-    grid-template-columns: 1fr;
-  }
-
-  .technology-group {
-    grid-template-columns: 1fr;
-  }
-
-  .technology-group > p,
-  .technology-group ul {
-    grid-column: auto;
-  }
-
-  .technology-group > p {
-    margin-top: 0.75rem;
-  }
-
   .archive-row {
     grid-template-columns: 1fr;
     gap: 0.65rem;
@@ -2005,51 +2167,6 @@ button {
 
   .filter-tabs button {
     flex: 1 1 auto;
-  }
-
-  .contact-copy h2 {
-    max-width: 9ch;
-    font-size: clamp(3rem, 15vw, 4.25rem);
-  }
-
-  .contact-form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .contact-form {
-    padding: 1rem;
-  }
-
-  .contact-form label,
-  .contact-field-error,
-  .contact-form-helper,
-  .contact-feedback {
-    font-size: 0.875rem;
-  }
-
-  .contact-form-submit {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .contact-submit {
-    width: 100%;
-  }
-
-  .contact-footer {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 1.25rem;
-    margin-top: 6rem;
-    padding-bottom: max(0rem, env(safe-area-inset-bottom));
-  }
-
-  .contact-footer > div {
-    gap: 1rem 1.25rem;
-  }
-
-  .contact-footer a {
-    min-height: 2.75rem;
   }
 
   .note-skeleton {
@@ -2095,17 +2212,9 @@ button {
   .hero-actions {
     grid-template-columns: 1fr;
   }
-
-  .contact-copy h2 {
-    font-size: 2.85rem;
-  }
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .brand-lockup:hover .brand-signal {
-    transform: rotate(45deg) scale(0.82);
-  }
-
   .primary-nav-link:hover .primary-nav-label > span {
     transform: translateY(-0.85rem);
   }
@@ -2218,78 +2327,434 @@ button {
   padding-block: clamp(4rem, 9vw, 7rem);
 }
 
-.story-intro {
+/* ---- Hero postcard: the portrait on an orange panel, the message on cream. See DESIGN.md. ------- */
+:root {
+  --postcard-paper: #fff8ed;
+  --postcard-ink: #161616;
+  --postcard-ink-soft: #3d3c38;
+  --postcard-orange: #ff5a24;
+  --postcard-rust: #a3300e;
+  --postcard-muted: #5f5d57;
+  --postcard-grid: rgb(100 80 79 / 8%);
+  --postcard-tear: rgb(100 80 79 / 50%);
+  --postcard-on-orange: #161616;
+  --postcard-shadow: 0 30px 60px -20px rgb(0 0 0 / 35%);
+}
+
+/* At night the card turns to the dark surface; the orange panel and stamp stay as they are. */
+html.dark {
+  --postcard-paper: #2a2723;
+  --postcard-ink: #f8f8f2;
+  --postcard-ink-soft: #deddd6;
+  --postcard-rust: #ff7342;
+  --postcard-muted: #b7b5ae;
+  --postcard-grid: rgb(232 220 200 / 6%);
+  --postcard-tear: rgb(248 248 242 / 30%);
+  --postcard-shadow: 0 30px 60px -20px rgb(0 0 0 / 70%);
+}
+
+.postcard {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: clamp(1.5rem, 4vw, 3rem);
-  align-items: center;
-  max-width: 62rem;
+  grid-template-columns: 45% minmax(0, 1fr);
+  width: min(100%, 65.25rem);
+  height: clamp(30rem, 100svh - var(--header-offset) - 11rem, 37.5rem);
+  margin-inline: auto;
+  padding: 1.125rem;
+  box-sizing: border-box;
+  background-color: var(--postcard-paper);
+  background-image:
+    linear-gradient(var(--postcard-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--postcard-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+  box-shadow: var(--postcard-shadow);
+  color: var(--postcard-ink);
 }
 
-.story-summary {
-  max-width: 34rem;
-  margin-top: 1.5rem;
+.postcard-photo {
+  position: relative;
+  color: var(--postcard-on-orange);
 }
 
-/* Current roles under the summary: a short label, then where. */
-.story-now {
-  display: grid;
-  gap: 0.55rem;
-  max-width: 34rem;
-  margin: 1.25rem 0 0;
-  padding-top: 1rem;
-  border-top: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+/* The panel's orange lives on its own layer so the entrance can pour it in with a transform alone. */
+.postcard-photo-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--postcard-orange);
+  transform-origin: center bottom;
 }
 
-.story-now > div {
-  display: grid;
-  grid-template-columns: 11rem minmax(0, 1fr);
-  gap: 1rem;
-  align-items: baseline;
+/* The head rises above the card's top edge; nothing else breaks the card. */
+.postcard-portrait {
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  left: 25.5%;
+  width: auto;
+  height: 122%;
+  max-width: none;
 }
 
-.story-now dt {
-  color: var(--accent);
-  font-family: var(--font-mono), monospace;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
+.postcard-contours {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--postcard-on-orange);
+  stroke-opacity: 0.3;
+}
+
+.postcard-place,
+.postcard-figure,
+.postcard-legend {
+  position: absolute;
+  z-index: 2;
+  left: 1.375rem;
+}
+
+.postcard-place {
+  top: 1.125rem;
+  font-size: 1.375rem;
+  font-style: italic;
+}
+
+.postcard-figure,
+.postcard-legend {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.story-now dd {
-  margin: 0;
-  color: var(--muted-strong);
-  font-size: 0.95rem;
-  line-height: 1.4;
+.postcard-figure {
+  top: 3.25rem;
+  white-space: pre;
 }
 
-@media (max-width: 767px) {
-  .story-now > div {
+.postcard-legend {
+  bottom: 1.375rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.875rem;
+  font-size: 0.625rem;
+}
+
+.postcard-north {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.postcard-north svg {
+  width: 0.875rem;
+  fill: var(--postcard-on-orange);
+}
+
+.postcard-scale {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.postcard-scale > span:first-child {
+  display: flex;
+  justify-content: space-between;
+  width: 5.25rem;
+}
+
+.postcard-scale-bar {
+  width: 5rem;
+  height: 0.375rem;
+  border: 1.5px solid var(--postcard-on-orange);
+  background: repeating-linear-gradient(90deg, var(--postcard-on-orange) 0 25%, transparent 25% 50%);
+}
+
+/* Starts clear of the portrait's shoulder, which spills past the orange panel. The name and summary
+   sit centred in the space above the buttons. */
+.postcard-message {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.75rem 0.5rem 4.5rem 6.25rem;
+}
+
+.postcard-stamp {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.875rem;
+  /* Multiples of the 10 px hole spacing, so every edge ends on a half-hole (the perforation). */
+  width: 100px;
+  height: 130px;
+  padding: 0.3125rem;
+  box-sizing: border-box;
+  background: radial-gradient(circle at 5px 5px, transparent 3px, #fff 3.5px) -5px -5px / 10px 10px;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 20%));
+  color: var(--postcard-on-orange);
+  rotate: 4deg;
+  transition: rotate 320ms var(--ease-out-expo);
+}
+
+/* Stuck on by hand: a slight tilt, and a small wiggle under the pointer. */
+.postcard-stamp:hover {
+  rotate: -2deg;
+}
+
+/* The printed face: orange field inside a thin ink frame, value along the top, place along the bottom. */
+.postcard-stamp-face {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.375rem;
+  box-sizing: border-box;
+  background: var(--postcard-orange);
+  box-shadow: inset 0 0 0 3px var(--postcard-orange), inset 0 0 0 4px var(--postcard-on-orange);
+  font-family: var(--font-geist-mono), monospace;
+}
+
+.postcard-stamp-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.25rem 0;
+  font-size: 0.4375rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.postcard-stamp-art {
+  width: 100%;
+  fill: none;
+  stroke: var(--postcard-on-orange);
+  stroke-width: 1.2;
+}
+
+/* The stamp is printed the same in both themes, so its pin keeps the light paper colour. */
+.postcard-stamp-pin {
+  fill: #fff8ed;
+  stroke-width: 1.6;
+}
+
+.postcard-stamp-art circle {
+  fill: var(--postcard-on-orange);
+  stroke: none;
+}
+
+.postcard-stamp-face strong {
+  padding: 0 0.25rem 0.125rem;
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.postcard-name {
+  font-size: clamp(3rem, 4.8vw, 4.25rem);
+  font-weight: 900;
+  line-height: 0.84;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+}
+
+.postcard-dot {
+  color: var(--postcard-orange);
+}
+
+/* GitHub, LinkedIn and email close the button row as bare logos: actions on the left, ways to reach
+   you on the right. */
+.postcard-social {
+  display: flex;
+  margin-left: auto;
+  margin-right: -0.5rem;
+}
+
+.postcard-social a {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  color: var(--postcard-ink-soft);
+  font-size: 1.125rem;
+  transition: color 180ms ease;
+}
+
+/* Colour only: a CSS transition on transform would fight the entrance tween and strand the links. */
+.postcard-social a:hover {
+  color: var(--postcard-rust);
+}
+
+.postcard-role {
+  margin-top: 0.75rem;
+  color: var(--postcard-ink-soft);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.postcard-role strong {
+  color: var(--postcard-ink);
+}
+
+.postcard-summary {
+  max-width: 25rem;
+  margin-top: 1.125rem;
+  color: var(--postcard-ink-soft);
+  font-size: 1.0625rem;
+  font-style: italic;
+  line-height: 1.65;
+}
+
+.postcard-actions {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  left: 6.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.postcard-button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  padding-inline: 1.375rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border: 1.5px solid var(--postcard-ink);
+  border-radius: 0.5rem;
+  color: var(--postcard-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.postcard-button svg {
+  font-size: 0.7rem;
+}
+
+.postcard-button:hover,
+.postcard-button-primary {
+  background: var(--postcard-ink);
+  color: var(--postcard-paper);
+}
+
+.postcard-button-primary:hover {
+  border-color: var(--postcard-rust);
+  background: var(--postcard-rust);
+}
+
+.postcard-button:active {
+  transform: scale(0.985);
+}
+
+/* Below laptop width the side-by-side card has no room for the portrait's spill, so the photo panel
+   stacks above the message and the buttons fall into the flow. Tablets get the same card, capped. */
+@media (max-width: 1023px) {
+  .postcard {
     grid-template-columns: minmax(0, 1fr);
-    gap: 0.1rem;
+    width: min(100%, 34rem);
+    height: auto;
+    padding: 0.75rem;
+  }
+
+  /* Head and shoulders only: the panel clips the seated shot below the chest but still lets the head
+     rise above the card's edge. Sized from the panel, so the crop holds at any phone width. */
+  .postcard-photo {
+    height: 10.5rem;
+    clip-path: inset(-2.5rem 0 0 0);
+  }
+
+  /* On phones narrower than the panel was tuned for, slide the portrait right by the difference so
+     the face stays clear of the place line; the crop takes more of the far shoulder instead. */
+  .postcard-portrait {
+    top: -2.25rem;
+    right: min(0px, 100vw - 26rem);
+    bottom: auto;
+    left: auto;
+    height: 226%;
+  }
+
+  .postcard-place {
+    top: 0.75rem;
+    left: 0.875rem;
+    font-size: 1rem;
+  }
+
+  .postcard-figure {
+    top: 2.25rem;
+    left: 0.875rem;
+    font-size: 0.5625rem;
+    white-space: normal;
+    max-width: 8rem;
+  }
+
+  .postcard-legend {
+    bottom: 0.75rem;
+    left: 0.875rem;
+  }
+
+  .postcard-message {
+    display: block;
+    padding: 1.125rem 0.25rem 0.25rem;
+  }
+
+  .postcard-stamp {
+    top: 0.75rem;
+    right: 0.25rem;
+    transform: scale(0.7);
+    transform-origin: top right;
+  }
+
+  .postcard-name {
+    font-size: 2.5rem;
+  }
+
+  .postcard-role {
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+  }
+
+  .postcard-social {
+    grid-column: 1 / -1;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 0.375rem 0 -0.5rem;
+    padding-top: 0.25rem;
+    border-top: 1px dashed var(--postcard-tear);
+  }
+
+  .postcard-summary {
+    margin-top: 0.75rem;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+  }
+
+  /* Stacked cards: the two actions split the full width, and the logos centre on a footer line below. */
+  .postcard-actions {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 1.125rem;
+  }
+
+  .postcard-actions .postcard-button {
+    justify-content: center;
   }
 }
 
-.story-intro .display-title em {
-  color: var(--accent);
-  font-style: normal;
-}
-
-.story-portrait {
-  position: relative;
-  width: clamp(12rem, 20vw, 17rem);
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
-  border-radius: 0.75rem;
-  background: var(--portrait-background);
-}
-
-/* Crop in to head and shoulders: the photo is a full seated shot, so zoom toward the face. */
-.story-portrait img {
-  scale: 1.5;
-  transform-origin: 50% 26%;
+/* Short screens get a shorter photo. */
+@media (max-width: 1023px) and (max-height: 760px) {
+  .postcard-photo {
+    height: 8.5rem;
+  }
 }
 
 .story-places ol {
@@ -2475,36 +2940,46 @@ a.story-place-organization:hover {
   position: absolute;
 }
 
+/*
+ * Stage layers, bottom to top: map, tilt-shift blur, pins, the chapter text's wash, cloud, text. The pins
+ * live inside the map's element, so without this order the blur layer above the map blurred them too.
+ */
+.story:not([data-mode="static"]) .story-haze {
+  z-index: 1;
+}
+
+.story:not([data-mode="static"]) .story-map .maplibregl-marker {
+  z-index: 2;
+}
+
+.story:not([data-mode="static"]) .story-wash {
+  z-index: 3;
+}
+
+.story:not([data-mode="static"]) .story-cloud {
+  z-index: 4;
+}
+
+.story:not([data-mode="static"]) .story-overlay {
+  z-index: 5;
+}
+
 /* Keeps each soft wash (::before, z-index -1) behind its own text but above the map. */
-.story:not([data-mode="static"]) .story-intro,
 .story:not([data-mode="static"]) .story-places {
   isolation: isolate;
 }
 
-/* No card: copy and portrait sit centred in the view, lifted off the map by a soft wash. */
+/* The postcard sits centred under the header, with room above for the portrait's head. The overlay
+   lets pointer events through to the map, so the card takes them back for its links. */
 .story:not([data-mode="static"]) .story-intro {
   inset: var(--header-offset) 0 0;
-  max-width: none;
-  align-content: center;
-  justify-content: center;
-  grid-template-columns: minmax(0, 36rem) auto;
-  pointer-events: none;
+  display: grid;
+  place-items: center;
+  padding-top: 4rem;
 }
 
-.story:not([data-mode="static"]) .story-intro::before {
-  position: absolute;
-  z-index: -1;
-  inset: 8% -6%;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--background) 92%, transparent) 55%, transparent);
-  content: "";
-}
-
-.story:not([data-mode="static"]) .story-intro .hero-actions {
+.story:not([data-mode="static"]) .postcard {
   pointer-events: auto;
-}
-
-.story:not([data-mode="static"]) .story-intro .display-title {
-  font-size: clamp(2.6rem, 4.6vw, 4.4rem);
 }
 
 .story:not([data-mode="static"]) .story-scroll-cue {
@@ -3012,31 +3487,8 @@ a.story-place-organization:hover {
 }
 
 @media (max-width: 767px) {
-  .story-intro {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .story-portrait {
-    grid-row: 1;
-    width: 7rem;
-  }
-
   .story:not([data-mode="static"]) {
     height: 680svh;
-  }
-
-  .story:not([data-mode="static"]) .story-intro {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1rem;
-  }
-
-  .story:not([data-mode="static"]) .story-intro .display-title {
-    font-size: clamp(2.1rem, 9.5vw, 2.8rem);
-  }
-
-  .story:not([data-mode="static"]) .story-summary {
-    margin-top: 1rem;
-    font-size: 0.95rem;
   }
 
   /* Lighter blur on phones: backdrop blur is one of the costlier things a phone composites. */
@@ -3095,6 +3547,20 @@ a.story-place-organization:hover {
  * wherever the section is on screen. Sticky positioning stopped short at the section's end, which left
  * the bottom rows stale while the rest moved.
  */
+/* The section's edge clips the cloud, so it dissolves into the page along the bottom instead of stopping
+   in a hard line. Same layer as the canvas but later, so it covers the cloud and not the content. */
+.cloud-field::after {
+  position: absolute;
+  z-index: -1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: min(14rem, 30%);
+  background: linear-gradient(transparent, var(--background));
+  content: "";
+  pointer-events: none;
+}
+
 .cloud-field-canvas {
   position: fixed;
   z-index: -1;
@@ -3111,8 +3577,11 @@ a.story-place-organization:hover {
  * the heading and cards climb in while the cloud forms. Until the story has scrolled away, the story's
  * own cloud shows behind it and this canvas stays hidden and idle (see CloudField).
  */
+/* At least one screen tall, or a short section (say, the projects failing to load) leaves the story's
+   last screen showing through below it. */
 .story:not([data-mode="static"]) + .cloud-field {
   z-index: 1;
+  min-height: 100svh;
   margin-top: -100svh;
 }
 

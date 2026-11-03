@@ -8,8 +8,10 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import { preconnect } from "react-dom";
-import { FaArrowDown, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6";
+import { FaArrowDown, FaArrowUpRightFromSquare, FaEnvelope, FaGithub, FaLinkedinIn } from "react-icons/fa6";
 
+import PostcardStamp from "@/components/PostcardStamp";
+import { claimWheel } from "@/components/SmoothScroll";
 import { gsap, prefersReducedMotion, ScrollTrigger, SplitText, useGSAP } from "@/lib/gsap";
 
 import { ASCII_FIELD_STRENGTH, cloudClock, createCloud, type Cloud } from "./cloud";
@@ -40,6 +42,23 @@ type Camera = { lng: number; lat: number; zoom: number; pitch: number; bearing: 
 // The overlook's zoom and tilt; its centre comes from the pins (see overlookFor).
 const OVERLOOK_VIEW = { zoom: 11.6, pitch: 58, bearing: 0 };
 const CLOSE_UP = { zoom: 17, pitch: 60 };
+
+// ponytail: placeholder path until the resume PDF is added to public/.
+const RESUME_URL = "/resume.pdf";
+
+/**
+ * The postcard's contour lines: nested rings around one hill, behind the portrait. Every ring shares
+ * the same wobble, scaled outward, so they never cross, the way real contours behave.
+ */
+const CONTOUR_RINGS = Array.from({ length: 9 }, (_, level) => {
+  const radius = 34 * (level + 1);
+  const points = Array.from({ length: 72 }, (_, step) => {
+    const angle = (step / 72) * Math.PI * 2;
+    const wobble = 1 + 0.16 * Math.sin(2 * angle + 0.6) + 0.08 * Math.sin(3 * angle + 1.9) + 0.05 * Math.sin(5 * angle + 0.3);
+    return `${(150 + radius * wobble * Math.cos(angle) * 1.25).toFixed(1)} ${(250 + radius * wobble * Math.sin(angle)).toFixed(1)}`;
+  });
+  return `M${points.join("L")}Z`;
+});
 
 export function readTheme(): MapTheme {
   const root = document.documentElement;
@@ -154,6 +173,19 @@ function pinsFor(places: readonly StoryPlace[]): Pin[] {
   return [...pins.values()];
 }
 
+/**
+ * Writes a pin's card: the years and a "Now" chip for the places given. A shared pin (USTP: studied,
+ * then teaching) shows its whole span on the overview, and only the visited role's years in a chapter.
+ */
+function labelPin(button: HTMLElement, here: readonly StoryPlace[]) {
+  const from = here[0].period.split(" - ")[0];
+  const to = here[here.length - 1].period.split(" - ").at(-1)!;
+  button.querySelector(".story-pin-years")!.textContent = from === to ? from : `${from} – ${to}`;
+  const current = here.some((place) => place.current);
+  button.toggleAttribute("data-current", current);
+  button.querySelector<HTMLElement>(".story-pin-now")!.hidden = !current;
+}
+
 function pinIndexOf(places: readonly StoryPlace[], placeIndex: number) {
   return pinsFor(places).findIndex((pin) => pin.places.includes(placeIndex));
 }
@@ -218,6 +250,46 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
 
   const carCount = () => (lite.current ? 14 : 40);
 
+  // The postcard's entrance, once on load: the ticket drops in, the card lands, the orange panel wipes
+  // open, the contours spread out from the hilltop, the portrait rises into frame, the name slides up line by line,
+  // and the stamp is pressed on last. It animates the card's parts, never .story-intro, which the
+  // scroll timeline owns. Content stays readable without it.
+  useGSAP(
+    () => {
+      if (prefersReducedMotion()) return;
+      const name = SplitText.create(".postcard-name", { type: "lines", mask: "lines" });
+      gsap
+        .timeline({ defaults: { ease: "outExpo" } })
+        // The header lives outside this component, so it is looked up on the page, not in the scope.
+        .from(document.querySelector(".site-header .header-inner"), { y: -24, autoAlpha: 0, duration: 0.7 }, 0)
+        // Transforms and opacity only on the big surfaces: the map is loading at the same moment, and
+        // anything that repaints the card or the photo every frame (scale, clip-path) makes it stutter.
+        .from(".postcard", { y: 48, autoAlpha: 0, duration: 0.9 }, 0.05)
+        // The orange pours into the panel from the bottom edge up (a transform on its own layer).
+        .fromTo(".postcard-photo-fill", { scaleY: 0 }, { scaleY: 1, duration: 0.85, ease: "power4.inOut" }, 0.2)
+        // Once the panel is open, a circle grows out from the hilltop and reveals every contour at once.
+        .fromTo(
+          ".postcard-contours",
+          { clipPath: "circle(0% at 32% 44%)" },
+          { clipPath: "circle(150% at 32% 44%)", duration: 2.2, ease: "power2.inOut", clearProps: "clipPath" },
+          0.8,
+        )
+        // Grows from the feet up, anchored to the panel's bottom edge, so it never pokes out below the card.
+        .from(".postcard-portrait", { scale: 0.9, transformOrigin: "50% 100%", autoAlpha: 0, duration: 1.1 }, 0.6)
+        .from(name.lines, { yPercent: 105, duration: 0.9, stagger: 0.1, ease: "power4.out" }, 0.55)
+        .from(
+          [".postcard-place", ".postcard-figure", ".postcard-legend"],
+          { y: 10, autoAlpha: 0, duration: 0.6, stagger: 0.08 },
+          0.8,
+        )
+        .from([".postcard-role", ".postcard-summary"], { y: 14, autoAlpha: 0, duration: 0.7, stagger: 0.08 }, 0.8)
+        .from([".postcard-button", ".postcard-social a"], { y: 12, autoAlpha: 0, duration: 0.5, stagger: 0.06 }, 1)
+        .from(".postcard-stamp", { scale: 1.5, rotate: -14, autoAlpha: 0, duration: 0.55, ease: "back.out(2.2)" }, 1.15);
+      return () => name.revert();
+    },
+    { scope: rootRef },
+  );
+
   // Create the map once; reduced motion keeps the page as a plain, readable column.
   useEffect(() => {
     if (prefersReducedMotion() || !mapRef.current) {
@@ -267,19 +339,14 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
           button.dataset.pin = String(pinIndex);
           button.setAttribute("aria-label", `Show ${pin.name}`);
           // The card: years at this place over its name, plus a "Now" chip if any role here is current.
-          const here = pin.places.map((index) => places[index]);
-          const from = here[0].period.split(" - ")[0];
-          const to = here[here.length - 1].period.split(" - ").at(-1)!;
-          const current = here.some((place) => place.current);
-          if (current) button.dataset.current = "";
+          button.dataset.places = pin.places.join(",");
           button.innerHTML = `
             <span class="story-pin-label">
-              <span class="story-pin-meta"><span class="story-pin-years"></span></span>
+              <span class="story-pin-meta"><span class="story-pin-years"></span><em class="story-pin-now">Now</em></span>
               <span class="story-pin-name"></span>
             </span>
             <span class="story-pin-marker"><span class="story-pin-ground"></span><span class="story-pin-dot"></span></span>`;
-          button.querySelector(".story-pin-years")!.textContent = from === to ? from : `${from} – ${to}`;
-          if (current) button.querySelector(".story-pin-meta")!.insertAdjacentHTML("beforeend", `<em>Now</em>`);
+          labelPin(button, pin.places.map((index) => places[index]));
           button.querySelector(".story-pin-name")!.textContent = pin.name;
           button.addEventListener("click", () => jumpToPin.current?.(pin.places));
           element.append(button);
@@ -456,6 +523,11 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
             rootRef.current?.querySelectorAll<HTMLElement>("[data-rail]").forEach((button) => {
               button.toggleAttribute("data-active", Number(button.dataset.rail) === place);
             });
+            // A shared pin speaks for the role being visited, not for everything that happened there.
+            rootRef.current?.querySelectorAll<HTMLElement>(".story-pin-inner").forEach((button) => {
+              const indexes = button.dataset.places!.split(",").map(Number);
+              labelPin(button, (indexes.includes(place) ? [place] : indexes).map((index) => places[index]));
+            });
           }
           if (place !== lastPlace && view.zoom > 14.5) {
             lastPlace = place;
@@ -531,7 +603,9 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         .fromTo(".story-plate", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.05, ease: "none" }, 0.62)
         // Scrolling down past here plays the entrance; scrolling back up resets it for next time.
         .call(() => (timeline.scrollTrigger!.direction > 0 ? plateIn.restart() : plateIn.pause(0)), [], 0.62)
-        .to(".story-plate-line > span", { yPercent: -105, stagger: 0.04, duration: 0.25, ease: "power2.in" }, 1.38)
+        // The exit lifts the whole title, never its lines: those belong to the entrance, which runs on its own
+        // clock. Sharing them let a fast pass or a rail jump rewind the lines to a half-risen or hidden frame.
+        .to(".story-plate-title", { yPercent: -18, autoAlpha: 0, duration: 0.25, ease: "power2.in" }, 1.38)
         .to(".story-plate", { autoAlpha: 0, duration: 0.2, ease: "none" }, 1.45)
         .fromTo(".story-places, .story-places-wash", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 1.5)
         .fromTo(".story-places-heading", { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.4 }, 1.5)
@@ -844,6 +918,7 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
       };
 
       window.addEventListener("wheel", handleWheel, { passive: false });
+      claimWheel((deltaY) => !handsOff(deltaY));
       window.addEventListener("touchstart", handleTouchStart, { passive: true });
       window.addEventListener("touchmove", handleTouchMove, { passive: false });
       window.addEventListener("touchend", handleTouchEnd, { passive: true });
@@ -922,6 +997,7 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         stop();
         jumpToPin.current = null;
         window.removeEventListener("wheel", handleWheel);
+        claimWheel(null);
         window.removeEventListener("touchstart", handleTouchStart);
         window.removeEventListener("touchmove", handleTouchMove);
         window.removeEventListener("touchend", handleTouchEnd);
@@ -950,56 +1026,92 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
 
         <div className="story-overlay">
           <div className="story-frame site-shell">
+            {/* The hero is a postcard laid on the map: the portrait on an orange panel, the message beside it. */}
             <div className="story-intro">
-              <div className="story-intro-copy">
-                <p className="hero-kicker">
-                  Software Engineer · <strong>Cagayan de Oro, Philippines</strong>
-                </p>
-                <h1 className="display-title">Javier Raut</h1>
-                <p className="body-large story-summary">
-                  I learn computing from the ground up, from software down to infrastructure. Currently
-                  working on Geographic Information Systems, and teaching Fundamentals of Database Systems
-                  on the side.
-                </p>
-                {/* For visitors who want specifics: the current roles, straight from the journey's places. */}
-                <dl className="story-now">
-                  {places
-                    .filter((place) => place.current)
-                    .map((place) => (
-                      <div key={place.id}>
-                        <dt>{place.role}</dt>
-                        <dd>{place.organization}</dd>
-                      </div>
+              <article className="postcard">
+                <div className="postcard-photo">
+                  <span className="postcard-photo-fill" aria-hidden="true" />
+                  <p className="postcard-place">Portfolio</p>
+                  <p className="postcard-figure">{mapFacts(places).position}</p>
+                  <svg className="postcard-contours" viewBox="0 0 470 564" preserveAspectRatio="xMinYMax slice" aria-hidden="true">
+                    {CONTOUR_RINGS.map((ring, index) => (
+                      <path d={ring} key={ring} strokeWidth={index % 5 === 4 ? 2 : 1.2} />
                     ))}
-                </dl>
-                <div className="hero-actions">
-                  <Link className="button-primary" href="/projects">
-                    View projects
-                  </Link>
-                  <a
-                    className="button-secondary"
-                    href="https://github.com/KvassAndVodka"
-                    aria-label="Javier Raut on GitHub (opens in a new tab)"
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    <FaGithub aria-hidden="true" />
-                    GitHub
-                    <FaArrowUpRightFromSquare aria-hidden="true" className="button-external-icon" />
-                  </a>
+                  </svg>
+                  <div className="postcard-legend" aria-hidden="true">
+                    <span className="postcard-north">
+                      N
+                      <svg viewBox="0 0 18 26">
+                        <path d="M9 0L18 26L9 19L0 26Z" />
+                      </svg>
+                    </span>
+                    <span className="postcard-scale">
+                      <span>
+                        <span>0</span>
+                        <span>1 km</span>
+                      </span>
+                      <span className="postcard-scale-bar" />
+                    </span>
+                  </div>
+                  <Image
+                    src="/portrait-cutout.png"
+                    alt="Javier Raut, seated, wearing a barong"
+                    width={855}
+                    height={1400}
+                    priority
+                    sizes="(max-width: 767px) 12rem, 26rem"
+                    className="postcard-portrait"
+                  />
                 </div>
-              </div>
-              <div className="story-portrait">
-                <Image
-                  src="/IMG_20260730_122436.jpg"
-                  alt="Portrait of Javier Raut"
-                  fill
-                  priority
-                  quality={90}
-                  sizes="(max-width: 767px) 7rem, 18rem"
-                  className="object-cover"
-                />
-              </div>
+
+                <div className="postcard-message">
+                  <PostcardStamp />
+                  <h1 className="postcard-name">
+                    Javier
+                    <br />
+                    Raut<span className="postcard-dot">.</span>
+                  </h1>
+                  <p className="postcard-role">
+                    Software Engineer · <strong>Cagayan de Oro, Philippines</strong>
+                  </p>
+                  <p className="postcard-summary">
+                    I learn computing from the ground up, from software down to infrastructure. Currently
+                    working on Geographic Information Systems, and teaching Fundamentals of Database Systems
+                    on the side.
+                  </p>
+                  <div className="postcard-actions">
+                    <Link className="postcard-button postcard-button-primary" href="/#contact">
+                      Get in Touch
+                    </Link>
+                    <a className="postcard-button" href={RESUME_URL}>
+                      Resume <FaArrowDown aria-hidden="true" />
+                    </a>
+                  <span className="postcard-social">
+                    <a
+                      href="https://github.com/KvassAndVodka"
+                      aria-label="GitHub (opens in a new tab)"
+                      title="GitHub"
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <FaGithub aria-hidden="true" />
+                    </a>
+                    <a
+                      href="https://www.linkedin.com/in/raut-javier-m/"
+                      aria-label="LinkedIn (opens in a new tab)"
+                      title="LinkedIn"
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <FaLinkedinIn aria-hidden="true" />
+                    </a>
+                    <a href="mailto:javier.raut@gmail.com" aria-label="Email javier.raut@gmail.com" title="javier.raut@gmail.com">
+                      <FaEnvelope aria-hidden="true" />
+                    </a>
+                  </span>
+                  </div>
+                </div>
+              </article>
             </div>
 
             <p className="story-scroll-cue" aria-hidden="true">
