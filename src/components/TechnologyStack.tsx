@@ -103,138 +103,65 @@ const practiceAreas: PracticeArea[] = [
 
 // Everything with evidence in my repositories (CEMAP, this portfolio, staRT, RT Transcript, Comspace,
 // the plate-recognition pipeline from meldCX, BEMMRA, ML coursework), listed as plain text.
-const toolkit: readonly Readonly<{ name: string; tools: readonly Readonly<{ name: string }>[] }>[] = [
+const toolkit: readonly Readonly<{ name: string; tools: readonly string[] }>[] = [
   {
     name: "Languages",
     tools: [
-      { name: "TypeScript" },
-      { name: "JavaScript" },
-      { name: "Python" },
-      { name: "PHP" },
-      { name: "C#" },
-      { name: "Java" },
-      { name: "C++" },
-      { name: "C" },
-      { name: "SQL" },
-      { name: "Bash" },
-      { name: "HTML" },
-      { name: "CSS" },
-      { name: "Assembly" },
+      "TypeScript", "JavaScript", "Python", "PHP", "C#", "Java", "C++", "C", "SQL", "Bash", "HTML", "CSS",
+      "Assembly",
     ],
   },
   {
     name: "Frontend",
     tools: [
-      { name: "React" },
-      { name: "Next.js" },
-      { name: "Vite" },
-      { name: "Tailwind CSS" },
-      { name: "GSAP" },
-      { name: "Framer Motion" },
-      { name: "TanStack Query" },
-      { name: "Zustand" },
-      { name: "Mantine" },
-      { name: "React Aria" },
-      { name: "Recharts" },
+      "React", "Next.js", "Vite", "Tailwind CSS", "GSAP", "Framer Motion", "TanStack Query", "Zustand",
+      "Mantine", "React Aria", "Recharts",
     ],
   },
   {
     name: "Maps and 3D",
     tools: [
-      { name: "MapLibre GL" },
-      { name: "deck.gl" },
-      { name: "OpenStreetMap" },
-      { name: "PMTiles" },
-      { name: "Planetiler" },
-      { name: "tippecanoe" },
-      { name: "Turf.js" },
-      { name: "WebGL" },
+      "MapLibre GL", "deck.gl", "OpenStreetMap", "PMTiles", "Planetiler", "tippecanoe", "Turf.js", "WebGL",
     ],
   },
   {
     name: "Backend and APIs",
     tools: [
-      { name: "Node.js" },
-      { name: "FastAPI" },
-      { name: "Laravel" },
-      { name: "Prisma" },
-      { name: "SQLAlchemy" },
-      { name: "Alembic" },
-      { name: "Auth.js" },
-      { name: "Firebase" },
-      { name: "Stripe" },
-      { name: "WebSockets" },
-      { name: "MQTT" },
-      { name: ".NET Framework (WinForms)" },
+      "Node.js", "FastAPI", "Laravel", "Prisma", "SQLAlchemy", "Alembic", "Auth.js", "Firebase", "Stripe",
+      "WebSockets", "MQTT", ".NET Framework (WinForms)",
     ],
   },
   {
     name: "Data",
     tools: [
-      { name: "PostgreSQL" },
-      { name: "SQLite" },
-      { name: "Redis" },
-      { name: "Firestore" },
-      { name: "pandas" },
-      { name: "NumPy" },
-      { name: "Jupyter" },
-      { name: "Kaggle" },
+      "PostgreSQL", "SQLite", "Redis", "Firestore", "pandas", "NumPy", "Jupyter", "Kaggle",
     ],
   },
   {
     name: "AI, vision and speech",
     tools: [
-      { name: "YOLO (Ultralytics)" },
-      { name: "PaddleOCR" },
-      { name: "OpenVINO" },
-      { name: "ONNX Runtime" },
-      { name: "OpenCV" },
-      { name: "BoxMOT" },
-      { name: "faster-whisper" },
-      { name: "pyannote.audio" },
-      { name: "Hugging Face" },
-      { name: "scikit-learn" },
-      { name: "Tesseract.js" },
-      { name: "FFmpeg" },
-      { name: "yt-dlp" },
+      "YOLO (Ultralytics)", "PaddleOCR", "OpenVINO", "ONNX Runtime", "OpenCV", "BoxMOT", "faster-whisper",
+      "pyannote.audio", "Hugging Face", "scikit-learn", "Tesseract.js", "FFmpeg", "yt-dlp",
     ],
   },
   {
     name: "AI coding tools",
     tools: [
-      { name: "Claude Code" },
-      { name: "OpenCode" },
-      { name: "Codex" },
-      { name: "Antigravity" },
+      "Claude Code", "OpenCode", "Codex", "Antigravity",
     ],
   },
   {
     name: "Infrastructure",
     tools: [
-      { name: "Docker" },
-      { name: "Docker Compose" },
-      { name: "Linux" },
-      { name: "Nginx" },
-      { name: "GitHub Actions" },
-      { name: "Cloudflare Tunnel" },
-      { name: "Tailscale" },
-      { name: "Git" },
-      { name: "uv" },
+      "Docker", "Docker Compose", "Linux", "Nginx", "GitHub Actions", "Cloudflare Tunnel", "Tailscale",
+      "Git", "uv",
     ],
   },
   {
     name: "Testing and quality",
     tools: [
-      { name: "Vitest" },
-      { name: "Playwright" },
-      { name: "pytest" },
-      { name: "Pest" },
-      { name: "PHPUnit" },
-      { name: "ESLint" },
-      { name: "Prettier" },
-      { name: "mypy" },
-      { name: "axe-core" },
-      { name: "SonarQube" },
+      "Vitest", "Playwright", "pytest", "Pest", "PHPUnit", "ESLint", "Prettier", "mypy", "axe-core",
+      "SonarQube",
     ],
   },
 ];
@@ -293,7 +220,7 @@ export default function TechnologyStack() {
             {toolkit.map((group) => (
               <div key={group.name}>
                 <dt>{group.name}</dt>
-                <dd>{group.tools.map(({ name }) => name).join(" · ")}</dd>
+                <dd>{group.tools.join(" · ")}</dd>
               </div>
             ))}
           </dl>
