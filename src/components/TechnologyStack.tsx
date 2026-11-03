@@ -2,72 +2,33 @@
 
 import type { IconType } from "react-icons";
 import {
-  SiC,
-  SiCloudflare,
-  SiCplusplus,
-  SiCss,
   SiDocker,
-  SiDotnet,
-  SiEslint,
   SiFastapi,
   SiFfmpeg,
   SiFirebase,
-  SiFramer,
-  SiGit,
-  SiGithubactions,
-  SiGnubash,
   SiGreensock,
-  SiHtml5,
-  SiHuggingface,
   SiIntel,
-  SiJavascript,
-  SiJupyter,
-  SiKaggle,
   SiLaravel,
   SiLinux,
-  SiMantine,
   SiMaplibre,
-  SiMqtt,
   SiNextdotjs,
   SiNginx,
-  SiNodedotjs,
-  SiNumpy,
-  SiOnnx,
-  SiOpencv,
-  SiOpenjdk,
   SiOpenstreetmap,
-  SiPaddlepaddle,
-  SiPandas,
-  SiPhp,
   SiPostgresql,
-  SiPrettier,
-  SiPrisma,
   SiPytest,
   SiPython,
   SiReact,
-  SiReactquery,
-  SiRedis,
-  SiScikitlearn,
-  SiSharp,
-  SiSonarqubeserver,
-  SiSqlalchemy,
-  SiSqlite,
-  SiStripe,
-  SiTailscale,
-  SiTailwindcss,
   SiTypescript,
-  SiUltralytics,
-  SiUv,
-  SiVite,
   SiVitest,
   SiWebgl,
-  SiYoutube,
 } from "react-icons/si";
 
 import useScrollReveal from "@/hooks/useScrollReveal";
 
+import { LobeAntigravity, LobeCodex, SiClaudecode, SiOpencode } from "./aiIcons";
+
 interface Capability {
-  icon: IconType;
+  icon?: IconType;
   name: string;
 }
 
@@ -77,12 +38,12 @@ interface PracticeArea {
   name: string;
 }
 
-// Grounded in active repositories since late 2025: eMap, this portfolio, staRT, RT Transcript, Comspace.
+// Grounded in active repositories since late 2025: CEMAP, this portfolio, staRT, RT Transcript, Comspace.
 const practiceAreas: PracticeArea[] = [
   {
     name: "Maps and spatial data",
     description:
-      "I build the House's eMap: a self-hosted vector basemap, point-in-polygon checks against barangay boundaries, road-graph routing on our own tiles, and in-browser BIM models.",
+      "Over months of work I reshaped a mapping platform into what it is today: a vector basemap on our own tiles served from Firebase, point-in-polygon checks against barangay boundaries, and road-graph routing.",
     capabilities: [
       { name: "MapLibre", icon: SiMaplibre },
       { name: "OpenStreetMap", icon: SiOpenstreetmap },
@@ -115,6 +76,17 @@ const practiceAreas: PracticeArea[] = [
     ],
   },
   {
+    name: "AI-assisted workflow",
+    description:
+      "I build with AI-powered workflows day to day, pairing with Claude Code and OpenCode on real codebases, and I have worked with Codex and Antigravity.",
+    capabilities: [
+      { name: "Claude Code", icon: SiClaudecode },
+      { name: "OpenCode", icon: SiOpencode },
+      { name: "Codex", icon: LobeCodex },
+      { name: "Antigravity", icon: LobeAntigravity },
+    ],
+  },
+  {
     name: "Delivery and assurance",
     description:
       "I self-host what I ship in containers behind Nginx, and I keep it honest with tests at every layer, from pytest and Vitest to browser checks.",
@@ -128,206 +100,131 @@ const practiceAreas: PracticeArea[] = [
   },
 ];
 
-type Tool = Readonly<{ name: string; icon?: IconType }>;
 
-// Everything with evidence in my repositories (eMap, this portfolio, staRT, RT Transcript, Comspace,
-// the plate-recognition pipeline from meldCX, BEMMRA, ML coursework). Tools without a brand icon show
-// as text only.
-const toolkit: readonly Readonly<{ name: string; tools: readonly Tool[] }>[] = [
+// Everything with evidence in my repositories (CEMAP, this portfolio, staRT, RT Transcript, Comspace,
+// the plate-recognition pipeline from meldCX, BEMMRA, ML coursework), listed as plain text.
+const toolkit: readonly Readonly<{ name: string; tools: readonly string[] }>[] = [
   {
     name: "Languages",
     tools: [
-      { name: "TypeScript", icon: SiTypescript },
-      { name: "JavaScript", icon: SiJavascript },
-      { name: "Python", icon: SiPython },
-      { name: "PHP", icon: SiPhp },
-      { name: "C#", icon: SiSharp },
-      { name: "Java", icon: SiOpenjdk },
-      { name: "C++", icon: SiCplusplus },
-      { name: "C", icon: SiC },
-      { name: "SQL" },
-      { name: "Bash", icon: SiGnubash },
-      { name: "HTML", icon: SiHtml5 },
-      { name: "CSS", icon: SiCss },
-      { name: "Assembly" },
+      "TypeScript", "JavaScript", "Python", "PHP", "C#", "Java", "C++", "C", "SQL", "Bash", "HTML", "CSS",
+      "Assembly",
     ],
   },
   {
     name: "Frontend",
     tools: [
-      { name: "React", icon: SiReact },
-      { name: "Next.js", icon: SiNextdotjs },
-      { name: "Vite", icon: SiVite },
-      { name: "Tailwind CSS", icon: SiTailwindcss },
-      { name: "GSAP", icon: SiGreensock },
-      { name: "Framer Motion", icon: SiFramer },
-      { name: "TanStack Query", icon: SiReactquery },
-      { name: "Zustand" },
-      { name: "Mantine", icon: SiMantine },
-      { name: "React Aria" },
-      { name: "Recharts" },
+      "React", "Next.js", "Vite", "Tailwind CSS", "GSAP", "Framer Motion", "TanStack Query", "Zustand",
+      "Mantine", "React Aria", "Recharts",
     ],
   },
   {
     name: "Maps and 3D",
     tools: [
-      { name: "MapLibre GL", icon: SiMaplibre },
-      { name: "deck.gl" },
-      { name: "OpenStreetMap", icon: SiOpenstreetmap },
-      { name: "PMTiles" },
-      { name: "Planetiler" },
-      { name: "tippecanoe" },
-      { name: "Turf.js" },
-      { name: "WebGL", icon: SiWebgl },
-      { name: "xeokit (BIM)" },
-      { name: "web-ifc" },
+      "MapLibre GL", "deck.gl", "OpenStreetMap", "PMTiles", "Planetiler", "tippecanoe", "Turf.js", "WebGL",
     ],
   },
   {
     name: "Backend and APIs",
     tools: [
-      { name: "Node.js", icon: SiNodedotjs },
-      { name: "FastAPI", icon: SiFastapi },
-      { name: "Laravel", icon: SiLaravel },
-      { name: "Prisma", icon: SiPrisma },
-      { name: "SQLAlchemy", icon: SiSqlalchemy },
-      { name: "Alembic" },
-      { name: "Auth.js" },
-      { name: "Firebase", icon: SiFirebase },
-      { name: "Stripe", icon: SiStripe },
-      { name: "WebSockets" },
-      { name: "MQTT", icon: SiMqtt },
-      { name: ".NET Framework (WinForms)", icon: SiDotnet },
+      "Node.js", "FastAPI", "Laravel", "Prisma", "SQLAlchemy", "Alembic", "Auth.js", "Firebase", "Stripe",
+      "WebSockets", "MQTT", ".NET Framework (WinForms)",
     ],
   },
   {
     name: "Data",
     tools: [
-      { name: "PostgreSQL", icon: SiPostgresql },
-      { name: "SQLite", icon: SiSqlite },
-      { name: "Redis", icon: SiRedis },
-      { name: "Firestore", icon: SiFirebase },
-      { name: "pandas", icon: SiPandas },
-      { name: "NumPy", icon: SiNumpy },
-      { name: "Jupyter", icon: SiJupyter },
-      { name: "Kaggle", icon: SiKaggle },
+      "PostgreSQL", "SQLite", "Redis", "Firestore", "pandas", "NumPy", "Jupyter", "Kaggle",
     ],
   },
   {
     name: "AI, vision and speech",
     tools: [
-      { name: "YOLO (Ultralytics)", icon: SiUltralytics },
-      { name: "PaddleOCR", icon: SiPaddlepaddle },
-      { name: "OpenVINO", icon: SiIntel },
-      { name: "ONNX Runtime", icon: SiOnnx },
-      { name: "OpenCV", icon: SiOpencv },
-      { name: "BoxMOT" },
-      { name: "faster-whisper" },
-      { name: "pyannote.audio" },
-      { name: "Hugging Face", icon: SiHuggingface },
-      { name: "scikit-learn", icon: SiScikitlearn },
-      { name: "Tesseract.js" },
-      { name: "FFmpeg", icon: SiFfmpeg },
-      { name: "yt-dlp", icon: SiYoutube },
+      "YOLO (Ultralytics)", "PaddleOCR", "OpenVINO", "ONNX Runtime", "OpenCV", "BoxMOT", "faster-whisper",
+      "pyannote.audio", "Hugging Face", "scikit-learn", "Tesseract.js", "FFmpeg", "yt-dlp",
+    ],
+  },
+  {
+    name: "AI coding tools",
+    tools: [
+      "Claude Code", "OpenCode", "Codex", "Antigravity",
     ],
   },
   {
     name: "Infrastructure",
     tools: [
-      { name: "Docker", icon: SiDocker },
-      { name: "Docker Compose", icon: SiDocker },
-      { name: "Linux", icon: SiLinux },
-      { name: "Nginx", icon: SiNginx },
-      { name: "GitHub Actions", icon: SiGithubactions },
-      { name: "Cloudflare Tunnel", icon: SiCloudflare },
-      { name: "Tailscale", icon: SiTailscale },
-      { name: "Git", icon: SiGit },
-      { name: "uv", icon: SiUv },
+      "Docker", "Docker Compose", "Linux", "Nginx", "GitHub Actions", "Cloudflare Tunnel", "Tailscale",
+      "Git", "uv",
     ],
   },
   {
     name: "Testing and quality",
     tools: [
-      { name: "Vitest", icon: SiVitest },
-      { name: "Playwright" },
-      { name: "pytest", icon: SiPytest },
-      { name: "Pest" },
-      { name: "PHPUnit", icon: SiPhp },
-      { name: "ESLint", icon: SiEslint },
-      { name: "Prettier", icon: SiPrettier },
-      { name: "mypy" },
-      { name: "axe-core" },
-      { name: "SonarQube", icon: SiSonarqubeserver },
+      "Vitest", "Playwright", "pytest", "Pest", "PHPUnit", "ESLint", "Prettier", "mypy", "axe-core",
+      "SonarQube",
     ],
   },
 ];
+
+const toolCount = toolkit.reduce((count, group) => count + group.tools.length, 0);
 
 export default function TechnologyStack() {
   const headingRef = useScrollReveal<HTMLDivElement>({
     from: { autoAlpha: 0, clipPath: "inset(0 0 100% 0)", y: 22, duration: 0.92 },
     start: "top 80%",
   });
-  const groupsRef = useScrollReveal<HTMLDivElement>({
-    targets: ".technology-group",
-    from: { autoAlpha: 0, x: -44, clipPath: "inset(0 0 30% 0)" },
-    stagger: 0.16,
-  });
-  const toolkitRef = useScrollReveal<HTMLDivElement>({
-    targets: ".toolkit-group",
+  const areasRef = useScrollReveal<HTMLOListElement>({
+    targets: ".stack-area",
     from: { autoAlpha: 0, y: 24 },
-    stagger: 0.06,
+    stagger: 0.08,
   });
 
   return (
     <section className="technology-stage" aria-labelledby="technology-heading">
       <div className="site-shell">
-        <div className="technology-heading" ref={headingRef}>
+        <div className="stack-heading" ref={headingRef}>
           <h2 className="section-title" id="technology-heading">
             How I build.
           </h2>
           <p className="body-large">
-            A focused view of the tools I reach for, grouped by the problem they help me solve.
-            Each project page carries the full implementation stack.
+            The tools I reach for, grouped by the problem they help me solve. Each project page carries its
+            full implementation stack.
           </p>
         </div>
 
-        <div className="technology-groups" ref={groupsRef}>
-          {practiceAreas.map((area) => (
-            <article className="technology-group" key={area.name}>
+        {/* One row per practice area, read across like a spec sheet: number and name, what I do, the tools. */}
+        <ol className="stack-areas" ref={areasRef}>
+          {practiceAreas.map((area, index) => (
+            <li className="stack-area" key={area.name}>
+              <p className="stack-index">{String(index + 1).padStart(2, "0")}</p>
               <h3>{area.name}</h3>
-              <p>{area.description}</p>
-              <ul>
+              <p className="stack-description">{area.description}</p>
+              <ul className="stack-tools">
                 {area.capabilities.map(({ icon: Icon, name }) => (
                   <li key={name}>
-                    <Icon aria-hidden="true" />
-                    <span>{name}</span>
+                    {Icon && <Icon aria-hidden="true" />}
+                    {name}
                   </li>
                 ))}
               </ul>
-            </article>
+            </li>
           ))}
-        </div>
+        </ol>
 
-        <div className="toolkit" ref={toolkitRef}>
-          <h3 className="toolkit-heading">
-            Full toolkit <span>{toolkit.reduce((count, group) => count + group.tools.length, 0)}</span>
-          </h3>
-          <div className="toolkit-groups">
+        {/* The full list stays one click away instead of a wall of tags: one plain line per category. */}
+        <details className="stack-toolkit">
+          <summary>
+            Full toolkit <span>{toolCount}</span>
+          </summary>
+          <dl>
             {toolkit.map((group) => (
-              <section className="toolkit-group" key={group.name} aria-label={group.name}>
-                <h4>{group.name}</h4>
-                <ul>
-                  {group.tools.map(({ icon: Icon, name }) => (
-                    <li key={name}>
-                      {Icon && <Icon aria-hidden="true" />}
-                      <span>{name}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+              <div key={group.name}>
+                <dt>{group.name}</dt>
+                <dd>{group.tools.join(" · ")}</dd>
+              </div>
             ))}
-          </div>
-        </div>
+          </dl>
+        </details>
       </div>
     </section>
   );

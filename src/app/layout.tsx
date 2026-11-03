@@ -4,6 +4,7 @@ import { GeistMono } from "geist/font/mono";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import Header from "@/components/Header";
+import SmoothScroll from "@/components/SmoothScroll";
 import { absoluteUrl, defaultSocialImage, serializeJsonLd, siteConfig } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -123,6 +124,7 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
         >
+          <SmoothScroll />
           <ScrollProgress />
           <Header />
           <MainWrapper>{children}</MainWrapper>

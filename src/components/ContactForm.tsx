@@ -5,6 +5,8 @@ import { FaCircleCheck, FaCircleExclamation, FaPaperPlane } from "react-icons/fa
 
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
+import PostcardStamp from "./PostcardStamp";
+
 type FormStatus = "idle" | "sending" | "success" | "error";
 type ContactField = "name" | "email" | "message";
 type FieldErrors = Partial<Record<ContactField, string>>;
@@ -149,11 +151,51 @@ export default function ContactForm() {
     }
   }
 
+  const fieldError = (field: ContactField) =>
+    fieldErrors[field] && (
+      <span className="contact-field-error-motion">
+        <FaCircleExclamation aria-hidden="true" />
+        {fieldErrors[field]}
+      </span>
+    );
+
+  // The back of the hero's postcard: the message on ruled lines at left, the address side at right.
   return (
     <form className="contact-form" ref={formRef} onSubmit={handleSubmit} noValidate aria-busy={status === "sending"}>
-      <div className="contact-form-row">
+      <div className="contact-message">
         <label>
-          Name
+          Message
+          <textarea
+            name="message"
+            rows={7}
+            maxLength={5_000}
+            minLength={10}
+            required
+            aria-invalid={Boolean(fieldErrors.message)}
+            aria-describedby="message-error message-helper"
+            onChange={(event) => updateFieldError("message", event.currentTarget.value)}
+          />
+          <span className="contact-field-error" id="message-error" aria-live="polite" aria-atomic="true">
+            {fieldError("message")}
+          </span>
+          <span className="contact-form-helper" id="message-helper">
+            A short note on what you are building, fixing, or trying to understand is enough.
+          </span>
+        </label>
+      </div>
+
+      <div className="contact-address">
+        <PostcardStamp />
+
+        <p className="contact-to">
+          <span>To</span>
+          <strong>Javier Raut</strong>
+          <a href="mailto:javier.raut@gmail.com">javier.raut@gmail.com</a>
+          Cagayan de Oro, Philippines
+        </p>
+
+        <label>
+          Your name
           <input
             name="name"
             type="text"
@@ -166,16 +208,11 @@ export default function ContactForm() {
             onChange={(event) => updateFieldError("name", event.currentTarget.value)}
           />
           <span className="contact-field-error" id="name-error" aria-live="polite" aria-atomic="true">
-            {fieldErrors.name && (
-                <span className="contact-field-error-motion">
-                  <FaCircleExclamation aria-hidden="true" />
-                  {fieldErrors.name}
-                </span>
-              )}
+            {fieldError("name")}
           </span>
         </label>
         <label>
-          Email
+          Your email
           <input
             name="email"
             type="email"
@@ -187,54 +224,23 @@ export default function ContactForm() {
             onChange={(event) => updateFieldError("email", event.currentTarget.value)}
           />
           <span className="contact-field-error" id="email-error" aria-live="polite" aria-atomic="true">
-            {fieldErrors.email && (
-                <span className="contact-field-error-motion">
-                  <FaCircleExclamation aria-hidden="true" />
-                  {fieldErrors.email}
-                </span>
-              )}
+            {fieldError("email")}
           </span>
         </label>
-      </div>
 
-      <label>
-        Message
-        <textarea
-          name="message"
-          rows={6}
-          maxLength={5_000}
-          minLength={10}
-          required
-          aria-invalid={Boolean(fieldErrors.message)}
-          aria-describedby="message-error message-helper"
-          onChange={(event) => updateFieldError("message", event.currentTarget.value)}
-        />
-        <span className="contact-field-error" id="message-error" aria-live="polite" aria-atomic="true">
-          {fieldErrors.message && (
-              <span className="contact-field-error-motion">
-                <FaCircleExclamation aria-hidden="true" />
-                {fieldErrors.message}
-              </span>
-            )}
-        </span>
-        <span className="contact-form-helper" id="message-helper">
-          A short note on what you are building, fixing, or trying to understand is enough.
-        </span>
-      </label>
+        <label className="contact-honeypot" aria-hidden="true">
+          Website
+          <input name="website" type="text" tabIndex={-1} autoComplete="off" />
+        </label>
 
-      <label className="contact-honeypot" aria-hidden="true">
-        Website
-        <input name="website" type="text" tabIndex={-1} autoComplete="off" />
-      </label>
-
-      <div className="contact-form-submit">
-        <button className="contact-submit" type="submit" disabled={status === "sending"}>
-          <span className="contact-submit-icon inline-flex">
-            <FaPaperPlane aria-hidden="true" />
-          </span>
-          {status === "sending" ? "Sending..." : "Send message"}
-        </button>
-        <div className="contact-feedback-slot" aria-live="polite" aria-atomic="true">
+        <div className="contact-form-submit">
+          <button className="contact-submit" type="submit" disabled={status === "sending"}>
+            <span className="contact-submit-icon inline-flex">
+              <FaPaperPlane aria-hidden="true" />
+            </span>
+            {status === "sending" ? "Sending..." : "Send message"}
+          </button>
+          <div className="contact-feedback-slot" aria-live="polite" aria-atomic="true">
             {feedback && (
               <p className={`contact-feedback contact-feedback-${status}`} key={`${status}-${feedback}`}>
                 {status === "success" && <FaCircleCheck aria-hidden="true" />}
@@ -242,6 +248,7 @@ export default function ContactForm() {
                 {feedback}
               </p>
             )}
+          </div>
         </div>
       </div>
     </form>

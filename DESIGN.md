@@ -2,26 +2,26 @@
 name: "Javier Raut Portfolio"
 description: "An expressive, proof-led engineering portfolio where interactive systems, inspectable projects, verified experience, and technical writing reinforce one another."
 colors:
-  accent-light: "#C63C12"
+  accent-light: "#B2350F"
   accent-dark: "#FF7342"
   accent-fill: "#FF5A24"
   accent-hover-light: "#9F2C0B"
   accent-hover-dark: "#FF926D"
   accent-ink-light: "#FFFFFF"
   accent-ink-dark: "#161616"
-  light-bg: "#F8F8F5"
+  light-bg: "#F3EDE2"
   light-fg: "#161616"
-  light-surface: "#FFFFFF"
-  light-surface-subtle: "#ECEBE6"
+  light-surface: "#FBF7F0"
+  light-surface-subtle: "#E9E1D3"
   light-muted: "#5F5D57"
-  light-line: "#D8D6CF"
+  light-line: "#DCD3C4"
   light-success: "#17643F"
-  dark-bg: "#0C0C0D"
+  dark-bg: "#1B1916"
   dark-fg: "#F8F8F2"
-  dark-surface: "#171719"
-  dark-surface-subtle: "#202024"
+  dark-surface: "#23201C"
+  dark-surface-subtle: "#2C2925"
   dark-muted: "#B7B5AE"
-  dark-line: "#303036"
+  dark-line: "#3A3631"
   dark-success: "#73D6A6"
   portrait-highlight: "#976E63"
   portrait-surface: "#493736"
@@ -29,6 +29,7 @@ colors:
   photo-ivory: "#FFF8ED"
   photo-mushroom: "#64504F"
   photo-coral: "#FF5A24"
+  postcard-rust: "#A3300E"
 typography:
   families:
     sans: "var(--font-geist-sans), sans-serif"
@@ -97,50 +98,86 @@ spacing:
   section: "clamp(5.5rem, 10vw, 8rem)"
 ---
 
-# Design System: Living Systems Portfolio
+# Design System: Postcard from the Map
 
 ## Creative direction
 
-The design evolves the original live portfolio without sanding away its personality. It should feel like a precise personal site made by an engineer who enjoys making systems move: reactive geometry, one decisive orange-red signal, direct language, and concrete proof of work. The portrait remains a visual anchor, but the interface does not inherit its full sepia cast: clean paper, neutral ink, and crisp charcoal create separation while the saturated accent supplies energy.
+The site is a postcard sent from the places Javier has worked. The home page opens on a live 3D
+map of Northern Mindanao (flat 2D on phones and low-power devices) with one straight cream card
+laid over it: a cutout portrait on an orange panel on the left, and the message side on the right.
+The scroll then flies the camera through each place. It should feel like a precise personal site
+made by an engineer: clean paper, neutral ink, one decisive orange signal, direct language, and
+concrete proof of work, with small technical and mapping details for people who look closely.
 
 Three voice words: **kinetic, capable, assured**.
 
-The first viewport must answer what role Javier fits, what kind of systems he builds, and where to inspect the work. The portrait establishes identity; the project evidence establishes hireability.
+The first viewport must answer what role Javier fits, what kind of systems he builds, and where to
+inspect the work. The portrait establishes identity; the project evidence establishes hireability.
 
 ## Identity to preserve
 
-- Clean paper light and near-black dark themes with a vivid, readable orange-red accent that complements the portrait.
-- Geist Sans for interface and narrative copy; Geist Mono only for dates and technical metadata.
-- Formal portrait in a restrained rectangular frame.
-- A reactive system trace: continuous paths absorb pointer disturbance, pass through quality
-  checkpoints, and settle into order. One orange-red signal carries the motion; there are no grids,
-  particles, or decorative glow.
-- Direct links to selected projects and GitHub in the first viewport.
-- Direct sections for background, technical practice, selected projects, and contact.
+- Clean paper light and near-black dark themes with a vivid, readable orange accent.
+- Geist Sans for interface and narrative copy; Geist Mono for labels, coordinates, dates, and
+  navigation.
+- The wordmark is "JR." and the full name is "Javier Raut." — the full stop is always the accent
+  orange (`#FF5A24`), the letters are ink.
+- The map is the signature visual. Keep it calm; text sits on solid or frosted surfaces over it,
+  never directly on busy terrain.
+- Direct links to projects, resume, GitHub, and LinkedIn in the first viewport.
+
+## The postcard (home hero)
+
+- One cream card (`photo-ivory`, `#FFF8ED`), straight and centred, with a faint 20 px graph-paper
+  grid and a soft drop shadow. No tilt.
+- Left: an orange panel (`#FF5A24`) holding the background-removed portrait. The head may rise
+  above the card's top edge; nothing else breaks the card.
+- Orange-panel details, all ink on orange: a short italic place line ("Northern Mindanao"), a mono
+  coordinate caption ("FIG. 01 — 08°29′N 124°41′E"), nested contour rings at about 30% opacity
+  (rings never cross; every fifth is heavier), and a north arrow with a scale bar in the bottom
+  left.
+- Right, top to bottom: the name in heavy uppercase ink, the role line, the summary (italic), the
+  current roles (mono `postcard-rust` labels over plain detail), and one row of equal buttons:
+  Projects (solid ink), Resume, GitHub, LinkedIn (outlined).
+- One perforated stamp in the top-right corner: orange, pin icon, "PHILIPPINES / CDO".
+- Hero copy comes from `places.ts` and the existing summary; do not invent new taglines.
+- Dark mode: the card and header turn to the dark paper (`#2A2723`, a warm charcoal) with light text and
+  `#FF7342` labels. The orange panel, its ink details, the stamp, and the Contact tab stay the same
+  in both themes.
+
+## Header
+
+- A ticket strip in the card colours, as wide as the page shell (`82rem`), with a soft shadow.
+- A stub on the left holds "JR." and is split from the links by a dashed tear line.
+- Links in mono uppercase; Contact is an orange tab with an arrow at the far right.
+- The same header is used on every public page.
 
 ## Polish principles
 
+- Details must be legible to a normal visitor. Prefer universal map symbols (north arrow, scale bar,
+  coordinates, contours) over insider references. No in-jokes such as HTTP codes, loopback
+  addresses, or projection codes.
+- Do not overlap text with the portrait. Move the text, not the photo.
+- Use the postcard vocabulary (cream surface, stamps, mono labels) only in the hero, the header,
+  and the contact section. Project cards, notes, and archives stay plain.
 - Do not use generated lifestyle imagery as a substitute for project evidence.
-- Cards use a border or a shadow, never both. Current project cards use a border only.
-- Card radii stop at `1rem`; the hero panel is the largest surface radius.
-- Timeline entries are open rows rather than identical nested cards.
-- Technologies are structured lists, not a wall of pills, and source or live links stay visible on project cards.
-- Category styling remains neutral and consistent rather than assigning arbitrary colors.
-- The interactive canvas is the signature visual. Keep it sparse, continuous, and physically calm;
-  do not imitate it with decorative grids or node maps elsewhere.
+- Cards use a border or a shadow, never both. Project cards use a border only.
+- Card radii stop at `1rem`; buttons inside the postcard use `8px`.
+- Technologies are structured lists, not a wall of pills, and source or live links stay visible on
+  project cards.
 - Avoid generic glow effects, repeated status dots, and fake operational metrics.
 
 ## Motion and performance
 
 - Content is visible before JavaScript runs. Motion enhances hierarchy instead of unlocking content.
-- Hero typography, the portrait, and the canvas enter as one rehearsed sequence.
-- Project and experience motion uses stagger, clipping, and directional movement rather than repeating one fade-up.
-- The animated field pauses in background tabs, caps device-pixel ratio, and becomes a static trace
-  under reduced motion.
+- The map runs in 3D on capable desktops and drops to the flat 2D map on phones, software
+  rendering, and low-memory devices.
+- The map pauses in background tabs, caps device-pixel ratio, and stays still under reduced motion.
 
 ## Accessibility
 
-- Body and muted text meet WCAG AA contrast in both themes.
-- Button and link colors meet WCAG AA contrast in both themes.
+- Body and muted text meet WCAG AA contrast in both themes, including text on the orange panel and
+  on the cream card (ink on orange is 5.8:1; `postcard-rust` on cream is 6.7:1).
+- No text relies on transparency for its colour; faded rings and lines are decoration only.
+- Button and link colors meet WCAG AA contrast in both themes. Touch targets are at least 44 px.
 - The mobile menu exposes its expanded state, closes with Escape, and prevents background scrolling.
 - Focus indicators use a two-pixel orange outline with a four-pixel offset.
