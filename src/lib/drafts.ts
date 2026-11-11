@@ -9,11 +9,12 @@ export interface DraftInput {
   content: string;
 }
 
-// Hashing both sides gives equal-length buffers, so timingSafeEqual never throws on length.
+// The length check reveals only the token length, which is public for a random hex token.
 export function isValidDraftToken(header: string | null, expected: string | undefined) {
   if (!expected || !header?.startsWith("Bearer ")) return false;
-  const digest = (value: string) => crypto.createHash("sha256").update(value).digest();
-  return crypto.timingSafeEqual(digest(header.slice(7)), digest(expected));
+  const given = Buffer.from(header.slice(7));
+  const wanted = Buffer.from(expected);
+  return given.length === wanted.length && crypto.timingSafeEqual(given, wanted);
 }
 
 function text(value: unknown, max: number) {
