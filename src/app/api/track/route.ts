@@ -19,7 +19,8 @@ function anonymousVisitorId(address: string) {
 }
 
 function isSafePath(value: unknown): value is string {
-  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") && value.length <= 240;
+  // Browsers read "\" as "/" and drop tabs/newlines, so "/\host" would become "//host".
+  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") && value.length <= 240 && !/[\\\x00-\x1f\x7f]/.test(value);
 }
 
 export async function POST(request: NextRequest) {

@@ -1,5 +1,3 @@
-"use server";
-
 import { endOfDay, format, startOfDay, subDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
 
