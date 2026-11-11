@@ -52,6 +52,9 @@ nano .env
 > `CLOUDFLARE_TUNNEL_TOKEN`, your OAuth/Auth secrets,
 > `ANALYTICS_HASH_SECRET`, and the Resend variables used by the contact form
 > (`RESEND_API_KEY`, `CONTACT_TO_EMAIL`, and `CONTACT_FROM_EMAIL`).
+> Set `DRAFTS_API_TOKEN` (for example `openssl rand -hex 32`) only if the
+> weekly content job may create draft notes through `/api/drafts`. Leave it
+> empty to turn the endpoint off.
 
 Set both Auth.js URLs to the production hostname:
 
