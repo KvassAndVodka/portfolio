@@ -6,7 +6,12 @@ interface PageStat { path: string; views: number }
 function pageLabel(path: string) {
   const parts = path.split("/").filter(Boolean);
   if (parts.length === 0) return "Home";
-  return decodeURIComponent(parts.at(-1) || path).replaceAll("-", " ");
+  const last = parts.at(-1) || path;
+  try {
+    return decodeURIComponent(last).replaceAll("-", " ");
+  } catch {
+    return last; // malformed %-escape from a visitor-supplied path
+  }
 }
 
 export default function TopPagesTable({ pages }: Readonly<{ pages: PageStat[] }>) {

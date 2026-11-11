@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { PostStatus, PostType } from '@prisma/client';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { requireAdmin } from '@/lib/require-admin';
 
 function revalidatePublicContent() {
     revalidateTag('projects', 'max');
@@ -20,6 +21,7 @@ async function getNextPinnedProjectOrder() {
 }
 
 export async function createPost(formData: FormData) {
+    await requireAdmin();
     const title = formData.get('title') as string;
     let slug = formData.get('slug') as string;
     
@@ -87,6 +89,7 @@ export async function createPost(formData: FormData) {
 }
 
 export async function updatePost(id: string, formData: FormData) {
+    await requireAdmin();
     const existingPost = await prisma.post.findUniqueOrThrow({ where: { id } });
     const title = formData.get('title') as string;
     const slug = formData.get('slug') as string;
@@ -159,6 +162,7 @@ export async function updatePost(id: string, formData: FormData) {
 }
 
 export async function deletePost(id: string) {
+    await requireAdmin();
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post) return;
 
@@ -195,6 +199,7 @@ export async function deletePost(id: string) {
 }
 
 export async function restorePost(id: string) {
+    await requireAdmin();
     await prisma.post.update({
         where: { id },
         data: { deletedAt: null }
@@ -208,12 +213,14 @@ export async function restorePost(id: string) {
 }
 
 export async function permanentDeletePost(id: string) {
+    await requireAdmin();
     await prisma.post.delete({ where: { id } });
     revalidatePath('/admin/trash');
     revalidatePublicContent();
 }
 
 export async function toggleProjectPin(id: string) {
+    await requireAdmin();
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post || post.type !== PostType.PROJECT || post.deletedAt) return;
 
@@ -260,6 +267,7 @@ export async function toggleProjectPin(id: string) {
 }
 
 export async function reorderProject(id: string, direction: 'up' | 'down') {
+    await requireAdmin();
     const project = await prisma.post.findUnique({ where: { id } });
     if (!project || !project.isPinned || project.pinnedOrder === null) return;
 
@@ -295,10 +303,12 @@ export async function reorderProject(id: string, direction: 'up' | 'down') {
 }
 
 export async function revalidateAll() {
+    await requireAdmin();
     revalidatePath('/', 'layout');
 }
 
 export async function updateProjectOrder(orderedIds: string[]) {
+    await requireAdmin();
     const pinnedProjects = await prisma.post.findMany({
         where: { type: PostType.PROJECT, isPinned: true, deletedAt: null },
         select: { id: true }
@@ -328,6 +338,7 @@ export async function updateProjectOrder(orderedIds: string[]) {
 }
 
 export async function getRecentMedia() {
+    await requireAdmin();
     const media = await prisma.media.findMany({
         take: 20,
         orderBy: { createdAt: 'desc' },

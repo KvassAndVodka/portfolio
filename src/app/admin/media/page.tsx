@@ -3,9 +3,11 @@ import { format } from 'date-fns';
 import { FaTrash, FaImage } from 'react-icons/fa';
 import { revalidatePath } from 'next/cache';
 import UploadMediaButton from '@/components/admin/UploadMediaButton';
+import { requireAdmin } from '@/lib/require-admin';
 
 async function deleteMedia(formData: FormData) {
     "use server";
+    await requireAdmin();
     const id = formData.get('id') as string;
     if (id) {
         await prisma.media.delete({ where: { id } });
