@@ -4,13 +4,17 @@ on:
   push:
     branches: ["main"]
 
-concurrency:
-  group: portfolio-production
-  cancel-in-progress: false
+env:
+  # Each run builds and deploys its own image tag, so a newer build cannot change an older deploy.
+  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
-  deploy:
+  build:
     runs-on: self-hosted
+    # A newer merge cancels an older build. Deploys are in a separate job and are never cancelled.
+    concurrency:
+      group: portfolio-build
+      cancel-in-progress: true
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -51,23 +55,41 @@ jobs:
         run: |
           echo "Pruning Docker build cache (keeping up to 1GB)..."
           docker builder prune -f --keep-storage=1gb
-          echo "Pruning unused Docker images..."
-          docker image prune -af
-
-      - name: Tag Current Image as Rollback
-        run: |
-          if docker image inspect portfolio:latest >/dev/null 2>&1; then
-            docker tag portfolio:latest portfolio:rollback
-            echo "Tagged current image as portfolio:rollback"
-          else
-            echo "No existing portfolio image found, skipping rollback tag"
-          fi
+          echo "Pruning unused Docker images older than 24 hours..."
+          # The age filter keeps an image that a queued deploy still needs.
+          docker image prune -af --filter "until=24h"
 
       - name: Build New Image
-        id: build
         run: |
           echo "Building the web runner and one-shot migrator while existing containers keep running..."
           docker compose build web migrator
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    concurrency:
+      group: portfolio-production
+      cancel-in-progress: false
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create .env from Secret
+        run: |
+          # The quotes around 'EOF' are mandatory to stop $ expansion
+          cat << 'EOF' > .env
+          ${{ secrets.PORTFOLIO_ENV }}
+          EOF
+
+      - name: Tag Running Image as Rollback
+        run: |
+          RUNNING_IMAGE="$(docker inspect -f '{{.Image}}' portfolio_web 2>/dev/null || true)"
+          if [ -n "$RUNNING_IMAGE" ]; then
+            docker tag "$RUNNING_IMAGE" portfolio:rollback
+            echo "Tagged the running image as portfolio:rollback"
+          else
+            echo "No running portfolio container found, skipping rollback tag"
+          fi
 
       - name: Deploy New Containers
         id: deploy
@@ -122,12 +144,11 @@ jobs:
           fi
 
       - name: Rollback on Failure
-        if: failure() && steps.build.outcome == 'success' && steps.deploy.outputs.web_replacement_attempted == 'true'
+        if: failure() && steps.deploy.outputs.web_replacement_attempted == 'true'
         run: |
           echo "::warning::Deployment failed — rolling back to previous image..."
           if docker image inspect portfolio:rollback >/dev/null 2>&1; then
-            docker tag portfolio:rollback portfolio:latest
-            docker compose up -d --no-deps --force-recreate web
+            IMAGE_TAG=rollback docker compose up -d --no-deps --force-recreate web
 
             WEB_HEALTHY=false
             for i in $(seq 1 30); do
@@ -218,6 +239,13 @@ jobs:
             docker volume rm portfolio_tailscale_data
             echo "Removed the retired Tailscale state volume."
           fi
+
+      - name: Tag Deployed Image as Latest
+        if: success()
+        run: |
+          # Manual `docker compose` commands without IMAGE_TAG use :latest.
+          docker tag "portfolio:$IMAGE_TAG" portfolio:latest
+          docker image rm "portfolio:$IMAGE_TAG"
 
       - name: Clean Up Migrator Image
         if: always()
