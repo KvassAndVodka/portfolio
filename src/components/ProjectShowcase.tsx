@@ -40,6 +40,14 @@ export default function ProjectShowcase({
   );
 }
 
+// A card's scroll reveal leaves it hidden and offset until it plays. Flip must not move a card in that
+// state, so a filter change plays any pending reveal to its end first.
+function finishReveals(cards: NodeListOf<Element>) {
+  for (const tween of gsap.getTweensOf(cards)) {
+    if (tween.scrollTrigger) tween.progress(1).kill();
+  }
+}
+
 function ProjectShowcaseContent({
   compact = false,
   enabled,
@@ -55,7 +63,9 @@ function ProjectShowcaseContent({
   // Record card positions before a filter change so Flip can animate the reflow.
   const captureLayout = () => {
     const cards = rootRef.current?.querySelectorAll(".project-card");
-    if (cards?.length && !prefersReducedMotion()) layoutRef.current = Flip.getState(cards);
+    if (!cards?.length || prefersReducedMotion()) return;
+    finishReveals(cards);
+    layoutRef.current = Flip.getState(cards);
   };
   const changeCategory = (category: string) => {
     captureLayout();
@@ -112,12 +122,17 @@ function ProjectShowcaseContent({
       const state = layoutRef.current;
       layoutRef.current = null;
       if (!state) return;
+      const cards = rootRef.current?.querySelectorAll(".project-card");
+      if (!cards?.length) return;
+      finishReveals(cards);
+      // Transforms only: `absolute: true` placed entering cards against the wrong containing block, over the hero.
       Flip.from(state, {
-        targets: rootRef.current?.querySelectorAll(".project-card"),
+        targets: cards,
         duration: 0.5,
         ease: "power3.out",
-        absolute: true,
         onEnter: (elements) => gsap.fromTo(elements, { autoAlpha: 0, scale: 0.96 }, { autoAlpha: 1, scale: 1, duration: 0.4 }),
+        // The grid changed height, so triggers further down the page start at the wrong place.
+        onComplete: () => ScrollTrigger.refresh(),
       });
     },
     { dependencies: [activeCategory, search], scope: rootRef },
