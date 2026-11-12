@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 export default async function EditNotePage({ params }: Readonly<{ params: Promise<{ slug: string }> }>) {
   const { slug } = await params;
   const post = await prisma.post.findUnique({ where: { slug } });
-  if (!post || post.type !== "BLOG") notFound();
+  if (post?.type !== "BLOG") notFound();
   return (
     <div className="space-y-6 pb-16">
       <header className="flex items-start gap-3"><Link href="/admin/notes" className="admin-icon-button" aria-label="Back to notes"><FaArrowLeft aria-hidden="true" /></Link><div><h1 className="admin-page-title">Edit note</h1><p className="mt-2 text-sm admin-muted">{post.title}</p></div></header>

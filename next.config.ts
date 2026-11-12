@@ -16,11 +16,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  async redirects() {
-    return [
+  redirects() {
+    return Promise.resolve([
       { source: "/archives", destination: "/notes", permanent: true },
       { source: "/archives/:slug", destination: "/notes/:slug", permanent: true },
-    ];
+    ]);
   },
 };
 

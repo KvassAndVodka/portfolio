@@ -13,15 +13,15 @@ export type MapTheme = Readonly<{
 type Rgba = [number, number, number, number];
 
 function parseColor(value: string): Rgba | null {
-  const hex = value.match(/^#([\da-f]{3}|[\da-f]{6})$/i);
+  const hex = /^#([\da-f]{3}|[\da-f]{6})$/i.exec(value);
   if (hex) {
     const digits = hex[1].length === 3 ? [...hex[1]].map((digit) => digit + digit).join("") : hex[1];
-    return [0, 2, 4].map((offset) => parseInt(digits.slice(offset, offset + 2), 16)).concat(1) as Rgba;
+    return [0, 2, 4].map((offset) => Number.parseInt(digits.slice(offset, offset + 2), 16)).concat(1) as Rgba;
   }
 
-  const fn = value.match(/^(rgb|hsl)a?\(([^)]+)\)$/i);
+  const fn = /^(rgb|hsl)a?\(([^)]+)\)$/i.exec(value);
   if (!fn) return null;
-  const parts = fn[2].split(",").map((part) => parseFloat(part));
+  const parts = fn[2].split(",").map((part) => Number.parseFloat(part));
   const alpha = parts[3] ?? 1;
   if (fn[1].toLowerCase() === "rgb") return [parts[0], parts[1], parts[2], alpha];
 

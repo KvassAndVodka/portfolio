@@ -56,7 +56,7 @@ export default async function AdminMedia() {
                                 <CopyUrlButton url={`/api/media/${item.id}`} />
                                 <form action={deleteMedia}>
                                     <input type="hidden" name="id" value={item.id} />
-                                    <button className="admin-icon-button !text-white hover:!bg-[var(--admin-danger)]" aria-label={`Delete ${item.filename}`}>
+                                    <button type="submit" className="admin-icon-button !text-white hover:!bg-[var(--admin-danger)]" aria-label={`Delete ${item.filename}`}>
                                         <FaTrash size={14} />
                                     </button>
                                 </form>

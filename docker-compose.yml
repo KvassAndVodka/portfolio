@@ -17,7 +17,7 @@ services:
 
   web:
     container_name: portfolio_web
-    image: portfolio
+    image: portfolio:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile
@@ -73,7 +73,7 @@ services:
 
   migrator:
     container_name: portfolio_migrator
-    image: portfolio-migrator
+    image: portfolio-migrator:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile

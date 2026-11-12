@@ -8,9 +8,10 @@ export default function CopyUrlButton({ url }: Readonly<{ url: string }>) {
 
     const handleCopy = () => {
         const fullUrl = window.location.origin + url;
-        navigator.clipboard.writeText(fullUrl);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        navigator.clipboard.writeText(fullUrl).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }).catch(() => undefined);
     };
 
     return (

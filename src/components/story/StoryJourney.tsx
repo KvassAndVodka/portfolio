@@ -71,8 +71,10 @@ export function readTheme(): MapTheme {
   };
 }
 
+const KEY_DIRECTIONS: Partial<Record<string, 1 | -1>> = { ArrowDown: 1, PageDown: 1, " ": 1, ArrowUp: -1, PageUp: -1 };
+
 function toRgb(hex: string): [number, number, number] {
-  const value = parseInt(hex.replace("#", ""), 16);
+  const value = Number.parseInt(hex.replace("#", ""), 16);
   return [(value >> 16) / 255, ((value >> 8) & 255) / 255, (value & 255) / 255];
 }
 
@@ -127,8 +129,8 @@ function formatCoordinates([lng, lat]: readonly [number, number]) {
 
 /** Detail copy may embed one [label](href) inline link; the text around it stays plain. */
 function detailWithLink(detail: string) {
-  const match = detail.match(/\[(.+?)\]\((.+?)\)/);
-  if (!match || match.index === undefined) return detail;
+  const match = /\[([^\]]+)\]\(([^)]+)\)/.exec(detail);
+  if (!match) return detail;
   return [
     detail.slice(0, match.index),
     <a key="place-detail-link" className="story-place-detail-link" href={match[2]} rel="noreferrer" target="_blank">
@@ -179,7 +181,7 @@ function pinsFor(places: readonly StoryPlace[]): Pin[] {
  */
 function labelPin(button: HTMLElement, here: readonly StoryPlace[]) {
   const from = here[0].period.split(" - ")[0];
-  const to = here[here.length - 1].period.split(" - ").at(-1)!;
+  const to = here.at(-1)!.period.split(" - ").at(-1)!;
   button.querySelector(".story-pin-years")!.textContent = from === to ? from : `${from} – ${to}`;
   const current = here.some((place) => place.current);
   button.toggleAttribute("data-current", current);
@@ -301,8 +303,10 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
     lite.current = isLiteDevice();
     weakGpu.current = !lite.current && hasIntegratedGpu();
 
-    (async () => {
-      const maplibre = (await import("maplibre-gl")).default;
+    void (async () => {
+      const maplibre = await import("maplibre-gl");
+      // maplibre-gl 6 can't find its worker inside a bundle; this reference makes Turbopack emit the file.
+      maplibre.setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).href);
       if (cancelled || !mapRef.current) return;
       const theme = readTheme();
       styledDark.current = theme.dark;
@@ -368,12 +372,13 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
           createTraffic(map, carCount(), carColors(theme)).then((created) => {
             if (cancelled) return created.destroy();
             traffic.current = created;
-          });
+          }).catch(console.error);
           setMapReady(true);
         });
 
         const canvas = cloudRef.current;
-        cloud.current = canvas ? createCloud(canvas, lite.current ? 0.75 : 1) : null;
+        const cloudScale = lite.current ? 0.75 : 1;
+        cloud.current = canvas ? createCloud(canvas, cloudScale) : null;
         cloud.current?.setColors(cloudColors(theme));
         setMode("live");
       } catch (error) {
@@ -419,7 +424,7 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         createTraffic(map, carCount(), carColors(theme)).then((created) => {
           if (cancelled) return created.destroy();
           traffic.current = created;
-        });
+        }).catch(console.error);
       });
     });
     return () => {
@@ -744,6 +749,21 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         });
       };
 
+      // Overview to first place counts too: it passes through the cloud as well.
+      const isPlaceHop = (now: number, target: number | undefined) =>
+        target !== undefined &&
+        Math.min(now, target) >= timeline.labels.overview - 0.02 &&
+        Math.max(now, target) <= arrivalOf(places.length - 1) + 0.02;
+
+      // A fresh gesture glides at reading pace — unless it is the hop in or out of the hero, which
+      // snaps, or the climb into the cloud, which takes its time. `target` is undefined past the last state.
+      const hopPace = (direction: 1 | -1, now: number, target: number | undefined, placeHop: boolean) => {
+        if ((direction > 0 && now < 0.9) || (direction < 0 && target !== undefined && target < 0.15)) return INTRO_HOP;
+        // The last hop (no target) is the climb through the clouds into the projects.
+        if (direction > 0 && (target === undefined || target > sky)) return CLOUD_GLIDE;
+        return placeHop ? PLACE_GLIDE : GLIDE;
+      };
+
       const glide = (direction: 1 | -1, duration?: number) => {
         glideDirection = direction;
         const times = states();
@@ -757,7 +777,9 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
             : times.findLastIndex((time) => time < now - 0.02);
         // After the last place, the next state is the end of the timeline: the climb through the clouds,
         // with the projects section rising over the stage until it fills the screen.
-        const top = next !== -1 ? scrollFor(times[next]) : direction > 0 ? trigger.end : null;
+        let top: number | null = null;
+        if (next !== -1) top = scrollFor(times[next]);
+        else if (direction > 0) top = trigger.end;
         // Nowhere further to go (a chained gesture ran past the first or last state): release the page.
         // Gliding to where we already are would hold the scroll still for the whole glide.
         if (top === null || Math.abs(top - window.scrollY) < 2) {
@@ -766,16 +788,9 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
           gliding = false;
           return;
         }
-        // A fresh gesture glides at reading pace — unless it is the hop in or out of the hero, which
-        // snaps, or the climb into the cloud, which takes its time. Explicit durations always win.
-        const introHop = (direction > 0 && now < 0.9) || (direction < 0 && times[next] < 0.15);
-        // The last hop (next === -1) is the climb through the clouds into the projects.
-        const cloudHop = direction > 0 && (next === -1 || times[next] > sky);
-        // Overview to first place counts too: it passes through the cloud as well.
-        const firstPlace = timeline.labels.overview - 0.02;
-        const lastPlace = arrivalOf(places.length - 1) + 0.02;
-        const placeHop = next !== -1 && Math.min(now, times[next]) >= firstPlace && Math.max(now, times[next]) <= lastPlace;
-        const pace = duration ?? (introHop ? INTRO_HOP : cloudHop ? CLOUD_GLIDE : placeHop ? PLACE_GLIDE : GLIDE) / speed();
+        const placeHop = isPlaceHop(now, next === -1 ? undefined : times[next]);
+        // Explicit durations always win.
+        const pace = duration ?? hopPace(direction, now, next === -1 ? undefined : times[next], placeHop) / speed();
         goTo(top, pace, () => {
           // Chained gestures play out one after another at full pace, with a short beat at each
           // stop so every frame registers. Input during the beat still counts toward the chain.
@@ -907,11 +922,7 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
       const handleKey = (event: KeyboardEvent) => {
         const target = event.target as HTMLElement | null;
         if (target?.closest("input, textarea, select, [contenteditable]")) return;
-        const direction = ["ArrowDown", "PageDown", " "].includes(event.key)
-          ? 1
-          : ["ArrowUp", "PageUp"].includes(event.key)
-            ? -1
-            : 0;
+        const direction = KEY_DIRECTIONS[event.key] ?? 0;
         if (!direction || (event.key === " " && event.shiftKey) || handsOff(direction)) return;
         event.preventDefault();
         request(direction);
