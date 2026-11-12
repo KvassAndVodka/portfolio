@@ -3,7 +3,7 @@
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { FaArrowUpRightFromSquare, FaMagnifyingGlass, FaPencil } from "react-icons/fa6";
+import { FaArrowUpRightFromSquare, FaMagnifyingGlass } from "react-icons/fa6";
 import DeleteButton from "@/components/admin/DeleteButton";
 
 interface NoteItem {
@@ -23,6 +23,9 @@ type NotesManagerProps = Readonly<{
   initialStatus?: string;
 }>;
 
+const statuses = ["ALL", "DRAFT", "SCHEDULED", "PUBLISHED"] as const;
+const pad = (n: number) => String(n).padStart(2, "0");
+
 export default function NotesManager({ notes, initialStatus }: NotesManagerProps) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState(initialStatus || "ALL");
@@ -32,18 +35,56 @@ export default function NotesManager({ notes, initialStatus }: NotesManagerProps
   }), [notes, query, status]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-        <label className="relative"><span className="sr-only">Search notes</span><FaMagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 admin-muted" aria-hidden="true" /><input className="admin-field min-w-64 !pl-9" value={query} onChange={(event) => setQuery(event.currentTarget.value)} placeholder="Search notes" /></label>
-        <label><span className="sr-only">Filter notes by status</span><select className="admin-select" value={status} onChange={(event) => setStatus(event.currentTarget.value)}><option value="ALL">All statuses</option><option value="PUBLISHED">Published</option><option value="DRAFT">Drafts</option><option value="SCHEDULED">Scheduled</option></select></label>
+    <>
+      <div className="flex flex-col-reverse gap-4 border-b border-[var(--line)] md:flex-row md:items-center md:justify-between">
+        <div role="group" aria-label="Filter notes by status" className="-mb-px flex gap-6 overflow-x-auto">
+          {statuses.map((value) => (
+            <button key={value} type="button" aria-pressed={status === value} onClick={() => setStatus(value)} className={`admin-label min-h-12 whitespace-nowrap border-b-2 ${status === value ? "border-[var(--postcard-orange)]" : "site-muted border-transparent hover:text-[var(--foreground)]"}`}>
+              {value === "ALL" ? "All" : value.toLowerCase()} <span className="text-[var(--accent)]">{pad(value === "ALL" ? notes.length : notes.filter((note) => note.status === value).length)}</span>
+            </button>
+          ))}
+        </div>
+        <label className="relative mt-6 md:mb-2 md:mt-0">
+          <span className="sr-only">Search notes</span>
+          <FaMagnifyingGlass className="site-muted pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
+          <input className="admin-field !pl-9 md:w-72" value={query} onChange={(event) => setQuery(event.currentTarget.value)} placeholder="Search notes" />
+        </label>
       </div>
-      <section className="admin-panel overflow-hidden" aria-label="Notes">
-        {filtered.length > 0 ? <ul className="divide-y divide-[var(--admin-border)]">{filtered.map((note) => {
-          const words = note.content.trim().split(/\s+/).filter(Boolean).length;
-          const editPath = note.type === "PROJECT" ? `/admin/projects/${note.slug}` : `/admin/notes/${note.slug}`;
-          return <li key={note.id} className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center md:px-5"><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><Link href={editPath} className="truncate font-semibold hover:text-[var(--accent-hover)]">{note.title}</Link><span className={`admin-status admin-status-${note.status.toLowerCase()}`}>{note.status.toLowerCase()}</span>{note.type === "PROJECT" && <span className="admin-status bg-[var(--accent-soft)] text-[var(--accent-hover)]">From project</span>}</div><p className="mt-1 line-clamp-1 text-sm admin-muted">{note.summary}</p><p className="mt-2 text-xs admin-muted">{note.category || "Uncategorized"} · {Math.max(1, Math.ceil(words / 200))} min read · edited {formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true })}</p></div><div className="flex items-center justify-end gap-1"><a href={`/notes/${note.slug}`} target="_blank" className="admin-icon-button" aria-label={`Preview ${note.title}`}><FaArrowUpRightFromSquare aria-hidden="true" /></a><Link href={editPath} className="admin-icon-button" aria-label={`Edit ${note.title}`}><FaPencil aria-hidden="true" /></Link>{note.type === "BLOG" && <DeleteButton id={note.id} />}</div></li>;
-        })}</ul> : <div className="px-5 py-12"><p className="font-medium">No notes to show</p><p className="mt-1 text-sm admin-muted">{notes.length ? "Try another search or status." : "Start a draft when you have something worth sharing."}</p></div>}
-      </section>
-    </div>
+
+      {filtered.length > 0 ? (
+        <ol aria-label="Notes">
+          {filtered.map((note, index) => {
+            const words = note.content.trim().split(/\s+/).filter(Boolean).length;
+            const editPath = note.type === "PROJECT" ? `/admin/projects/${note.slug}` : `/admin/notes/${note.slug}`;
+            return (
+              <li key={note.id} data-reveal className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-4 gap-y-3 border-b border-[var(--line)] py-7 md:grid-cols-[3rem_minmax(0,1fr)_auto]">
+                <span className="admin-index pt-1.5">{pad(index + 1)}</span>
+                <div className="min-w-0">
+                  <Link href={editPath} className="text-[clamp(1.2rem,2vw,1.55rem)] font-[620] leading-tight tracking-[-0.03em] hover:text-[var(--accent)]">{note.title}</Link>
+                  {note.summary && <p className="site-muted mt-2 line-clamp-2 max-w-[65ch] leading-[1.7]">{note.summary}</p>}
+                  <p className="admin-label site-muted mt-3 flex flex-wrap gap-x-3 gap-y-1">
+                    <span className={`admin-status admin-status-${note.status.toLowerCase()}`}>{note.status.toLowerCase()}</span>
+                    {note.type === "PROJECT" && <span className="text-[var(--accent)]">From project</span>}
+                    <span>{note.category || "Uncategorized"}</span>
+                    <span>{Math.max(1, Math.ceil(words / 200))} min</span>
+                    <span>edited {formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true })}</span>
+                  </p>
+                </div>
+                <div className="col-start-2 flex items-center gap-1 md:col-start-auto md:self-start">
+                  <Link href={editPath} className="admin-button-secondary">Edit</Link>
+                  <a href={`/notes/${note.slug}`} target="_blank" className="admin-icon-button" aria-label={`Preview ${note.title} (opens in a new tab)`}><FaArrowUpRightFromSquare aria-hidden="true" /></a>
+                  {note.type === "BLOG" && <DeleteButton id={note.id} />}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      ) : (
+        <div className="py-14">
+          <p className="font-semibold">No notes to show</p>
+          <p className="site-muted mt-1">{notes.length ? "Try another search or status." : "Start a draft when you have something worth sharing."}</p>
+        </div>
+      )}
+    </>
   );
 }

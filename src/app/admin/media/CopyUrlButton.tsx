@@ -17,11 +17,11 @@ export default function CopyUrlButton({ url }: Readonly<{ url: string }>) {
     return (
         <button
             onClick={handleCopy}
-            className="p-2 bg-stone-800 text-white hover:bg-[var(--accent)] rounded-lg transition-colors"
-            title="Copy URL"
+            className="admin-icon-button"
+            aria-label={copied ? "Link copied" : "Copy link"}
             type="button"
         >
-            {copied ? <FaCheck size={14} /> : <FaCopy size={14} />}
+            {copied ? <FaCheck size={14} aria-hidden="true" /> : <FaCopy size={14} aria-hidden="true" />}
         </button>
     );
 }

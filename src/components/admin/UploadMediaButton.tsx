@@ -17,12 +17,13 @@ export default function UploadMediaButton() {
 
     return (
         <>
-            <button 
+            <button
+                type="button"
                 onClick={() => setShowPicker(true)}
-                className="bg-stone-900 dark:bg-stone-100 text-white dark:text-black hover:opacity-90 px-5 py-2.5 rounded-xl flex items-center gap-2 font-bold text-sm transition-all shadow-lg shadow-stone-900/10 dark:shadow-white/5"
+                className="admin-button-primary"
             >
-                <FaCloudUploadAlt size={16} />
-                <span>Upload Media</span>
+                <FaCloudUploadAlt size={16} aria-hidden="true" />
+                <span>Upload</span>
             </button>
 
             {showPicker && (

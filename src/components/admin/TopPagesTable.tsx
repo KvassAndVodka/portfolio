@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { FaArrowUpRightFromSquare } from "react-icons/fa6";
 
 interface PageStat { path: string; views: number }
 
@@ -16,30 +15,22 @@ function pageLabel(path: string) {
 
 export default function TopPagesTable({ pages }: Readonly<{ pages: PageStat[] }>) {
   return (
-    <section className="admin-panel h-full p-5 md:p-6" aria-labelledby="top-content-heading">
-      <h2 id="top-content-heading" className="admin-section-title">Most viewed content</h2>
-      <p className="mt-1 text-sm admin-muted">Public projects and notes from the last 30 days.</p>
+    <section aria-labelledby="top-content-heading">
+      <h2 id="top-content-heading" className="admin-section-title pb-4">Most read</h2>
       {pages.length > 0 ? (
-        <ol className="mt-5 divide-y divide-[var(--admin-border)]">
+        <ol className="border-t border-[var(--line)]">
           {pages.map((page, index) => (
-            <li key={page.path} className="grid min-h-16 grid-cols-[1.25rem_minmax(0,1fr)_auto_auto] items-center gap-2 py-2 sm:gap-3">
-              <span className="text-xs tabular-nums admin-muted">{index + 1}</span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium capitalize">{pageLabel(page.path)}</p>
-                <p className="truncate text-xs admin-muted">{page.path}</p>
-              </div>
-              <span className="text-right"><strong className="block text-sm tabular-nums">{page.views}</strong><span className="text-[0.6875rem] admin-muted">views</span></span>
-              <Link href={page.path} target="_blank" className="admin-icon-button" aria-label={`Open ${pageLabel(page.path)} in a new tab`}>
-                <FaArrowUpRightFromSquare aria-hidden="true" />
+            <li key={page.path}>
+              <Link href={page.path} target="_blank" aria-label={`${pageLabel(page.path)}, ${page.views} views (opens in a new tab)`} className="grid min-h-12 grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] text-sm hover:text-[var(--accent)]">
+                <span className="admin-index">{String(index + 1).padStart(2, "0")}</span>
+                <span className="truncate font-mono text-[0.8125rem]">{page.path}</span>
+                <span className="site-muted font-mono text-[0.8125rem] tabular-nums">{page.views.toLocaleString()}</span>
               </Link>
             </li>
           ))}
         </ol>
       ) : (
-        <div className="mt-5 border-t border-[var(--admin-border)] py-8">
-          <p className="font-medium">No content views yet</p>
-          <p className="mt-1 text-sm admin-muted">Views of the homepage and admin routes are intentionally excluded.</p>
-        </div>
+        <p className="site-muted border-t border-[var(--line)] py-6 text-sm">No views yet. Views of the home page and admin are left out.</p>
       )}
     </section>
   );
