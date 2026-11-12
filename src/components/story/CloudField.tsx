@@ -96,8 +96,13 @@ export default function CloudField({
         stop();
         resize.disconnect();
         window.removeEventListener("pointermove", handlePointer);
-        cloud.current?.destroy();
+        // Free the GPU context only once the canvas has really left the page. React's dev double-mount
+        // runs this cleanup with the canvas still attached, and a lost context can't be reused on remount.
+        const done = cloud.current;
         cloud.current = null;
+        setTimeout(() => {
+          if (!canvas.isConnected) done?.destroy();
+        });
       };
     },
     { scope: rootRef },
