@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 
 export const MAX_DRAFT_BODY_BYTES = 100_000;
 

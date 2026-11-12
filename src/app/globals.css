@@ -3,6 +3,17 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Hero postcard (see DESIGN.md) */
+  --postcard-paper: #fff8ed;
+  --postcard-ink: #161616;
+  --postcard-ink-soft: #3d3c38;
+  --postcard-orange: #ff5a24;
+  --postcard-rust: #a3300e;
+  --postcard-muted: #5f5d57;
+  --postcard-grid: rgb(100 80 79 / 8%);
+  --postcard-tear: rgb(100 80 79 / 50%);
+  --postcard-on-orange: #161616;
+  --postcard-shadow: 0 30px 60px -20px rgb(0 0 0 / 35%);
   --header-height: 4.5rem;
   --header-safe-area: env(safe-area-inset-top, 0px);
   --header-offset: calc(var(--header-height) + var(--header-safe-area));
@@ -611,8 +622,8 @@ button {
   font-size: 0.95rem;
 }
 
-.button-external-icon {
-  font-size: 0.72rem !important;
+svg.button-external-icon {
+  font-size: 0.72rem;
 }
 
 .button-primary {
@@ -764,11 +775,6 @@ button {
 
 .section-title-wide span {
   color: var(--accent);
-}
-
-.project-card {
-  transition: border-color 240ms var(--ease-out-quart), background-color 240ms ease;
-  transform-style: preserve-3d;
 }
 
 .project-card-media::after {
@@ -946,7 +952,7 @@ button {
   }
 }
 
-/* Contact: the back of the hero's postcard. The message is written on ruled lines at left; the
+/* The contact section is the back of the hero's postcard. The message is written on ruled lines at left; the
    address side at right carries the stamp, who it goes to, and the sender's details. */
 .contact-stage {
   padding-block: clamp(6rem, 11vw, 9rem);
@@ -959,10 +965,6 @@ button {
   max-width: 40rem;
   margin-inline: auto;
   text-align: center;
-}
-
-.contact-intro {
-  margin-inline: auto;
 }
 
 .contact-kicker {
@@ -984,6 +986,7 @@ button {
 
 .contact-intro {
   max-width: 34rem;
+  margin-inline: auto;
   margin-top: 1.25rem;
   color: var(--muted);
   font-size: 1.0625rem;
@@ -1299,6 +1302,7 @@ button {
 }
 
 .site-footer-links svg {
+  font-size: 0.9rem;
   filter: drop-shadow(0 0 4px #161616) drop-shadow(0 0 10px #161616);
 }
 
@@ -1367,9 +1371,6 @@ button {
   color: #ff7342;
 }
 
-.site-footer-links svg {
-  font-size: 0.9rem;
-}
 
 /* The wordmark closes the page and bleeds off its bottom edge: cropped just under the baseline, so it
    reads as too big for the screen while every letter stays legible. */
@@ -1464,6 +1465,8 @@ button {
 
 .project-card {
   display: flex;
+  transform-style: preserve-3d;
+  transition: border-color 240ms var(--ease-out-quart), background-color 240ms ease;
   height: 100%;
   flex-direction: column;
   overflow: hidden;
@@ -2328,19 +2331,6 @@ button {
 }
 
 /* ---- Hero postcard: the portrait on an orange panel, the message on cream. See DESIGN.md. ------- */
-:root {
-  --postcard-paper: #fff8ed;
-  --postcard-ink: #161616;
-  --postcard-ink-soft: #3d3c38;
-  --postcard-orange: #ff5a24;
-  --postcard-rust: #a3300e;
-  --postcard-muted: #5f5d57;
-  --postcard-grid: rgb(100 80 79 / 8%);
-  --postcard-tear: rgb(100 80 79 / 50%);
-  --postcard-on-orange: #161616;
-  --postcard-shadow: 0 30px 60px -20px rgb(0 0 0 / 35%);
-}
-
 /* At night the card turns to the dark surface; the orange panel and stamp stay as they are. */
 html.dark {
   --postcard-paper: #2a2723;
@@ -2918,10 +2908,12 @@ a.story-place-organization:hover {
   -webkit-backdrop-filter: blur(var(--tilt-blur, 6px));
   backdrop-filter: blur(var(--tilt-blur, 6px));
   mask-image: linear-gradient(to bottom, #000 6%, transparent 40%, transparent 62%, #000 96%);
+  z-index: 1;
 }
 
 .story:not([data-mode="static"]) .story-overlay {
   position: absolute;
+  z-index: 5;
   inset: 0;
   pointer-events: none;
 }
@@ -2944,29 +2936,12 @@ a.story-place-organization:hover {
  * Stage layers, bottom to top: map, tilt-shift blur, pins, the chapter text's wash, cloud, text. The pins
  * live inside the map's element, so without this order the blur layer above the map blurred them too.
  */
-.story:not([data-mode="static"]) .story-haze {
-  z-index: 1;
-}
-
 .story:not([data-mode="static"]) .story-map .maplibregl-marker {
   z-index: 2;
 }
 
-.story:not([data-mode="static"]) .story-wash {
-  z-index: 3;
-}
-
 .story:not([data-mode="static"]) .story-cloud {
   z-index: 4;
-}
-
-.story:not([data-mode="static"]) .story-overlay {
-  z-index: 5;
-}
-
-/* Keeps each soft wash (::before, z-index -1) behind its own text but above the map. */
-.story:not([data-mode="static"]) .story-places {
-  isolation: isolate;
 }
 
 /* The postcard sits centred under the header, with room above for the portrait's head. The overlay
@@ -3071,9 +3046,6 @@ a.story-place-organization:hover {
   display: block;
   overflow: hidden;
   padding-bottom: 0.04em;
-}
-
-.story-plate-line {
   clip-path: inset(0 -0.2em 0 0);
 }
 
@@ -3144,6 +3116,8 @@ a.story-place-organization:hover {
 
 /* Chapters: big type bottom left on a soft wash, above the journey rail. */
 .story:not([data-mode="static"]) .story-places {
+  /* Keeps each soft wash (::before, z-index -1) behind its own text but above the map. */
+  isolation: isolate;
   bottom: 8rem;
   left: 0;
   display: grid;
@@ -3161,6 +3135,7 @@ a.story-place-organization:hover {
 
 .story:not([data-mode="static"]) .story-wash {
   position: absolute;
+  z-index: 3;
   inset: 0;
   display: block;
   pointer-events: none;
@@ -3295,6 +3270,8 @@ a.story-place-organization:hover {
 }
 
 .story-pin-inner {
+  /* Pins start hidden; the timeline reveals them at the overview (GSAP's inline visibility wins). */
+  visibility: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3592,11 +3569,6 @@ a.story-place-organization:hover {
 /* Once this cloud takes over, cover the story's so the two never show at once. */
 .story:not([data-mode="static"]) + .cloud-field[data-cloud-active] {
   background: var(--background);
-}
-
-/* Pins start hidden; the timeline reveals them at the overview (GSAP's inline visibility wins). */
-.story-pin-inner {
-  visibility: hidden;
 }
 
 /* Until the timeline takes over, keep later chapters out of the first paint. */

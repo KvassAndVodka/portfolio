@@ -43,7 +43,7 @@ async function main() {
         console.log("✅ Password updated successfully!");
         console.log("---------------------------------------------------");
         console.log("IMPORTANT: Update your .env file with this new hash to keep it in sync for future deployments/seeding:");
-        console.log(`ADMIN_PASSWORD_HASH="${hashedPassword.replace(/\$/g, '\\$')}"`);
+        console.log(`ADMIN_PASSWORD_HASH="${hashedPassword.replace(/\$/g, String.raw`\$`)}"`);
         console.log("---------------------------------------------------");
 
     } catch (error) {

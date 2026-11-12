@@ -269,7 +269,7 @@ export async function toggleProjectPin(id: string) {
 export async function reorderProject(id: string, direction: 'up' | 'down') {
     await requireAdmin();
     const project = await prisma.post.findUnique({ where: { id } });
-    if (!project || !project.isPinned || project.pinnedOrder === null) return;
+    if (!project?.isPinned || project.pinnedOrder === null) return;
 
     const currentOrder = project.pinnedOrder;
     const targetOrder = direction === 'up' ? currentOrder - 1 : currentOrder + 1;

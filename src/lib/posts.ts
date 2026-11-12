@@ -69,7 +69,7 @@ const getCachedPosts = unstable_cache(
     { revalidate: 60, tags: ["notes"] },
 );
 
-export async function getPostsStrict(): Promise<Post[]> {
+export function getPostsStrict(): Promise<Post[]> {
     return getCachedPosts();
 }
 

@@ -21,7 +21,7 @@ export default function AnalyticsTracker() {
         };
 
         if (pathname && !pathname.startsWith('/admin') && !pathname.startsWith('/auth')) {
-            track();
+            void track();
         }
     }, [pathname]);
 

@@ -10,42 +10,43 @@ const locations = [
     { ip: '62.219.128.0', country: 'IL' } // Bezeq (Israel)
 ];
 
+async function sendVisit(loc) {
+    try {
+        const res = await fetch(ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Forwarded-For': loc.ip,
+                'User-Agent': 'TrafficSimulator/1.0'
+            },
+            body: JSON.stringify({
+                path: ['/', '/projects', '/about'][Math.floor(Math.random() * 3)]
+            })
+        });
+
+        if (res.ok) {
+            process.stdout.write('.');
+        } else {
+            process.stdout.write('x');
+            console.error(await res.text());
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
 async function simulate() {
     console.log(`Simulating traffic to ${ENDPOINT}...`);
 
-    for (const loc of locations) {
+    const visits = locations.flatMap((loc) => {
         // Send random number of visits
-        const visits = Math.floor(Math.random() * 5) + 1;
-        
-        console.log(`Sending ${visits} visits from ${loc.country} (${loc.ip})...`);
+        const count = Math.floor(Math.random() * 5) + 1;
+        console.log(`Sending ${count} visits from ${loc.country} (${loc.ip})...`);
+        return Array.from({ length: count }, () => sendVisit(loc));
+    });
+    await Promise.all(visits);
 
-        for (let i = 0; i < visits; i++) {
-            try {
-                const res = await fetch(ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Forwarded-For': loc.ip,
-                        'User-Agent': 'TrafficSimulator/1.0'
-                    },
-                    body: JSON.stringify({
-                        path: ['/', '/projects', '/about'][Math.floor(Math.random() * 3)]
-                    })
-                });
-                
-                if (res.ok) {
-                    process.stdout.write('.');
-                } else {
-                    process.stdout.write('x');
-                    console.error(await res.text());
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        }
-        console.log(" Done.");
-    }
-    console.log("Simulation complete. Check Dashboard.");
+    console.log("\nSimulation complete. Check Dashboard.");
 }
 
-simulate();
+simulate().catch(console.error);

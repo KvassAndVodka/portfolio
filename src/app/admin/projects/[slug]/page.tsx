@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 export default async function EditProjectPage({ params }: Readonly<{ params: Promise<{ slug: string }> }>) {
   const { slug } = await params;
   const post = await prisma.post.findUnique({ where: { slug } });
-  if (!post || post.type !== "PROJECT") notFound();
+  if (post?.type !== "PROJECT") notFound();
   return (
     <div className="space-y-6 pb-16">
       <header className="flex items-start gap-3"><Link href="/admin/projects" className="admin-icon-button" aria-label="Back to projects"><FaArrowLeft aria-hidden="true" /></Link><div><h1 className="admin-page-title">Edit project</h1><p className="mt-2 text-sm admin-muted">{post.title}</p></div></header>

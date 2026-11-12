@@ -48,7 +48,7 @@ export default function MediaPicker({ onSelect, onClose, initialTab = 'library' 
     const handleUploadComplete = () => {
         // Switch to library and reload to show new image
         setActiveTab('library');
-        loadMedia();
+        void loadMedia();
     };
 
     return (
