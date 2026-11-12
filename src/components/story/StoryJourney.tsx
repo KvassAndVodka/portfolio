@@ -304,7 +304,9 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
     weakGpu.current = !lite.current && hasIntegratedGpu();
 
     void (async () => {
-      const maplibre = (await import("maplibre-gl")).default;
+      const maplibre = await import("maplibre-gl");
+      // maplibre-gl 6 can't find its worker inside a bundle; this reference makes Turbopack emit the file.
+      maplibre.setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).href);
       if (cancelled || !mapRef.current) return;
       const theme = readTheme();
       styledDark.current = theme.dark;
