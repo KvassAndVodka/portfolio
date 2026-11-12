@@ -40,7 +40,7 @@ interface PracticeArea {
   name: string;
 }
 
-// Grounded in active repositories since late 2025: CEMAP, this portfolio, staRT, RT Transcript, Comspace.
+// Grounded in active repositories since late 2025: an internal mapping platform, this portfolio, staRT, RT Transcript, Comspace.
 const practiceAreas: PracticeArea[] = [
   {
     name: "Maps and spatial data",
@@ -103,7 +103,7 @@ const practiceAreas: PracticeArea[] = [
 ];
 
 
-// Everything with evidence in my repositories (CEMAP, this portfolio, staRT, RT Transcript, Comspace,
+// Everything with evidence in my repositories (an internal mapping platform, this portfolio, staRT, RT Transcript, Comspace,
 // the plate-recognition pipeline from meldCX, BEMMRA, ML coursework), listed as plain text.
 const toolkit: readonly Readonly<{ name: string; tools: readonly string[] }>[] = [
   {
