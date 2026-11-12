@@ -39,7 +39,7 @@ export const places: StoryPlace[] = [
     role: "Software Developer",
     organization: "2nd Congressional District Office of Misamis Oriental - House of Representatives",
     detail:
-      "Got the original [eMap](https://emap.padayn.com/) handed to me a month shy of graduation and went straight to work: organizing project data from the House and DPWH, then improving and hardening the system as I learned it.",
+      "Got an internal mapping system handed to me a month shy of graduation and went straight to work: organizing project data from the House and DPWH, then improving and hardening the system as I learned it.",
     current: true,
   },
   {
