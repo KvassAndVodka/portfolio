@@ -3575,3 +3575,41 @@ a.story-place-organization:hover {
 .story[data-mode="loading"] :is(.story-plate, .story-places, .story-places-wash, .story-rail) {
   visibility: hidden;
 }
+
+/* 404 and error pages: copy on blank paper, a torn contour map behind it (TornMap). */
+.status-page {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+.status-page-copy {
+  padding-top: calc(min(92vw, 56svh) + 1rem);
+  padding-bottom: 4rem;
+}
+
+@media (min-width: 768px) and (orientation: landscape) {
+  .status-page-copy {
+    padding-top: clamp(7rem, 18vh, 12rem);
+  }
+}
+
+.status-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2.25rem;
+}
+
+.status-page-ref {
+  margin-top: 1.5rem;
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 767px) {
+  .status-page-actions > * {
+    width: 100%;
+  }
+}
