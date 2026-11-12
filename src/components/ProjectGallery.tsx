@@ -94,7 +94,7 @@ export default function ProjectGallery({ projects }: Readonly<{ projects: Projec
 
   const slide = "w-full shrink-0 lg:h-[calc(100svh-10.5rem)] lg:w-[min(80vw,66rem)]";
   return (
-    <div ref={ref} className="relative py-[clamp(6rem,11vw,9rem)] lg:h-svh lg:overflow-hidden lg:py-0 lg:pt-[6.5rem]">
+    <div ref={ref} className="relative overflow-x-clip py-[clamp(6rem,11vw,9rem)] lg:h-svh lg:overflow-hidden lg:py-0 lg:pt-[6.5rem]">
       <div data-track onFocus={handleFocus} className="flex flex-col gap-8 px-4 lg:flex-row lg:gap-10 lg:pl-[max(1rem,calc((100vw-82rem)/2))] lg:pr-[max(1rem,calc((100vw-82rem)/2))]">
         <div data-slide="0" className={`${slide} flex flex-col justify-center`}>
           {/* The scrim sits above the cloud canvas (z -1) and below the text, so glyphs fade behind the words. */}
