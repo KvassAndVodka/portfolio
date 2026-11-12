@@ -42,7 +42,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
-     async signIn({ user, account }) {
+    signIn({ user, account }) {
       // For OAuth, check email whitelist
       if (account?.provider === "github") {
         return user.email === process.env.ADMIN_EMAIL;

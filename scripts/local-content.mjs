@@ -200,10 +200,9 @@ function readLocalDatabaseUrl() {
 }
 
 async function seed(client) {
-  let inserted = 0;
-
-  for (const post of placeholderPosts) {
-    const result = await client.query(
+  // One client runs queries in order anyway; this only queues them all at once.
+  const results = await Promise.all(placeholderPosts.map((post) =>
+    client.query(
       `INSERT INTO "Post" (
         "id", "slug", "title", "summary", "content", "publishedAt", "updatedAt",
         "type", "category", "isPinned", "pinnedOrder", "showAsBlog", "techStack"
@@ -223,9 +222,9 @@ async function seed(client) {
         post.pinnedOrder,
         post.techStack,
       ],
-    );
-    inserted += result.rowCount ?? 0;
-  }
+    ),
+  ));
+  const inserted = results.reduce((sum, result) => sum + (result.rowCount ?? 0), 0);
 
   console.log(`Local placeholders ready: ${inserted} added, ${placeholderPosts.length - inserted} already present.`);
 }
@@ -251,7 +250,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error(error instanceof Error ? error.message : error);
   process.exit(1);
-});
+}

@@ -16,6 +16,25 @@ export function heightAt(hills: readonly Hill[], x: number, y: number) {
   return height;
 }
 
+/** Marching squares for one cell: the segments where `elevation` crosses it, as [ax, ay, bx, by]. */
+function cellSegments(corners: number[], elevation: number, x0: number, y0: number, cell: number) {
+  // Where the level crosses each edge of the cell: top, right, bottom, left.
+  const cross = (a: number, b: number) => (elevation - corners[a]) / (corners[b] - corners[a]);
+  const edges = [
+    [x0 + cross(0, 1) * cell, y0],
+    [x0 + cell, y0 + cross(1, 2) * cell],
+    [x0 + (1 - cross(2, 3)) * cell, y0 + cell],
+    [x0, y0 + (1 - cross(3, 0)) * cell],
+  ];
+  const crossed = [0, 1, 2, 3].filter((edge) => (corners[edge] < elevation) !== (corners[(edge + 1) % 4] < elevation));
+  // Two crossings: one segment. Four (a saddle): pair them in order, which is fine for decoration.
+  const segments: number[][] = [];
+  for (let pair = 0; pair + 1 < crossed.length; pair += 2) {
+    segments.push([...edges[crossed[pair]], ...edges[crossed[pair + 1]]]);
+  }
+  return segments;
+}
+
 /**
  * Isolines every `step` metres over a width x height box, sampled every `cell` units. Each level is one
  * path of unjoined segments (marching squares), which draws the same as joined lines at this scale.
@@ -46,25 +65,7 @@ export function contourLevels(
     for (let row = 0; row < rows - 1; row++) {
       for (let column = 0; column < columns - 1; column++) {
         const corners = [at(column, row), at(column + 1, row), at(column + 1, row + 1), at(column, row + 1)];
-        // Where the level crosses each edge of the cell: top, right, bottom, left.
-        const cross = (a: number, b: number) => (elevation - corners[a]) / (corners[b] - corners[a]);
-        const x0 = column * cell;
-        const y0 = row * cell;
-        const edges = [
-          [x0 + cross(0, 1) * cell, y0],
-          [x0 + cell, y0 + cross(1, 2) * cell],
-          [x0 + (1 - cross(2, 3)) * cell, y0 + cell],
-          [x0, y0 + (1 - cross(3, 0)) * cell],
-        ];
-        const crossed = [0, 1, 2, 3].filter((edge) => {
-          const a = corners[edge];
-          const b = corners[(edge + 1) % 4];
-          return (a < elevation) !== (b < elevation);
-        });
-        // Two crossings: one segment. Four (a saddle): pair them in order, which is fine for decoration.
-        for (let pair = 0; pair + 1 < crossed.length; pair += 2) {
-          const [ax, ay] = edges[crossed[pair]];
-          const [bx, by] = edges[crossed[pair + 1]];
+        for (const [ax, ay, bx, by] of cellSegments(corners, elevation, column * cell, row * cell, cell)) {
           parts.push(`M${round(ax)} ${round(ay)}L${round(bx)} ${round(by)}`);
           label ??= { x: round((ax + bx) / 2), y: round((ay + by) / 2) };
         }

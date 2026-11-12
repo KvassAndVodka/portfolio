@@ -18,7 +18,7 @@ interface ContactResponse {
   };
 }
 
-const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 const REQUEST_TIMEOUT_MS = 12_000;
 
 function validateField(field: ContactField, value: string) {
@@ -38,7 +38,7 @@ export default function ContactForm() {
   const [feedback, setFeedback] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const isSubmitting = useRef(false);
-  const errorKey = Object.keys(fieldErrors).sort().join(",");
+  const errorKey = Object.keys(fieldErrors).sort((a, b) => a.localeCompare(b)).join(",");
 
   // Shake newly invalid fields and lift their messages in.
   useGSAP(
@@ -86,11 +86,11 @@ export default function ContactForm() {
 
     const form = event.currentTarget;
     const data = new FormData(form);
-    const values = {
-      name: String(data.get("name") ?? "").trim(),
-      email: String(data.get("email") ?? "").trim(),
-      message: String(data.get("message") ?? "").trim(),
+    const text = (field: ContactField) => {
+      const value = data.get(field);
+      return typeof value === "string" ? value.trim() : "";
     };
+    const values = { name: text("name"), email: text("email"), message: text("message") };
     const errors: FieldErrors = {};
 
     (Object.keys(values) as ContactField[]).forEach((field) => {
@@ -138,13 +138,10 @@ export default function ContactForm() {
       }).catch(() => undefined);
     } catch (error) {
       setStatus("error");
-      setFeedback(
-        error instanceof DOMException && error.name === "AbortError"
-          ? "Sending timed out. Check your connection and try again."
-          : error instanceof Error
-            ? error.message
-            : "Your message could not be sent. Check your connection and try again.",
-      );
+      let message = "Your message could not be sent. Check your connection and try again.";
+      if (error instanceof DOMException && error.name === "AbortError") message = "Sending timed out. Check your connection and try again.";
+      else if (error instanceof Error) message = error.message;
+      setFeedback(message);
     } finally {
       isSubmitting.current = false;
       window.clearTimeout(timeout);
@@ -164,7 +161,7 @@ export default function ContactForm() {
     <form className="contact-form" ref={formRef} onSubmit={handleSubmit} noValidate aria-busy={status === "sending"}>
       <div className="contact-message">
         <label>
-          Message
+          Message{" "}
           <textarea
             name="message"
             rows={7}
@@ -190,12 +187,12 @@ export default function ContactForm() {
         <p className="contact-to">
           <span>To</span>
           <strong>Javier Raut</strong>
-          <a href="mailto:javier.raut@gmail.com">javier.raut@gmail.com</a>
+          <a href="mailto:javier.raut@gmail.com">javier.raut@gmail.com</a>{" "}
           Cagayan de Oro, Philippines
         </p>
 
         <label>
-          Your name
+          Your name{" "}
           <input
             name="name"
             type="text"
@@ -212,7 +209,7 @@ export default function ContactForm() {
           </span>
         </label>
         <label>
-          Your email
+          Your email{" "}
           <input
             name="email"
             type="email"
@@ -229,7 +226,7 @@ export default function ContactForm() {
         </label>
 
         <label className="contact-honeypot" aria-hidden="true">
-          Website
+          Website{" "}
           <input name="website" type="text" tabIndex={-1} autoComplete="off" />
         </label>
 

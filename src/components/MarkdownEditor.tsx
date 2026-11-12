@@ -153,7 +153,7 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
             if (item.type.indexOf('image') === 0) {
                 e.preventDefault();
                 const file = item.getAsFile();
-                if (file) handleUpload(file);
+                if (file) void handleUpload(file);
             }
         }
     };
@@ -163,7 +163,7 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
         setIsDragging(false);
         const files = e.dataTransfer.files;
         if (files.length > 0 && files[0].type.startsWith('image/')) {
-            handleUpload(files[0]);
+            void handleUpload(files[0]);
         }
     };
 
@@ -210,7 +210,7 @@ export default function MarkdownEditor({ defaultValue = '', name }: MarkdownEdit
 
     const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) handleUpload(file);
+        if (file) void handleUpload(file);
         if (e.target) e.target.value = '';
     };
 

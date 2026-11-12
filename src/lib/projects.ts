@@ -74,7 +74,7 @@ const getCachedProjects = unstable_cache(
     { revalidate: 60, tags: ["projects"] },
 );
 
-export async function getProjectsStrict(): Promise<Project[]> {
+export function getProjectsStrict(): Promise<Project[]> {
     return getCachedProjects();
 }
 

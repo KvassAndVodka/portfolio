@@ -142,7 +142,9 @@ async function main() {
   if (isLocal && command === "up") printLocalAccess();
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error(error instanceof Error ? error.message : error);
   process.exit(1);
-});
+}

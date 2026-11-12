@@ -74,7 +74,7 @@ const SIZES: [number, number, number][] = [
 
 const angleBetween = (a: number, b: number) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
 const toRgb = (hex: string) => {
-  const value = parseInt(hex.replace("#", ""), 16);
+  const value = Number.parseInt(hex.replace("#", ""), 16);
   return [value >> 16, (value >> 8) & 255, value & 255];
 };
 
@@ -169,7 +169,7 @@ export async function createTraffic(map: MapLibreMap, count: number, palette: re
       pick -= weights[i];
       if (pick <= 0) return options[i];
     }
-    return options[options.length - 1];
+    return options.at(-1)!;
   };
 
   // ---- Cars ---------------------------------------------------------------------------------------
@@ -209,6 +209,19 @@ export async function createTraffic(map: MapLibreMap, count: number, palette: re
       });
       return;
     }
+  };
+
+  const updateCar = (car: Car, step: number, cx: number, cy: number) => {
+    if (car.grow < 1) car.grow += step / GROW_SECONDS;
+    if (car.leaving) {
+      car.grow -= (2 * step) / GROW_SECONDS;
+      return;
+    }
+    if (car.grow <= 0) return;
+    move(car, step);
+    const [x, y] = positionOf(car);
+    // Only cars that have driven well out of view leave, so none vanish on screen.
+    if (Math.hypot(x - cx, y - cy) > DESPAWN) car.leaving = true;
   };
 
   const move = (car: Car, step: number) => {
@@ -325,16 +338,7 @@ export async function createTraffic(map: MapLibreMap, count: number, palette: re
       // Arriving at a close-up: fill the streets at once, each car growing in on a slight stagger.
       if (cars.length === 0) for (let i = 0; i < count; i += 1) spawn(0, SPAWN_FAR, Math.random() * 0.6);
       const [cx, cy] = camera();
-      for (const car of cars) {
-        if (car.grow < 1) car.grow += step / GROW_SECONDS;
-        if (car.leaving) car.grow -= (2 * step) / GROW_SECONDS;
-        else if (car.grow > 0) {
-          move(car, step);
-          const [x, y] = positionOf(car);
-          // Only cars that have driven well out of view leave, so none vanish on screen.
-          if (Math.hypot(x - cx, y - cy) > DESPAWN) car.leaving = true;
-        }
-      }
+      for (const car of cars) updateCar(car, step, cx, cy);
       cars = cars.filter((car) => !(car.leaving && car.grow <= 0));
       // Top the streets back up gradually, so new cars trickle in rather than appearing in a burst.
       spawnCooldown -= step;

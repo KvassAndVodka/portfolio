@@ -69,7 +69,7 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
         setIsDragging(false);
 
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            handleFile(e.dataTransfer.files[0]);
+            void handleFile(e.dataTransfer.files[0]);
         }
     };
 
@@ -80,6 +80,14 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
                 onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => {
+                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                    e.preventDefault();
+                    fileInputRef.current?.click();
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label="Upload an image"
                 className={`relative border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all gap-4
                     ${isDragging
                         ? 'border-[var(--accent)] bg-[var(--accent)]/5'
@@ -95,7 +103,7 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
                     className="hidden"
                     accept="image/*"
                     onChange={(e) => {
-                        if (e.target.files?.[0]) handleFile(e.target.files[0]);
+                        if (e.target.files?.[0]) void handleFile(e.target.files[0]);
                     }}
                 />
 

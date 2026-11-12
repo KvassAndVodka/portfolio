@@ -210,7 +210,7 @@ function ProjectShowcaseContent({
             </div>
 
             <label className="search-field">
-              Search projects
+              Search projects{" "}
               <input
                 type="search"
                 placeholder="Title, summary, or technology"

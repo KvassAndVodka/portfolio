@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import geoip from "geoip-lite";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";

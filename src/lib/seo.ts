@@ -84,5 +84,5 @@ export function createPageMetadata({
 }
 
 export function serializeJsonLd(value: unknown) {
-  return JSON.stringify(value).replace(/</g, "\\u003c");
+  return JSON.stringify(value).replace(/</g, String.raw`\u003c`);
 }

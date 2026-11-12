@@ -51,7 +51,7 @@ export default async function OpenGraphImage() {
         >
           {/* The orange panel; the portrait rises above the card's top edge, as on the site. */}
           <div style={{ background: orange, display: "flex", height: panel.height, position: "relative", width: panel.width }}>
-            <svg width={panel.width} height={panel.height} style={{ left: 0, position: "absolute", top: 0 }}>
+            <svg aria-hidden="true" width={panel.width} height={panel.height} style={{ left: 0, position: "absolute", top: 0 }}>
               {contours.map((level) => (
                 <path
                   d={level.d}
