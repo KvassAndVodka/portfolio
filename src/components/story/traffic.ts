@@ -79,9 +79,9 @@ const toRgb = (hex: string) => {
 };
 
 export async function createTraffic(map: MapLibreMap, count: number, palette: readonly string[]) {
-  const [{ MapboxOverlay }, { SimpleMeshLayer }] = await Promise.all([import("@deck.gl/mapbox"), import("@deck.gl/mesh-layers")]);
+  const [{ MapLibreOverlay }, { SimpleMeshLayer }] = await Promise.all([import("@deck.gl/maplibre"), import("@deck.gl/mesh-layers")]);
   // Interleaved: drawn inside MapLibre's own WebGL context, so cars sort correctly against buildings.
-  const overlay = new MapboxOverlay({ interleaved: true, layers: [] });
+  const overlay = new MapLibreOverlay({ interleaved: true, layers: [] });
   map.addControl(overlay);
   const meshes = [vehicleMesh(-0.42, 0.12), vehicleMesh(-0.45, 0.4)];
   const colors = palette.slice(0, 3).map(toRgb);
