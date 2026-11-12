@@ -151,16 +151,36 @@ inspect the work. The portrait establishes identity; the project evidence establ
 - Links in mono uppercase; Contact is an orange tab with an arrow at the far right.
 - The same header is used on every public page.
 
+## Home projects (the gallery)
+
+- The projects sit on the drifting ASCII cloud. On desktop the section pins and vertical scroll moves
+  a horizontal track: a title slide, then one card per featured project. Each card snaps to the
+  centre, and the pin ends with the last card centred before the page moves on.
+- Each card is an atlas page on cream paper with a shadow and straight corners: a ticket strip
+  ("FIG. 01 / 03", category, year), the picture on the left, then title, summary, "What changed"
+  (when set), "Built with", and the actions. Live and source links stay visible.
+- The picture is the project screenshot. Without one, an ASCII plate of the project's mark stands in,
+  drawn with the cloud's own glyphs; it develops when its card arrives.
+- Progress shows as a map scale bar. Text over the cloud sits on a paper scrim, never on bare glyphs.
+- Phones and reduced motion: no pin; the cards stack vertically.
+
+## How I build (the spec sheet)
+
+- Built to be scanned: one card per practice area with recognisable tool logos and names, then the
+  full toolkit as plain text by category, always visible.
+
 ## Polish principles
 
 - Details must be legible to a normal visitor. Prefer universal map symbols (north arrow, scale bar,
   coordinates, contours) over insider references. No in-jokes such as HTTP codes, loopback
   addresses, or projection codes.
 - Do not overlap text with the portrait. Move the text, not the photo.
-- Use the postcard vocabulary (cream surface, stamps, mono labels) only in the hero, the header,
-  and the contact section. Project cards, notes, and archives stay plain.
+- Use the postcard vocabulary (cream surface, stamps, mono labels) in the hero, the header, the contact
+  section, and the home page's project and practice-area cards. Notes, archives, and the projects
+  index stay plain.
 - Do not use generated lifestyle imagery as a substitute for project evidence.
-- Cards use a border or a shadow, never both. Project cards use a border only.
+- Cards use a border or a shadow, never both. Projects-index cards use a border only; the home page's
+  gallery and practice-area cards use the postcard shadow only.
 - Card radii stop at `1rem`; buttons inside the postcard use `8px`.
 - Technologies are structured lists, not a wall of pills, and source or live links stay visible on
   project cards.

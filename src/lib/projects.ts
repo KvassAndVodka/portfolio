@@ -17,9 +17,10 @@ export interface Project {
   category?: string;
   isPinned?: boolean;
   thumbnail?: string;
+  outcome?: string;
 }
 
-export type ProjectPreview = Omit<Project, "content" | "publishedAt" | "updatedAt">;
+export type ProjectPreview = Omit<Project, "content" | "publishedAt" | "updatedAt"> & { year?: string };
 
 export function toProjectPreview(project: Project): ProjectPreview {
     return {
@@ -33,6 +34,8 @@ export function toProjectPreview(project: Project): ProjectPreview {
         category: project.category,
         isPinned: project.isPinned,
         thumbnail: project.thumbnail,
+        outcome: project.outcome,
+        year: project.publishedAt.slice(0, 4),
     };
 }
 
@@ -68,6 +71,7 @@ const getCachedProjects = unstable_cache(
             category: project.category || undefined,
             isPinned: project.isPinned,
             thumbnail: project.thumbnail || undefined,
+            outcome: project.outcome || undefined,
         }));
     },
     ["projects-list"],

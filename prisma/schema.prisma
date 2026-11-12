@@ -29,6 +29,7 @@ model Post {
   demoUrl    String?
   projectUrl String?
   thumbnail  String?
+  outcome    String? // One line on what changed, shown on the home page gallery card
 }
 
 enum PostType {

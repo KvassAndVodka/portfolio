@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { plateText } from "@/components/AsciiPlate";
 import NotesIndex from "@/components/NotesIndex";
+import ProjectGallery from "@/components/ProjectGallery";
 import ProjectShowcase from "@/components/ProjectShowcase";
 import { createPageMetadata, serializeJsonLd } from "@/lib/seo";
 import { buildSitemap } from "@/lib/sitemap";
@@ -76,4 +78,38 @@ test("project and note links are present in server-rendered HTML", () => {
   assert.match(projectHtml, /Data Platform/);
   assert.match(noteHtml, /href="\/notes\/shipping-notes"/);
   assert.match(noteHtml, /Shipping Notes/);
+});
+
+test("home gallery renders case-study, live, and code links on the server", () => {
+  const html = renderToStaticMarkup(
+    <ProjectGallery
+      projects={[
+        {
+          slug: "data-platform",
+          title: "Data Platform",
+          summary: "A dependable data platform.",
+          techStack: ["Next.js", "PostgreSQL"],
+          githubUrl: "https://github.com/example/data-platform",
+          demoUrl: "https://data.example.com",
+          outcome: "Reports went from hours to minutes.",
+          year: "2026",
+        },
+      ]}
+    />,
+  );
+
+  assert.match(html, /href="\/projects\/data-platform"/);
+  assert.match(html, /href="\/projects"/);
+  assert.match(html, /href="https:\/\/data\.example\.com"/);
+  assert.match(html, /href="https:\/\/github\.com\/example\/data-platform"/);
+  assert.match(html, /Reports went from hours to minutes\./);
+});
+
+test("ascii plates are deterministic and fit their grid", () => {
+  const plate = plateText(1, 40, 12);
+  assert.equal(plate, plateText(1, 40, 12));
+  const rows = plate.split("\n");
+  assert.equal(rows.length, 12);
+  assert.ok(rows.every((row) => row.length === 40));
+  assert.ok(/[#%@]/.test(plate), "a plate draws dense glyphs");
 });
