@@ -6,7 +6,7 @@ import ReactMarkdown from "react-markdown";
 import { markdownComponents } from "@/components/markdownComponents";
 import { FaArrowLeft, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6";
 
-import { formatProjectCategory } from "@/components/ProjectCard";
+import { formatProjectCategory } from "@/lib/projectCategory";
 import ProjectTechnologyList from "@/components/ProjectTechnologyList";
 import { getProject, getProjects } from "@/lib/projects";
 import { absoluteUrl, createPageMetadata, defaultSocialImage, serializeJsonLd } from "@/lib/seo";
