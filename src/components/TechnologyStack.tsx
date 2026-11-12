@@ -23,7 +23,9 @@ import {
   SiWebgl,
 } from "react-icons/si";
 
-import useScrollReveal from "@/hooks/useScrollReveal";
+import { useRef } from "react";
+
+import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
 import { LobeAntigravity, LobeCodex, SiClaudecode, SiOpencode } from "./aiIcons";
 
@@ -166,65 +168,123 @@ const toolkit: readonly Readonly<{ name: string; tools: readonly string[] }>[] =
   },
 ];
 
+const label = "font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.1em]";
+const pad = (n: number) => String(n).padStart(2, "0");
+
 const toolCount = toolkit.reduce((count, group) => count + group.tools.length, 0);
 
+/**
+ * "How I build" as a spec sheet a recruiter can scan: one card per practice area with recognisable tool
+ * logos, then the full toolkit as plain text (findable with Ctrl+F). Cards rise in and their logos follow.
+ */
 export default function TechnologyStack() {
-  const headingRef = useScrollReveal<HTMLDivElement>({
-    from: { autoAlpha: 0, clipPath: "inset(0 0 100% 0)", y: 22, duration: 0.92 },
-    start: "top 80%",
-  });
-  const areasRef = useScrollReveal<HTMLOListElement>({
-    targets: ".stack-area",
-    from: { autoAlpha: 0, y: 24 },
-    stagger: 0.08,
-  });
+  const ref = useRef<HTMLElement>(null);
+
+  useGSAP(
+    () => {
+      const root = ref.current;
+      if (!root || prefersReducedMotion()) return;
+      root.querySelectorAll<HTMLElement>("[data-area]").forEach((card, index) => {
+        gsap
+          .timeline({ scrollTrigger: { trigger: card, start: "top 88%", once: true } })
+          .from(card, { y: 28, autoAlpha: 0, duration: 0.8, delay: (index % 3) * 0.08 })
+          .from(card.querySelectorAll("[data-tool]"), { y: 10, autoAlpha: 0, stagger: 0.04, duration: 0.5 }, 0.25);
+      });
+      gsap.from(root.querySelectorAll("[data-ledger-row]"), {
+        autoAlpha: 0,
+        y: 10,
+        stagger: 0.05,
+        duration: 0.6,
+        scrollTrigger: { trigger: root.querySelector("[data-ledger]"), start: "top 88%", once: true },
+      });
+    },
+    { scope: ref },
+  );
 
   return (
-    <section className="technology-stage" aria-labelledby="technology-heading">
+    <section ref={ref} className="technology-stage" aria-labelledby="technology-heading">
       <div className="site-shell">
-        <div className="stack-heading" ref={headingRef}>
-          <h2 className="section-title" id="technology-heading">
-            How I build.
-          </h2>
-          <p className="body-large">
-            The tools I reach for, grouped by the problem they help me solve. Each project page carries its
-            full implementation stack.
+        <div className="grid items-end gap-x-12 gap-y-5 lg:grid-cols-[auto_minmax(0,30rem)] lg:justify-between">
+          <div>
+            <h2 className="section-title" id="technology-heading">
+              How I build.
+            </h2>
+            <p className={`${label} site-muted mt-4`}>
+              <span className="text-[var(--accent)]">{pad(practiceAreas.length)}</span> areas ·{" "}
+              <span className="text-[var(--accent)]">{toolCount}</span> tools, all used in real repositories
+            </p>
+          </div>
+          <p className="body-large site-muted">
+            The tools I reach for, grouped by the problem they help me solve. Each project page carries its full
+            implementation stack.
           </p>
         </div>
 
-        {/* One row per practice area, read across like a spec sheet: number and name, what I do, the tools. */}
-        <ol className="stack-areas" ref={areasRef}>
+        {/* The two widest practice areas lead; the other three share the second row. */}
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-6">
           {practiceAreas.map((area, index) => (
-            <li className="stack-area" key={area.name}>
-              <p className="stack-index">{String(index + 1).padStart(2, "0")}</p>
-              <h3>{area.name}</h3>
-              <p className="stack-description">{area.description}</p>
-              <ul className="stack-tools">
+            <article
+              aria-labelledby={`area-${index}`}
+              className={`${index < 2 ? "lg:col-span-3" : "lg:col-span-2"} flex flex-col rounded-[2px] bg-[var(--postcard-paper)] text-[var(--postcard-ink)] shadow-[var(--postcard-shadow)]`}
+              data-area
+              key={area.name}
+            >
+              <header className={`${label} flex h-11 items-stretch border-b border-[var(--line)]`}>
+                <span className="flex items-center border-r-2 border-dashed border-[var(--postcard-tear)] px-5 text-[var(--postcard-rust)]">
+                  {pad(index + 1)}
+                </span>
+                <h3 className="flex min-w-0 items-center truncate px-5" id={`area-${index}`}>
+                  {area.name}
+                </h3>
+                <span className="ml-auto flex items-center whitespace-nowrap px-5 text-[var(--postcard-muted)]">
+                  {pad(area.capabilities.length)} tools
+                </span>
+              </header>
+              {/* Columns chosen so rows come out even; a lone last tool spans the row instead of leaving a gap. */}
+              <ul
+                className={`grid gap-px bg-[var(--line)] [&>li:last-child:nth-child(odd)]:col-span-2 ${
+                  area.capabilities.length === 6
+                    ? "grid-cols-2 sm:grid-cols-3 sm:[&>li:last-child:nth-child(odd)]:col-span-1"
+                    : "grid-cols-2"
+                }`}
+              >
                 {area.capabilities.map(({ icon: Icon, name }) => (
-                  <li key={name}>
-                    {Icon && <Icon aria-hidden="true" />}
-                    {name}
+                  <li className="group flex items-center gap-3 bg-[var(--postcard-paper)] px-5 py-4" data-tool key={name}>
+                    {Icon && (
+                      <Icon
+                        aria-hidden="true"
+                        className="size-6 shrink-0 transition-colors duration-300 group-hover:text-[var(--postcard-orange)]"
+                      />
+                    )}
+                    <span className="truncate font-semibold">{name}</span>
                   </li>
                 ))}
               </ul>
-            </li>
+              <p className="mt-auto border-t border-[var(--line)] px-5 py-4 text-sm leading-[1.55] text-[var(--postcard-muted)]">
+                {area.description}
+              </p>
+            </article>
           ))}
-        </ol>
+        </div>
 
-        {/* The full list stays one click away instead of a wall of tags: one plain line per category. */}
-        <details className="stack-toolkit">
-          <summary>
-            Full toolkit <span>{toolCount}</span>
-          </summary>
+        {/* Everything, in plain text: easy to scan, and findable with Ctrl+F. */}
+        <div className="mt-16" data-ledger>
+          <h3 className={`${label} border-b border-[var(--line-strong)] pb-3`}>
+            Full toolkit · <span className="text-[var(--accent)]">{toolCount}</span>
+          </h3>
           <dl>
             {toolkit.map((group) => (
-              <div key={group.name}>
-                <dt>{group.name}</dt>
-                <dd>{group.tools.join(" · ")}</dd>
+              <div
+                className="grid gap-x-10 gap-y-1 border-b border-[var(--line)] py-3.5 md:grid-cols-[14rem_minmax(0,1fr)]"
+                data-ledger-row
+                key={group.name}
+              >
+                <dt className={`${label} pt-0.5 text-[var(--accent)]`}>{group.name}</dt>
+                <dd className="text-[0.9375rem] leading-[1.6]">{group.tools.join(" · ")}</dd>
               </div>
             ))}
           </dl>
-        </details>
+        </div>
       </div>
     </section>
   );

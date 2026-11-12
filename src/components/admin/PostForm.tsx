@@ -33,6 +33,7 @@ type PostFormProps = Readonly<{
     isPinned: boolean;
     showAsBlog: boolean;
     thumbnail?: string | null;
+    outcome?: string | null;
   };
   action: (formData: FormData) => Promise<void>;
   submitLabel: string;
@@ -166,6 +167,7 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
                 <div className="md:col-span-2"><label htmlFor="post-tech" className="mb-2 block text-sm font-medium">Technologies</label><input id="post-tech" className="admin-field" name="techStack" defaultValue={initialData?.techStack?.join(", ")} placeholder="Next.js, PostgreSQL, Docker" aria-describedby="tech-help" /><p id="tech-help" className="mt-1.5 text-xs admin-muted">Separate technologies with commas.</p></div>
                 <div><label htmlFor="github-url" className="mb-2 block text-sm font-medium">GitHub repository</label><input id="github-url" className="admin-field" name="githubUrl" type="url" defaultValue={initialData?.githubUrl || ""} placeholder="https://github.com/…" /></div>
                 <div><label htmlFor="demo-url" className="mb-2 block text-sm font-medium">Live demo</label><input id="demo-url" className="admin-field" name="demoUrl" type="url" defaultValue={initialData?.demoUrl || ""} placeholder="https://…" /></div>
+                <div className="md:col-span-2"><label htmlFor="post-outcome" className="mb-2 block text-sm font-medium">What changed</label><textarea id="post-outcome" className="admin-textarea" name="outcome" rows={2} maxLength={200} defaultValue={initialData?.outcome || ""} placeholder="One line on the result, e.g. One searchable record replaced scattered spreadsheets." aria-describedby="outcome-help" /><p id="outcome-help" className="mt-1.5 text-xs admin-muted">Shown as the highlight on the homepage project card. Leave empty to hide it.</p></div>
                 <div className="md:col-span-2"><label htmlFor="project-url" className="mb-2 block text-sm font-medium">Additional project link</label><input id="project-url" className="admin-field" name="projectUrl" type="url" defaultValue={initialData?.projectUrl || ""} placeholder="https://…" /></div>
               </div>
             </section>

@@ -54,6 +54,7 @@ export async function createPost(formData: FormData) {
     const githubUrl = (formData.get('githubUrl') as string) || null;
     const demoUrl = (formData.get('demoUrl') as string) || null;
     const projectUrl = (formData.get('projectUrl') as string) || null;
+    const outcome = (formData.get('outcome') as string)?.trim().slice(0, 200) || null;
     const shouldPinProject = type === PostType.PROJECT && isPinned;
     const pinnedOrder = shouldPinProject ? await getNextPinnedProjectOrder() : null;
 
@@ -74,7 +75,8 @@ export async function createPost(formData: FormData) {
             thumbnail,
             githubUrl,
             demoUrl,
-            projectUrl
+            projectUrl,
+            outcome
         }
     });
 
@@ -111,6 +113,7 @@ export async function updatePost(id: string, formData: FormData) {
     const githubUrl = (formData.get('githubUrl') as string) || null;
     const demoUrl = (formData.get('demoUrl') as string) || null;
     const projectUrl = (formData.get('projectUrl') as string) || null;
+    const outcome = (formData.get('outcome') as string)?.trim().slice(0, 200) || null;
     const shouldPinProject = existingPost.type === PostType.PROJECT && isPinned;
     const wasPinnedProject = existingPost.type === PostType.PROJECT && existingPost.isPinned;
     const pinnedOrder = shouldPinProject
@@ -135,7 +138,8 @@ export async function updatePost(id: string, formData: FormData) {
                 thumbnail,
                 githubUrl,
                 demoUrl,
-                projectUrl
+                projectUrl,
+                outcome
             }
         }),
         ...(!shouldPinProject && wasPinnedProject && existingPost.pinnedOrder !== null ? [

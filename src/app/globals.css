@@ -355,7 +355,6 @@ button {
   margin-inline: auto;
 }
 
-.projects-heading > *,
 .filter-toolbar > *,
 .project-card-heading > * {
   min-width: 0;
@@ -755,20 +754,6 @@ svg.button-external-icon {
   margin-top: 1.75rem;
 }
 
-/*
- * Spacing lives on the inner shell, not the section: the section's sticky cloud canvas can only travel
- * within the section's content box, so section padding made it stop short and leave a blank strip.
- */
-.projects-stage > .site-shell {
-  padding-block: clamp(6rem, 11vw, 9rem);
-}
-
-.projects-heading {
-  display: grid;
-  gap: 1.5rem;
-  margin-bottom: clamp(3rem, 6vw, 5.5rem);
-}
-
 .section-title-wide {
   max-width: 14ch;
 }
@@ -792,167 +777,7 @@ svg.button-external-icon {
   background: var(--background);
 }
 
-/* How I build: numbered practice rows read across like a spec sheet, then the full toolkit folded away. */
-.stack-heading {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 1.5rem clamp(2rem, 6vw, 6rem);
-  align-items: end;
-}
-
-.stack-areas {
-  margin: clamp(3rem, 6vw, 4.5rem) 0 0;
-  padding: 0;
-  border-top: 2px solid var(--foreground);
-  list-style: none;
-}
-
-.stack-area {
-  display: grid;
-  grid-template-columns: 3rem minmax(11rem, 0.9fr) minmax(0, 1.6fr) minmax(0, 1fr);
-  gap: 0.5rem 2rem;
-  align-items: baseline;
-  padding-block: 1.5rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.stack-index {
-  color: var(--accent);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.stack-area h3 {
-  font-size: 1.125rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-}
-
-.stack-description {
-  max-width: 52ch;
-  color: var(--muted);
-  font-size: 0.9375rem;
-  line-height: 1.6;
-}
-
-.stack-tools {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem 1rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: var(--muted-strong);
-  font-size: 0.8125rem;
-  font-weight: 600;
-}
-
-.stack-tools li {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.stack-tools svg {
-  width: 0.95rem;
-  height: 0.95rem;
-  flex: none;
-  color: var(--accent);
-}
-
-.stack-toolkit {
-  margin-top: 2rem;
-}
-
-.stack-toolkit summary {
-  display: inline-flex;
-  min-height: 2.75rem;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 0.75rem;
-  font-weight: 650;
-  letter-spacing: 0.12em;
-  list-style: none;
-  text-transform: uppercase;
-}
-
-.stack-toolkit summary::-webkit-details-marker {
-  display: none;
-}
-
-.stack-toolkit summary::after {
-  color: var(--accent);
-  content: "+";
-  font-size: 1rem;
-}
-
-.stack-toolkit[open] summary::after {
-  content: "−";
-}
-
-.stack-toolkit summary span {
-  color: var(--accent);
-}
-
-.stack-toolkit dl {
-  display: grid;
-  margin: 1rem 0 0;
-}
-
-.stack-toolkit dl > div {
-  display: grid;
-  grid-template-columns: 12rem minmax(0, 1fr);
-  gap: 0.25rem 2rem;
-  padding-block: 0.875rem;
-  border-top: 1px solid var(--line);
-}
-
-.stack-toolkit dt {
-  color: var(--muted);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.stack-toolkit dd {
-  margin: 0;
-  color: var(--muted-strong);
-  font-size: 0.875rem;
-  line-height: 1.6;
-}
-
-/* Tablets: name and tools share a line under the number; the description runs full width below. */
-@media (max-width: 1023px) {
-  .stack-area {
-    grid-template-columns: 3rem minmax(0, 1fr);
-  }
-
-  .stack-area > :nth-child(n + 3) {
-    grid-column: 2;
-  }
-}
-
-@media (max-width: 767px) {
-  .stack-heading {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .stack-area {
-    grid-template-columns: 2.25rem minmax(0, 1fr);
-    gap: 0.5rem 0.75rem;
-  }
-
-  .stack-toolkit dl > div {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-/* The contact section is the back of the hero's postcard. The message is written on ruled lines at left; the
+/* Contact: the back of the hero's postcard. The message is written on ruled lines at left; the
    address side at right carries the stamp, who it goes to, and the sender's details. */
 .contact-stage {
   padding-block: clamp(6rem, 11vw, 9rem);

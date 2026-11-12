@@ -9,7 +9,7 @@ import {
 import ContactForm from "@/components/ContactForm";
 import FooterWordmark from "@/components/FooterWordmark";
 import LocalTime from "@/components/LocalTime";
-import ProjectShowcase from "@/components/ProjectShowcase";
+import ProjectGallery from "@/components/ProjectGallery";
 import ScrollReveal from "@/components/ScrollReveal";
 import CloudField from "@/components/story/CloudField";
 import { places } from "@/components/story/places";
@@ -43,25 +43,16 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const projects = (await getProjects()).map(toProjectPreview);
+  // Featured on the home page: the pinned projects, or the three latest when none are pinned.
+  const pinned = projects.filter((project) => project.isPinned);
+  const featured = pinned.length > 0 ? pinned : projects.slice(0, 3);
 
   return (
     <div>
       <StoryJourney places={places} />
 
       <CloudField id="work" className="projects-stage">
-        <div className="site-shell">
-          <ScrollReveal className="projects-heading" variant="clip">
-            <h2 className="section-title section-title-wide">
-              A few things <span>I&apos;ve built.</span>
-            </h2>
-            <p className="body-large">
-              I like working on systems where reliability matters. These case studies show how I
-              think, build, and ship.
-            </p>
-          </ScrollReveal>
-
-          <ProjectShowcase compact featured initialProjects={projects} />
-        </div>
+        <ProjectGallery projects={featured} />
       </CloudField>
 
       <TechnologyStack />
