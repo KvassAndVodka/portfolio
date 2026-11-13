@@ -1833,7 +1833,31 @@ svg.button-external-icon {
   max-width: 100%;
   overflow-x: auto;
   white-space: nowrap;
+  border-collapse: collapse;
 }
+
+/* A ruled grid, like a survey table: every cell has visible lines, and the header row is shaded. */
+.article-prose :where(th, td) {
+  border: 1px solid var(--line-strong);
+  padding: 0.55em 0.9em;
+  vertical-align: top;
+}
+
+.article-prose :where(thead th, tr:first-child th) {
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+  font-weight: 650;
+}
+
+/* Code tokens from lowlight (editor) and rehype-highlight (public pages). Code blocks are dark in both themes. */
+.article-prose pre :where(.hljs-comment, .hljs-quote) { color: #8f8a7e; font-style: italic; }
+.article-prose pre :where(.hljs-keyword, .hljs-selector-tag, .hljs-meta .hljs-keyword, .hljs-doctag) { color: #ff8a5c; }
+.article-prose pre :where(.hljs-string, .hljs-regexp, .hljs-addition, .hljs-template-string) { color: #c5d48a; }
+.article-prose pre :where(.hljs-number, .hljs-literal, .hljs-symbol, .hljs-bullet) { color: #f2c46d; }
+.article-prose pre :where(.hljs-title, .hljs-section, .hljs-name) { color: #f4ede0; font-weight: 600; }
+.article-prose pre :where(.hljs-type, .hljs-built_in, .hljs-class .hljs-title, .hljs-title.class_) { color: #8fc3cf; }
+.article-prose pre :where(.hljs-attr, .hljs-attribute, .hljs-variable, .hljs-template-variable, .hljs-property, .hljs-params) { color: #e7b9a0; }
+.article-prose pre :where(.hljs-meta, .hljs-tag, .hljs-punctuation) { color: #b4ada0; }
+.article-prose pre :where(.hljs-deletion) { color: #ff9c82; }
 
 .article-prose :where(img, video, iframe) {
   max-width: 100%;
@@ -1851,8 +1875,12 @@ svg.button-external-icon {
 
 .paper-editor :where(td, th) {
   position: relative;
-  border-bottom: 1px solid var(--postcard-tear);
-  padding: 0.5rem 1rem 0.5rem 0;
+}
+
+/* ProseMirror wraps all text; code blocks scroll sideways instead, as they do on the public pages. */
+.paper-editor .ProseMirror pre {
+  overflow-x: auto;
+  white-space: pre;
 }
 
 .paper-editor .selectedCell::after {

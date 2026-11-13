@@ -4,7 +4,7 @@ import { Markdown } from "@tiptap/markdown";
 import { Placeholder } from "@tiptap/extensions";
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FaCode, FaImage, FaMinus, FaPlus, FaTable } from "react-icons/fa6";
 import MediaPicker from "@/components/admin/MediaPicker";
 import { editorExtensions } from "@/lib/editorExtensions";
@@ -15,7 +15,7 @@ const menuButton = "min-h-9 rounded-[6px] px-2.5 hover:bg-[color-mix(in_srgb,var
 
 const countWords = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
 
-function SelectionMenu({ editor }: Readonly<{ editor: Editor }>) {
+function SelectionMenu({ editor, appendTo }: Readonly<{ editor: Editor; appendTo: () => HTMLElement }>) {
   const [linking, setLinking] = useState(false);
   const active = useEditorState({
     editor,
@@ -34,7 +34,7 @@ function SelectionMenu({ editor }: Readonly<{ editor: Editor }>) {
     ["Code", active.code, () => editor.chain().focus().toggleCode().run()],
   ];
   return (
-    <BubbleMenu editor={editor} shouldShow={({ editor: e, from, to }) => from !== to && !e.isActive("table") && !e.isActive("image")} className={menu} role="toolbar" aria-label="Format selection">
+    <BubbleMenu editor={editor} appendTo={appendTo} shouldShow={({ editor: e, from, to }) => from !== to && !e.isActive("table") && !e.isActive("image")} className={menu} role="toolbar" aria-label="Format selection">
       {linking ? (
         <form
           className="flex items-center"
@@ -55,7 +55,7 @@ function SelectionMenu({ editor }: Readonly<{ editor: Editor }>) {
   );
 }
 
-function TableMenu({ editor }: Readonly<{ editor: Editor }>) {
+function TableMenu({ editor, appendTo }: Readonly<{ editor: Editor; appendTo: () => HTMLElement }>) {
   const actions: Array<[string, () => boolean]> = [
     ["+ Row", () => editor.chain().focus().addRowAfter().run()],
     ["+ Column", () => editor.chain().focus().addColumnAfter().run()],
@@ -67,6 +67,7 @@ function TableMenu({ editor }: Readonly<{ editor: Editor }>) {
     <BubbleMenu
       editor={editor}
       pluginKey="tableMenu"
+      appendTo={appendTo}
       shouldShow={({ editor: e }) => e.isActive("table")}
       // Sit above the whole table, not the cell, so the menu never covers the header row.
       getReferencedVirtualElement={() => {
@@ -84,7 +85,7 @@ function TableMenu({ editor }: Readonly<{ editor: Editor }>) {
   );
 }
 
-function InsertMenu({ editor, onImage }: Readonly<{ editor: Editor; onImage: () => void }>) {
+function InsertMenu({ editor, onImage, appendTo }: Readonly<{ editor: Editor; onImage: () => void; appendTo: () => HTMLElement }>) {
   const [open, setOpen] = useState(false);
   const insert: Array<[string, React.ReactNode, () => void]> = [
     ["Image", <FaImage key="i" aria-hidden="true" />, onImage],
@@ -93,7 +94,7 @@ function InsertMenu({ editor, onImage }: Readonly<{ editor: Editor; onImage: () 
     ["Divider", <FaMinus key="d" aria-hidden="true" />, () => editor.chain().focus().setHorizontalRule().run()],
   ];
   return (
-    <FloatingMenu editor={editor} options={{ placement: "left", offset: 12 }} className="flex items-center gap-2 max-md:hidden">
+    <FloatingMenu editor={editor} appendTo={appendTo} options={{ placement: "left", offset: 12 }} className="flex items-center gap-2 max-md:hidden">
       <button
         type="button"
         aria-label={open ? "Close insert menu" : "Insert image, table, code block or divider"}
@@ -120,6 +121,9 @@ export default function PaperEditor({ name, defaultValue = "", placeholder, onWo
   const [value, setValue] = useState(defaultValue);
   const [source, setSource] = useState(false);
   const [picking, setPicking] = useState(false);
+  // Menus live inside the sheet, not on <body>: the admin scrolls an inner container, so body-level menus would stay put while the sheet moves.
+  const rootRef = useRef<HTMLDivElement>(null);
+  const appendTo = () => rootRef.current ?? document.body;
 
   const editor = useEditor({
     extensions: [...editorExtensions, Markdown, Placeholder.configure({ placeholder })],
@@ -141,7 +145,7 @@ export default function PaperEditor({ name, defaultValue = "", placeholder, onWo
   };
 
   return (
-    <div className="paper-editor">
+    <div ref={rootRef} className="paper-editor relative">
       <input type="hidden" name={name} value={value} />
       {source ? (
         <textarea
@@ -154,9 +158,9 @@ export default function PaperEditor({ name, defaultValue = "", placeholder, onWo
       ) : (
         editor && (
           <>
-            <SelectionMenu editor={editor} />
-            <TableMenu editor={editor} />
-            <InsertMenu editor={editor} onImage={() => setPicking(true)} />
+            <SelectionMenu editor={editor} appendTo={appendTo} />
+            <TableMenu editor={editor} appendTo={appendTo} />
+            <InsertMenu editor={editor} appendTo={appendTo} onImage={() => setPicking(true)} />
             <EditorContent editor={editor} />
           </>
         )
