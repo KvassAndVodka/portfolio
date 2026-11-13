@@ -1868,6 +1868,12 @@ svg.button-external-icon {
   outline: none;
 }
 
+/* The post form: underlined fields turn orange on focus, and radio cards draw their own ring, so the
+   global focus outline would double up. Checkboxes keep it. */
+.post-form :where(input:not([type="checkbox"]), textarea):focus-visible {
+  outline: none;
+}
+
 /* Table cells hold paragraphs while editing; drop the prose margins so rows stay one line tall. */
 .paper-editor :where(td, th) > p {
   margin: 0;

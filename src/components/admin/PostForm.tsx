@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaArrowLeft, FaArrowUpRightFromSquare, FaImage, FaXmark } from "react-icons/fa6";
@@ -48,9 +48,23 @@ function toLocalDateTime(value?: Date | string) {
 }
 
 const fieldLabel = "block font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.1em] site-muted";
-const lineBox = "mt-2 border-b-[1.5px] border-[var(--foreground)] focus-within:border-[var(--postcard-orange)]";
-const line = `${lineBox} block w-full bg-transparent py-2 text-base outline-none placeholder:text-[var(--muted)] focus-visible:outline-none`;
+const lineBox = "mt-2 border-b-[1.5px] border-[var(--foreground)] focus-within:border-[var(--postcard-orange)] has-[[aria-invalid=true]]:border-[var(--accent)]";
+const line = `${lineBox} block w-full bg-transparent py-2 text-base outline-none placeholder:text-[var(--muted)] aria-[invalid=true]:border-[var(--accent)]`;
 const help = "site-muted mt-2 text-xs leading-[1.6]";
+
+// Our own words for the browser's validation errors, shown under the field instead of the native bubble.
+function messageFor(field: HTMLInputElement | HTMLTextAreaElement) {
+  const { validity, name } = field;
+  if (validity.valueMissing) return ({ title: "Give it a title.", summary: "Add a one-line summary.", scheduledFor: "Pick the date and time to publish." } as Record<string, string>)[name] ?? "Fill in this field.";
+  if (validity.typeMismatch) return "Enter a full link that starts with https://.";
+  if (validity.patternMismatch) return "Use lowercase letters, numbers and hyphens only.";
+  return field.validationMessage;
+}
+
+function FieldError({ name, message }: Readonly<{ name: string; message?: string }>) {
+  if (!message) return null;
+  return <p id={`${name}-error`} role="alert" className="mt-2 font-mono text-xs font-semibold text-[var(--accent)]">{message}</p>;
+}
 
 /** One numbered row of the details sheet: index and title on the left, fields on the right. */
 function DetailRow({ index, title, lead, last, children }: Readonly<{ index: number; title: string; lead: string; last?: boolean; children: React.ReactNode }>) {
@@ -72,13 +86,35 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
   const [showThumbnailPicker, setShowThumbnailPicker] = useState(false);
   const [thumbnail, setThumbnail] = useState(initialData?.thumbnail || "");
   const [words, setWords] = useState(0);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const focusedError = useRef(false);
+  const invalid = (name: string) => ({ "aria-invalid": errors[name] ? true : undefined, "aria-errormessage": errors[name] ? `${name}-error` : undefined });
   const isEditing = Boolean(initialData?.id);
   const publicPath = type === "PROJECT" ? `/projects/${initialData?.slug}` : `/notes/${initialData?.slug}`;
   const listPath = type === "PROJECT" ? "/admin/projects" : "/admin/notes";
   const sheetLabel = "font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.1em]";
 
   return (
-    <form action={action} className="pb-24">
+    <form
+      action={action}
+      className="post-form pb-24"
+      // Replace the browser's validation bubble with a message under each field, and bring the first problem into view.
+      onInvalidCapture={(event) => {
+        event.preventDefault();
+        const field = event.target as HTMLInputElement | HTMLTextAreaElement;
+        setErrors((current) => ({ ...current, [field.name]: messageFor(field) }));
+        if (!focusedError.current) {
+          focusedError.current = true;
+          field.focus({ preventScroll: true });
+          field.scrollIntoView({ block: "center", behavior: "smooth" });
+          requestAnimationFrame(() => { focusedError.current = false; });
+        }
+      }}
+      onInputCapture={(event) => {
+        const field = event.target as HTMLInputElement;
+        if (errors[field.name] && field.validity?.valid) setErrors((current) => Object.fromEntries(Object.entries(current).filter(([name]) => name !== field.name)));
+      }}
+    >
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="thumbnail" value={thumbnail} />
 
@@ -102,9 +138,11 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
       <article className="mx-auto mt-8 max-w-[50rem] bg-[var(--postcard-paper)] bg-[linear-gradient(var(--postcard-grid)_1px,transparent_1px),linear-gradient(90deg,var(--postcard-grid)_1px,transparent_1px)] bg-[size:20px_20px] px-[clamp(1.25rem,7vw,5rem)] pb-[clamp(3rem,8vw,6rem)] pt-[clamp(2.5rem,7vw,5rem)] text-[var(--postcard-ink)] shadow-[var(--postcard-shadow)] md:mt-14">
         <p className={`${sheetLabel} text-[var(--postcard-rust)]`}>{type === "PROJECT" ? "Case study" : "Note"}</p>
         <label htmlFor="post-title" className="sr-only">Title</label>
-        <textarea id="post-title" name="title" rows={1} defaultValue={initialData?.title} maxLength={140} required placeholder={type === "PROJECT" ? "Project name" : "Title"} className="mt-3 w-full resize-none bg-transparent pb-[0.14em] pt-[0.06em] focus-visible:outline-none text-[clamp(2.35rem,5vw,3.75rem)] font-[620] leading-[1.06] tracking-[-0.035em] outline-none placeholder:text-[var(--postcard-tear)]" style={{ fieldSizing: "content" } as React.CSSProperties} onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }} />
+        <textarea id="post-title" {...invalid("title")} name="title" rows={1} defaultValue={initialData?.title} maxLength={140} required placeholder={type === "PROJECT" ? "Project name" : "Title"} className="mt-3 w-full resize-none bg-transparent pb-[0.14em] pt-[0.06em] text-[clamp(2.35rem,5vw,3.75rem)] font-[620] leading-[1.06] tracking-[-0.035em] outline-none placeholder:text-[var(--postcard-tear)]" style={{ fieldSizing: "content" } as React.CSSProperties} onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }} />
+        <FieldError name="title" message={errors.title} />
         <label htmlFor="post-summary" className="sr-only">Summary</label>
-        <textarea id="post-summary" name="summary" rows={1} defaultValue={initialData?.summary} maxLength={320} required placeholder="A one-line summary, shown in lists and link previews" className="mt-5 w-full resize-none bg-transparent focus-visible:outline-none text-[1.25rem] leading-[1.6] text-[var(--postcard-muted)] outline-none placeholder:text-[var(--postcard-tear)]" style={{ fieldSizing: "content" } as React.CSSProperties} />
+        <textarea id="post-summary" {...invalid("summary")} name="summary" rows={1} defaultValue={initialData?.summary} maxLength={320} required placeholder="A one-line summary, shown in lists and link previews" className="mt-5 w-full resize-none bg-transparent text-[1.25rem] leading-[1.6] text-[var(--postcard-muted)] outline-none placeholder:text-[var(--postcard-tear)]" style={{ fieldSizing: "content" } as React.CSSProperties} />
+        <FieldError name="summary" message={errors.summary} />
         <div className="mt-12">
           <PaperEditor name="content" defaultValue={initialData?.content} onWords={setWords} placeholder={type === "PROJECT" ? "Tell the story: the problem, what you built, what changed…" : "Start writing…"} />
         </div>
@@ -121,8 +159,9 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
               <label htmlFor="post-slug" className={fieldLabel}>Link</label>
               <span className={`${lineBox} flex items-baseline`}>
                 <span className="site-muted shrink-0">/{type === "PROJECT" ? "projects" : "notes"}/</span>
-                <input id="post-slug" className="w-full min-w-0 bg-transparent py-2 font-mono text-[0.95rem] outline-none focus-visible:outline-none" name="slug" defaultValue={initialData?.slug} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="generated-from-title" aria-describedby="slug-help" />
+                <input id="post-slug" {...invalid("slug")} className="w-full min-w-0 bg-transparent py-2 font-mono text-[0.95rem] outline-none" name="slug" defaultValue={initialData?.slug} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="generated-from-title" aria-describedby="slug-help" />
               </span>
+              <FieldError name="slug" message={errors.slug} />
               <p id="slug-help" className={help}>Lowercase letters, numbers and hyphens. Leave empty to generate it from the title.</p>
             </div>
             <div>
@@ -145,9 +184,9 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
                 <input id="post-tech" className={line} name="techStack" defaultValue={initialData?.techStack?.join(", ")} placeholder="Next.js, PostgreSQL, Docker" aria-describedby="tech-help" />
                 <p id="tech-help" className={help}>Separate technologies with commas.</p>
               </div>
-              <div><label htmlFor="github-url" className={fieldLabel}>Source</label><input id="github-url" className={line} name="githubUrl" type="url" defaultValue={initialData?.githubUrl || ""} placeholder="https://github.com/…" /></div>
-              <div><label htmlFor="demo-url" className={fieldLabel}>Live demo</label><input id="demo-url" className={line} name="demoUrl" type="url" defaultValue={initialData?.demoUrl || ""} placeholder="https://…" /></div>
-              <div className="sm:col-span-2"><label htmlFor="project-url" className={fieldLabel}>Other link</label><input id="project-url" className={line} name="projectUrl" type="url" defaultValue={initialData?.projectUrl || ""} placeholder="https://…" /></div>
+              <div><label htmlFor="github-url" className={fieldLabel}>Source</label><input id="github-url" {...invalid("githubUrl")} className={line} name="githubUrl" type="url" defaultValue={initialData?.githubUrl || ""} placeholder="https://github.com/…" /><FieldError name="githubUrl" message={errors.githubUrl} /></div>
+              <div><label htmlFor="demo-url" className={fieldLabel}>Live demo</label><input id="demo-url" {...invalid("demoUrl")} className={line} name="demoUrl" type="url" defaultValue={initialData?.demoUrl || ""} placeholder="https://…" /><FieldError name="demoUrl" message={errors.demoUrl} /></div>
+              <div className="sm:col-span-2"><label htmlFor="project-url" className={fieldLabel}>Other link</label><input id="project-url" {...invalid("projectUrl")} className={line} name="projectUrl" type="url" defaultValue={initialData?.projectUrl || ""} placeholder="https://…" /><FieldError name="projectUrl" message={errors.projectUrl} /></div>
             </div>
           </DetailRow>
         )}
@@ -159,7 +198,7 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
               {statusOptions.map((option) => (
                 <label key={option.value} className="flex min-h-11 cursor-pointer flex-col justify-center rounded-[8px] border border-[var(--line)] px-4 py-3 transition-colors hover:border-[var(--foreground)] has-[:checked]:border-[var(--foreground)] has-[:checked]:bg-[color-mix(in_srgb,var(--foreground)_5%,transparent)] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--focus)]">
                   <span className="flex items-center gap-2 font-semibold">
-                    <input type="radio" name="status" value={option.value} checked={status === option.value} onChange={() => setStatus(option.value)} className="size-4 accent-[var(--postcard-orange)] focus-visible:outline-none" />
+                    <input type="radio" name="status" value={option.value} checked={status === option.value} onChange={() => setStatus(option.value)} className="size-4 accent-[var(--postcard-orange)]" />
                     {option.label}
                   </span>
                   <span className="site-muted mt-1 pl-6 text-sm">{option.description}</span>
@@ -170,7 +209,8 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
           {status === "SCHEDULED" && (
             <div className="mt-7 max-w-xs">
               <label htmlFor="scheduled-for" className={fieldLabel}>Publish on</label>
-              <input id="scheduled-for" className={line} name="scheduledFor" type="datetime-local" defaultValue={toLocalDateTime(initialData?.publishedAt)} required />
+              <input id="scheduled-for" {...invalid("scheduledFor")} className={line} name="scheduledFor" type="datetime-local" defaultValue={toLocalDateTime(initialData?.publishedAt)} required />
+              <FieldError name="scheduledFor" message={errors.scheduledFor} />
             </div>
           )}
           {type === "PROJECT" && (
