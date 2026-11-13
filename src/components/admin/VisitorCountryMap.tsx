@@ -90,7 +90,7 @@ export default function VisitorCountryMap({ countries }: Readonly<{ countries: C
         </p>
       </div>
 
-      {countries.length > 0 ? (
+      {/* The dot world always prints; with no countries yet, the ranking gives way to a note. */}
         <div className="grid xl:grid-cols-[minmax(0,1.75fr)_minmax(17rem,0.65fr)]">
           <figure className="min-w-0 p-3 sm:p-5 md:p-6">
             <DotsReveal>
@@ -163,6 +163,7 @@ export default function VisitorCountryMap({ countries }: Readonly<{ countries: C
             </figcaption>
           </figure>
 
+          {countries.length > 0 ? (
           <ol className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)] xl:border-l xl:border-t-0">
             {countries.slice(0, 8).map((country, index) => (
               <li key={country.countryCode} className="grid min-h-16 grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-3 px-5 py-3">
@@ -178,15 +179,15 @@ export default function VisitorCountryMap({ countries }: Readonly<{ countries: C
               </li>
             ))}
           </ol>
+          ) : (
+            <div className="border-t border-[var(--admin-border)] px-5 py-8 xl:border-l xl:border-t-0">
+              <p className="font-medium">No visitor countries yet</p>
+              <p className="mt-1 text-sm admin-muted">
+                Local and private-network traffic cannot be geolocated. Countries appear after public visits are resolved.
+              </p>
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="px-5 py-12 md:px-6">
-          <p className="font-medium">No visitor countries yet</p>
-          <p className="mt-1 max-w-xl text-sm admin-muted">
-            Local and private-network traffic cannot be geolocated. Countries will appear after public visits are resolved.
-          </p>
-        </div>
-      )}
     </section>
   );
 }

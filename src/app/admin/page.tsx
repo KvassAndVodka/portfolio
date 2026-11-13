@@ -5,7 +5,6 @@ import AnalyticsChart from "@/components/admin/AnalyticsChart";
 import TopPagesTable from "@/components/admin/TopPagesTable";
 import VisitorCountryMap from "@/components/admin/VisitorCountryMap";
 import VisitorStatsCards from "@/components/admin/VisitorStatsCards";
-import { isAdminPreviewEnabled } from "@/lib/admin-preview";
 import { getContentHealth, getDailyVisits, getTopPages, getVisitorCountries, getVisitorStats } from "@/lib/analytics";
 import { prisma } from "@/lib/prisma";
 import { siteConfig } from "@/lib/seo";
@@ -23,18 +22,16 @@ function today() {
 }
 
 export default async function AdminDashboard() {
-  const isPreview = isAdminPreviewEnabled();
-  const [posts, drafts, stats, dailyVisits, topPages, countries, health] = isPreview
-    ? [[], [], { days: 30, views: 0, visitors: 0, contactSubmissions: 0, viewsChange: 0, visitorsChange: 0 }, [], [], [], { drafts: 0, scheduled: 0, missingImages: 0, missingProjectLinks: 0 }]
-    : await Promise.all([
-        prisma.post.findMany({ where: { deletedAt: null }, orderBy: { updatedAt: "desc" }, take: 6 }),
-        prisma.post.findMany({ where: { deletedAt: null, status: "DRAFT" }, orderBy: { updatedAt: "desc" }, take: 3 }),
-        getVisitorStats(30),
-        getDailyVisits(14),
-        getTopPages(6, 30),
-        getVisitorCountries(30),
-        getContentHealth(),
-      ]);
+  // Preview mode only skips sign-in; the desk still reads the local database, like the editor pages do.
+  const [posts, drafts, stats, dailyVisits, topPages, countries, health] = await Promise.all([
+    prisma.post.findMany({ where: { deletedAt: null }, orderBy: { updatedAt: "desc" }, take: 6 }),
+    prisma.post.findMany({ where: { deletedAt: null, status: "DRAFT" }, orderBy: { updatedAt: "desc" }, take: 3 }),
+    getVisitorStats(30),
+    getDailyVisits(14),
+    getTopPages(6, 30),
+    getVisitorCountries(30),
+    getContentHealth(),
+  ]);
 
   const { greeting, date } = today();
   const firstName = siteConfig.name.split(" ")[0];
