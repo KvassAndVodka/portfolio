@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FaArrowLeft, FaArrowUpRightFromSquare, FaCheck, FaChevronDown, FaImage, FaXmark } from "react-icons/fa6";
+import { FaArrowLeft, FaArrowUpRightFromSquare, FaImage, FaXmark } from "react-icons/fa6";
 import MediaPicker from "./MediaPicker";
 import PaperEditor from "./PaperEditor";
 
@@ -47,64 +47,22 @@ function toLocalDateTime(value?: Date | string) {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 
-type StatusSelectProps = Readonly<{
-  value: ContentStatus,
-  onChange: (status: ContentStatus) => void
-}>;
+const fieldLabel = "block font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.1em] site-muted";
+const lineBox = "mt-2 border-b-[1.5px] border-[var(--foreground)] focus-within:border-[var(--postcard-orange)]";
+const line = `${lineBox} block w-full bg-transparent py-2 text-base outline-none placeholder:text-[var(--muted)] focus-visible:outline-none`;
+const help = "site-muted mt-2 text-xs leading-[1.6]";
 
-function StatusSelect({ value, onChange }: StatusSelectProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const selected = statusOptions.find((option) => option.value === value) ?? statusOptions[0];
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const close = (event: MouseEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) setIsOpen(false);
-    };
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    document.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.removeEventListener("mousedown", close);
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [isOpen]);
-
+/** One numbered row of the details sheet: index and title on the left, fields on the right. */
+function DetailRow({ index, title, lead, last, children }: Readonly<{ index: number; title: string; lead: string; last?: boolean; children: React.ReactNode }>) {
   return (
-    <div ref={containerRef} className="relative">
-      <input type="hidden" name="status" value={value} />
-      <button
-        id="post-status"
-        type="button"
-        className="admin-field flex items-center justify-between gap-3 text-left"
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        onClick={() => setIsOpen((open) => !open)}
-      >
-        <span><span className="block font-medium">{selected.label}</span><span className="block text-xs admin-muted">{selected.description}</span></span>
-        <FaChevronDown className={`shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden="true" />
-      </button>
-      {isOpen && (
-        <div className="admin-surface absolute inset-x-0 top-[calc(100%+0.4rem)] z-20 overflow-hidden rounded-lg border border-[var(--admin-border)] py-1" role="listbox" aria-label="Publication status">
-          {statusOptions.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              role="option"
-              aria-selected={option.value === value}
-              className={`flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left hover:bg-[var(--admin-surface-subtle)] ${option.value === value ? "bg-[var(--accent-soft)] text-[var(--accent-hover)]" : ""}`}
-              onClick={() => { onChange(option.value); setIsOpen(false); }}
-            >
-              <span className="min-w-0 flex-1"><span className="block text-sm font-medium">{option.label}</span><span className={`block text-xs ${option.value === value ? "opacity-80" : "admin-muted"}`}>{option.description}</span></span>
-              {option.value === value && <FaCheck aria-hidden="true" />}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    <section data-reveal aria-label={title} className={`grid gap-6 border-t border-[var(--line)] pt-8 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-10 ${last ? "" : "pb-10"}`}>
+      <div>
+        <span className="font-mono text-[0.75rem] font-semibold tabular-nums text-[var(--accent)]">{String(index).padStart(2, "0")}</span>
+        <h3 className="mt-2 text-[1.125rem] font-[620] tracking-[-0.01em]">{title}<span className="text-[var(--postcard-orange)]">.</span></h3>
+        <p className="site-muted mt-1 text-sm leading-[1.6]">{lead}</p>
+      </div>
+      <div className="min-w-0">{children}</div>
+    </section>
   );
 }
 
@@ -152,56 +110,86 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
         </div>
       </article>
 
-      <h2 className={`${sheetLabel} mx-auto mt-16 max-w-[50rem] text-[var(--accent)]`}>Details</h2>
-      <div className="mx-auto mt-6 grid max-w-[50rem] gap-6">
-          <section className="admin-panel p-5 md:p-6" aria-labelledby="content-basics-heading">
-            <h2 id="content-basics-heading" className="admin-section-title">Address</h2>
-            <div className="mt-5 grid gap-5 md:grid-cols-2">
-              <div>
-                <label htmlFor="post-slug" className="mb-2 block text-sm font-medium">URL slug</label>
-                <input id="post-slug" className="admin-field font-mono text-sm" name="slug" defaultValue={initialData?.slug} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="generated-from-title" aria-describedby="slug-help" />
-                <p id="slug-help" className="mt-1.5 text-xs admin-muted">Lowercase letters, numbers and hyphens. Leave empty to generate.</p>
-              </div>
-              <div>
-                <label htmlFor="post-category" className="mb-2 block text-sm font-medium">Category</label>
-                <input id="post-category" className="admin-field" name="category" defaultValue={initialData?.category || ""} placeholder={type === "PROJECT" ? "Professional, personal…" : "Tutorial, field note…"} />
-              </div>
-            </div>
-          </section>
+      {/* Details, filed like a spec sheet: numbered rows on hairlines, mono labels, underlined fields. */}
+      <section aria-labelledby="details-heading" className="mx-auto mt-20 max-w-[50rem]">
+        <h2 id="details-heading" className={`${sheetLabel} text-[var(--accent)]`}>Details</h2>
+        <p className="site-muted mt-3 max-w-[32rem] leading-[1.7]">How this {type === "PROJECT" ? "project" : "note"} is filed, linked and published. The sheet above is all readers see.</p>
 
-          {type === "PROJECT" && (
-            <section className="admin-panel p-5 md:p-6" aria-labelledby="project-details-heading">
-              <h2 id="project-details-heading" className="admin-section-title">Project details</h2>
-              <div className="mt-5 grid gap-5 md:grid-cols-2">
-                <div className="md:col-span-2"><label htmlFor="post-tech" className="mb-2 block text-sm font-medium">Technologies</label><input id="post-tech" className="admin-field" name="techStack" defaultValue={initialData?.techStack?.join(", ")} placeholder="Next.js, PostgreSQL, Docker" aria-describedby="tech-help" /><p id="tech-help" className="mt-1.5 text-xs admin-muted">Separate technologies with commas.</p></div>
-                <div><label htmlFor="github-url" className="mb-2 block text-sm font-medium">GitHub repository</label><input id="github-url" className="admin-field" name="githubUrl" type="url" defaultValue={initialData?.githubUrl || ""} placeholder="https://github.com/…" /></div>
-                <div><label htmlFor="demo-url" className="mb-2 block text-sm font-medium">Live demo</label><input id="demo-url" className="admin-field" name="demoUrl" type="url" defaultValue={initialData?.demoUrl || ""} placeholder="https://…" /></div>
-                <div className="md:col-span-2"><label htmlFor="post-outcome" className="mb-2 block text-sm font-medium">What changed</label><textarea id="post-outcome" className="admin-textarea" name="outcome" rows={2} maxLength={200} defaultValue={initialData?.outcome || ""} placeholder="One line on the result, e.g. One searchable record replaced scattered spreadsheets." aria-describedby="outcome-help" /><p id="outcome-help" className="mt-1.5 text-xs admin-muted">Shown as the highlight on the homepage project card. Leave empty to hide it.</p></div>
-                <div className="md:col-span-2"><label htmlFor="project-url" className="mb-2 block text-sm font-medium">Additional project link</label><input id="project-url" className="admin-field" name="projectUrl" type="url" defaultValue={initialData?.projectUrl || ""} placeholder="https://…" /></div>
+        <DetailRow index={1} title="Address" lead="Where it lives on the site.">
+          <div className="grid gap-7 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label htmlFor="post-slug" className={fieldLabel}>Link</label>
+              <span className={`${lineBox} flex items-baseline`}>
+                <span className="site-muted shrink-0">/{type === "PROJECT" ? "projects" : "notes"}/</span>
+                <input id="post-slug" className="w-full min-w-0 bg-transparent py-2 font-mono text-[0.95rem] outline-none focus-visible:outline-none" name="slug" defaultValue={initialData?.slug} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="generated-from-title" aria-describedby="slug-help" />
+              </span>
+              <p id="slug-help" className={help}>Lowercase letters, numbers and hyphens. Leave empty to generate it from the title.</p>
+            </div>
+            <div>
+              <label htmlFor="post-category" className={fieldLabel}>Category</label>
+              <input id="post-category" className={line} name="category" defaultValue={initialData?.category || ""} placeholder={type === "PROJECT" ? "Professional, personal…" : "Tutorial, field note…"} />
+            </div>
+          </div>
+        </DetailRow>
+
+        {type === "PROJECT" && (
+          <DetailRow index={2} title="Project" lead="The evidence on the homepage card and the project page.">
+            <div className="grid gap-7 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label htmlFor="post-outcome" className={fieldLabel}>What changed</label>
+                <textarea id="post-outcome" className={`${line} resize-none`} style={{ fieldSizing: "content" } as React.CSSProperties} name="outcome" rows={1} maxLength={200} defaultValue={initialData?.outcome || ""} placeholder="One searchable record replaced scattered spreadsheets." aria-describedby="outcome-help" />
+                <p id="outcome-help" className={help}>The highlight on the homepage card. Leave empty to hide it.</p>
               </div>
-            </section>
+              <div className="sm:col-span-2">
+                <label htmlFor="post-tech" className={fieldLabel}>Built with</label>
+                <input id="post-tech" className={line} name="techStack" defaultValue={initialData?.techStack?.join(", ")} placeholder="Next.js, PostgreSQL, Docker" aria-describedby="tech-help" />
+                <p id="tech-help" className={help}>Separate technologies with commas.</p>
+              </div>
+              <div><label htmlFor="github-url" className={fieldLabel}>Source</label><input id="github-url" className={line} name="githubUrl" type="url" defaultValue={initialData?.githubUrl || ""} placeholder="https://github.com/…" /></div>
+              <div><label htmlFor="demo-url" className={fieldLabel}>Live demo</label><input id="demo-url" className={line} name="demoUrl" type="url" defaultValue={initialData?.demoUrl || ""} placeholder="https://…" /></div>
+              <div className="sm:col-span-2"><label htmlFor="project-url" className={fieldLabel}>Other link</label><input id="project-url" className={line} name="projectUrl" type="url" defaultValue={initialData?.projectUrl || ""} placeholder="https://…" /></div>
+            </div>
+          </DetailRow>
+        )}
+
+        <DetailRow index={type === "PROJECT" ? 3 : 2} title="Publishing" lead="Who can see it, and from when.">
+          <fieldset>
+            <legend className={fieldLabel}>Status</legend>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              {statusOptions.map((option) => (
+                <label key={option.value} className="flex min-h-11 cursor-pointer flex-col justify-center rounded-[8px] border border-[var(--line)] px-4 py-3 transition-colors hover:border-[var(--foreground)] has-[:checked]:border-[var(--foreground)] has-[:checked]:bg-[color-mix(in_srgb,var(--foreground)_5%,transparent)] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--focus)]">
+                  <span className="flex items-center gap-2 font-semibold">
+                    <input type="radio" name="status" value={option.value} checked={status === option.value} onChange={() => setStatus(option.value)} className="size-4 accent-[var(--postcard-orange)] focus-visible:outline-none" />
+                    {option.label}
+                  </span>
+                  <span className="site-muted mt-1 pl-6 text-sm">{option.description}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          {status === "SCHEDULED" && (
+            <div className="mt-7 max-w-xs">
+              <label htmlFor="scheduled-for" className={fieldLabel}>Publish on</label>
+              <input id="scheduled-for" className={line} name="scheduledFor" type="datetime-local" defaultValue={toLocalDateTime(initialData?.publishedAt)} required />
+            </div>
           )}
+          {type === "PROJECT" && (
+            <ul className="mt-7 border-t border-[var(--line)]">
+              <li className="border-b border-[var(--line)]"><label className="flex min-h-14 cursor-pointer items-center gap-4 py-3"><input className="size-4 shrink-0 accent-[var(--postcard-orange)]" name="isPinned" type="checkbox" defaultChecked={initialData?.isPinned} /><span><span className="block font-semibold">Feature on the homepage</span><span className="site-muted text-sm">Adds it to the project gallery.</span></span></label></li>
+              <li className="border-b border-[var(--line)]"><label className="flex min-h-14 cursor-pointer items-center gap-4 py-3"><input className="size-4 shrink-0 accent-[var(--postcard-orange)]" name="showAsBlog" type="checkbox" defaultChecked={initialData?.showAsBlog} /><span><span className="block font-semibold">List it under Notes too</span><span className="site-muted text-sm">The case study also appears in the notes index.</span></span></label></li>
+            </ul>
+          )}
+        </DetailRow>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <section className="admin-panel p-5" aria-labelledby="publishing-heading">
-            <h2 id="publishing-heading" className="admin-section-title">Publishing</h2>
-            <label htmlFor="post-status" className="mt-4 mb-2 block text-sm font-medium">Status</label>
-            <StatusSelect value={status} onChange={setStatus} />
-            {status === "SCHEDULED" && <div className="mt-4"><label htmlFor="scheduled-for" className="mb-2 block text-sm font-medium">Publish date</label><input id="scheduled-for" className="admin-field" name="scheduledFor" type="datetime-local" defaultValue={toLocalDateTime(initialData?.publishedAt)} required /></div>}
-            <div className="mt-5 space-y-3 border-t border-[var(--admin-border)] pt-4">
-              {type === "PROJECT" && <label className="flex items-start gap-3 text-sm"><input className="mt-1 size-4 accent-[var(--accent)]" name="isPinned" type="checkbox" defaultChecked={initialData?.isPinned} /><span><strong className="block font-medium">Feature on homepage</strong><span className="admin-muted">Add this project to the homepage bento.</span></span></label>}
-              {type === "PROJECT" && <label className="flex items-start gap-3 text-sm"><input className="mt-1 size-4 accent-[var(--accent)]" name="showAsBlog" type="checkbox" defaultChecked={initialData?.showAsBlog} /><span><strong className="block font-medium">Publish as a Note too</strong><span className="admin-muted">Include the case study in the Notes index.</span></span></label>}
-            </div>
-          </section>
-
-          <section className="admin-panel p-5" aria-labelledby="thumbnail-heading">
-            <div className="flex items-center justify-between"><h2 id="thumbnail-heading" className="admin-section-title">Thumbnail</h2>{thumbnail && <button type="button" className="admin-icon-button" onClick={() => setThumbnail("")} aria-label="Remove thumbnail"><FaXmark aria-hidden="true" /></button>}</div>
-            <button type="button" onClick={() => setShowThumbnailPicker(true)} className="relative mt-4 flex h-36 w-full items-center justify-center overflow-hidden rounded-lg border border-dashed border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] hover:border-[var(--accent)]" aria-label={thumbnail ? "Change thumbnail" : "Choose thumbnail"}>
-              {thumbnail ? <Image src={thumbnail} alt="Current thumbnail preview" fill sizes="20rem" unoptimized className="object-cover" /> : <span className="flex flex-col items-center gap-2 text-sm admin-muted"><FaImage className="text-xl" aria-hidden="true" />Choose image</span>}
+        <DetailRow index={type === "PROJECT" ? 4 : 3} title="Cover" lead="Shown in lists and link previews." last>
+          <div className="relative">
+            <button type="button" onClick={() => setShowThumbnailPicker(true)} className="group relative grid aspect-[16/9] w-full place-items-center overflow-hidden rounded-[1rem] border border-dashed border-[var(--line-strong)] bg-[var(--surface)] text-sm hover:border-[var(--foreground)]" aria-label={thumbnail ? "Change cover image" : "Add a cover image"}>
+              {thumbnail ? <Image src={thumbnail} alt="Current cover image" fill sizes="(min-width: 768px) 36rem, 100vw" unoptimized className="object-cover" /> : <span className="site-muted flex flex-col items-center gap-2 group-hover:text-[var(--foreground)]"><FaImage className="text-xl" aria-hidden="true" />Add a cover image</span>}
             </button>
-          </section>
-        </div>
-      </div>
+            {thumbnail && <button type="button" className="absolute right-3 top-3 grid size-11 place-items-center rounded-full bg-[var(--background)] shadow-[var(--postcard-shadow)]" onClick={() => setThumbnail("")} aria-label="Remove cover image"><FaXmark aria-hidden="true" /></button>}
+          </div>
+        </DetailRow>
+      </section>
 
       {showThumbnailPicker && <MediaPicker onSelect={(url) => { setThumbnail(url); setShowThumbnailPicker(false); }} onClose={() => setShowThumbnailPicker(false)} />}
     </form>
