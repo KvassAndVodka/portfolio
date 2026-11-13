@@ -6,6 +6,11 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/lib/require-admin';
 
+// Browsers submit form fields with CRLF line endings; store Markdown with LF so saving never rewrites a post.
+function normalizeNewlines(value: FormDataEntryValue | null) {
+    return String(value ?? '').replace(/\r\n?/g, '\n');
+}
+
 function revalidatePublicContent() {
     revalidateTag('projects', 'max');
     revalidateTag('notes', 'max');
@@ -36,7 +41,7 @@ export async function createPost(formData: FormData) {
         // For now, let's keep it clean. If duplicate, DB will throw, we can handle it or let it fail for now.
     }
     const summary = formData.get('summary') as string;
-    const content = formData.get('content') as string;
+    const content = normalizeNewlines(formData.get('content'));
     const type = formData.get('type') as PostType;
     const requestedStatus = formData.get('status');
     const status = Object.values(PostStatus).includes(requestedStatus as PostStatus)
@@ -96,7 +101,7 @@ export async function updatePost(id: string, formData: FormData) {
     const title = formData.get('title') as string;
     const slug = formData.get('slug') as string;
     const summary = formData.get('summary') as string;
-    const content = formData.get('content') as string;
+    const content = normalizeNewlines(formData.get('content'));
     const requestedStatus = formData.get('status');
     const status = Object.values(PostStatus).includes(requestedStatus as PostStatus)
         ? requestedStatus as PostStatus

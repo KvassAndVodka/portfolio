@@ -1839,6 +1839,42 @@ svg.button-external-icon {
   max-width: 100%;
 }
 
+/* The paper editor: the caret shows focus on the sheet, so the body needs no focus ring. */
+.paper-editor .ProseMirror:focus-visible {
+  outline: none;
+}
+
+/* Table cells hold paragraphs while editing; drop the prose margins so rows stay one line tall. */
+.paper-editor :where(td, th) > p {
+  margin: 0;
+}
+
+.paper-editor :where(td, th) {
+  position: relative;
+  border-bottom: 1px solid var(--postcard-tear);
+  padding: 0.5rem 1rem 0.5rem 0;
+}
+
+.paper-editor .selectedCell::after {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--postcard-orange) 18%, transparent);
+  content: "";
+  pointer-events: none;
+}
+
+.paper-editor .is-editor-empty:first-child::before {
+  float: left;
+  height: 0;
+  color: var(--postcard-tear);
+  content: attr(data-placeholder);
+  pointer-events: none;
+}
+
+.paper-editor img.ProseMirror-selectednode {
+  outline: 2px solid var(--postcard-orange);
+}
+
 .reveal {
   opacity: 1;
   transform: translateY(0);

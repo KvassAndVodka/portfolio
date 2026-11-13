@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { FaArrowUpRightFromSquare, FaCheck, FaChevronDown, FaImage, FaXmark } from "react-icons/fa6";
-import MarkdownEditor from "@/components/MarkdownEditor";
+import Link from "next/link";
+import { FaArrowLeft, FaArrowUpRightFromSquare, FaCheck, FaChevronDown, FaImage, FaXmark } from "react-icons/fa6";
 import MediaPicker from "./MediaPicker";
+import PaperEditor from "./PaperEditor";
 
 type ContentType = "BLOG" | "PROJECT";
 type ContentStatus = "DRAFT" | "PUBLISHED" | "SCHEDULED";
@@ -112,38 +113,50 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
   const [status, setStatus] = useState<ContentStatus>(initialData?.status || "DRAFT");
   const [showThumbnailPicker, setShowThumbnailPicker] = useState(false);
   const [thumbnail, setThumbnail] = useState(initialData?.thumbnail || "");
+  const [words, setWords] = useState(0);
   const isEditing = Boolean(initialData?.id);
   const publicPath = type === "PROJECT" ? `/projects/${initialData?.slug}` : `/notes/${initialData?.slug}`;
+  const listPath = type === "PROJECT" ? "/admin/projects" : "/admin/notes";
+  const sheetLabel = "font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.1em]";
 
   return (
-    <form action={action} className="space-y-6">
+    <form action={action} className="pb-24">
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="thumbnail" value={thumbnail} />
 
-      <div className="flex flex-col gap-4 border-b border-[var(--admin-border)] pb-5 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm font-medium">Content type</p>
-          {isEditing ? (
-            <p className="mt-1 text-sm admin-muted">{type === "PROJECT" ? "Project" : "Note"}</p>
-          ) : (
-            <div className="mt-2 inline-flex rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] p-1" role="group" aria-label="Content type">
-              <button type="button" onClick={() => setType("BLOG")} aria-pressed={type === "BLOG"} className={`min-h-9 rounded-md px-4 text-sm font-medium ${type === "BLOG" ? "bg-[var(--accent-soft)] text-[var(--accent-hover)]" : "admin-muted"}`}>Note</button>
-              <button type="button" onClick={() => setType("PROJECT")} aria-pressed={type === "PROJECT"} className={`min-h-9 rounded-md px-4 text-sm font-medium ${type === "PROJECT" ? "bg-[var(--accent-soft)] text-[var(--accent-hover)]" : "admin-muted"}`}>Project</button>
-            </div>
-          )}
-        </div>
-        {isEditing && initialData?.slug && <a href={publicPath} target="_blank" className="admin-button-secondary"><FaArrowUpRightFromSquare aria-hidden="true" />Preview public page</a>}
+      {/* A slim bar that stays while writing: way back, length, and save. */}
+      <div className="sticky top-0 z-20 -mx-4 flex min-h-14 items-center gap-3 border-b border-[var(--line)] bg-[var(--background)] px-4 sm:mx-0 sm:px-0">
+        <Link href={listPath} className="admin-icon-button" aria-label={`All ${type === "PROJECT" ? "projects" : "notes"}`}><FaArrowLeft aria-hidden="true" /></Link>
+        {isEditing ? (
+          <p className={`${sheetLabel} site-muted`}>{type === "PROJECT" ? "Project" : "Note"} · {statusOptions.find((o) => o.value === status)?.label}</p>
+        ) : (
+          <div className="inline-flex rounded-lg border border-[var(--line)] p-1" role="group" aria-label="Content type">
+            <button type="button" onClick={() => setType("BLOG")} aria-pressed={type === "BLOG"} className={`min-h-9 rounded-md px-3 text-sm font-medium ${type === "BLOG" ? "bg-[var(--accent-soft)] text-[var(--accent-hover)]" : "admin-muted"}`}>Note</button>
+            <button type="button" onClick={() => setType("PROJECT")} aria-pressed={type === "PROJECT"} className={`min-h-9 rounded-md px-3 text-sm font-medium ${type === "PROJECT" ? "bg-[var(--accent-soft)] text-[var(--accent-hover)]" : "admin-muted"}`}>Project</button>
+          </div>
+        )}
+        <p className={`${sheetLabel} site-muted ml-auto hidden sm:block`} aria-live="polite">{words} words · {Math.max(1, Math.round(words / 230))} min</p>
+        {isEditing && initialData?.slug && <a href={publicPath} target="_blank" className="admin-icon-button max-sm:ml-auto" aria-label="Preview public page"><FaArrowUpRightFromSquare aria-hidden="true" /></a>}
+        <button type="submit" className="admin-button-primary">{submitLabel}</button>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="space-y-6">
+      {/* The post is written on a sheet of paper laid on the desk: the postcard's cream and 20 px grid, shadow only. */}
+      <article className="mx-auto mt-8 max-w-[50rem] bg-[var(--postcard-paper)] bg-[linear-gradient(var(--postcard-grid)_1px,transparent_1px),linear-gradient(90deg,var(--postcard-grid)_1px,transparent_1px)] bg-[size:20px_20px] px-[clamp(1.25rem,7vw,5rem)] pb-[clamp(3rem,8vw,6rem)] pt-[clamp(2.5rem,7vw,5rem)] text-[var(--postcard-ink)] shadow-[var(--postcard-shadow)] md:mt-14">
+        <p className={`${sheetLabel} text-[var(--postcard-rust)]`}>{type === "PROJECT" ? "Case study" : "Note"}</p>
+        <label htmlFor="post-title" className="sr-only">Title</label>
+        <textarea id="post-title" name="title" rows={1} defaultValue={initialData?.title} maxLength={140} required placeholder={type === "PROJECT" ? "Project name" : "Title"} className="mt-3 w-full resize-none overflow-hidden bg-transparent pt-[0.1em] focus-visible:outline-none text-[clamp(2.35rem,5vw,3.75rem)] font-[620] leading-[1] tracking-[-0.035em] outline-none placeholder:text-[var(--postcard-tear)]" style={{ fieldSizing: "content" } as React.CSSProperties} onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }} />
+        <label htmlFor="post-summary" className="sr-only">Summary</label>
+        <textarea id="post-summary" name="summary" rows={1} defaultValue={initialData?.summary} maxLength={320} required placeholder="A one-line summary, shown in lists and link previews" className="mt-5 w-full resize-none bg-transparent focus-visible:outline-none text-[1.25rem] leading-[1.6] text-[var(--postcard-muted)] outline-none placeholder:text-[var(--postcard-tear)]" style={{ fieldSizing: "content" } as React.CSSProperties} />
+        <div className="mt-12">
+          <PaperEditor name="content" defaultValue={initialData?.content} onWords={setWords} placeholder={type === "PROJECT" ? "Tell the story: the problem, what you built, what changed…" : "Start writing…"} />
+        </div>
+      </article>
+
+      <h2 className={`${sheetLabel} mx-auto mt-16 max-w-[50rem] text-[var(--accent)]`}>Details</h2>
+      <div className="mx-auto mt-6 grid max-w-[50rem] gap-6">
           <section className="admin-panel p-5 md:p-6" aria-labelledby="content-basics-heading">
-            <h2 id="content-basics-heading" className="admin-section-title">Basics</h2>
+            <h2 id="content-basics-heading" className="admin-section-title">Address</h2>
             <div className="mt-5 grid gap-5 md:grid-cols-2">
-              <div className="md:col-span-2">
-                <label htmlFor="post-title" className="mb-2 block text-sm font-medium">Title</label>
-                <input id="post-title" className="admin-field" name="title" defaultValue={initialData?.title} maxLength={140} required placeholder={type === "PROJECT" ? "Project name" : "Note title"} />
-              </div>
               <div>
                 <label htmlFor="post-slug" className="mb-2 block text-sm font-medium">URL slug</label>
                 <input id="post-slug" className="admin-field font-mono text-sm" name="slug" defaultValue={initialData?.slug} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="generated-from-title" aria-describedby="slug-help" />
@@ -152,10 +165,6 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
               <div>
                 <label htmlFor="post-category" className="mb-2 block text-sm font-medium">Category</label>
                 <input id="post-category" className="admin-field" name="category" defaultValue={initialData?.category || ""} placeholder={type === "PROJECT" ? "Professional, personal…" : "Tutorial, field note…"} />
-              </div>
-              <div className="md:col-span-2">
-                <label htmlFor="post-summary" className="mb-2 block text-sm font-medium">Summary</label>
-                <textarea id="post-summary" className="admin-textarea" name="summary" defaultValue={initialData?.summary} maxLength={320} required placeholder="A concise description shown in listings and previews." />
               </div>
             </div>
           </section>
@@ -173,13 +182,7 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
             </section>
           )}
 
-          <section className="admin-panel overflow-hidden" aria-labelledby="content-body-heading">
-            <div className="border-b border-[var(--admin-border)] px-5 py-4 md:px-6"><h2 id="content-body-heading" className="admin-section-title">{type === "PROJECT" ? "Case study" : "Note"}</h2><p className="mt-1 text-sm admin-muted">Markdown is supported.</p></div>
-            <MarkdownEditor name="content" defaultValue={initialData?.content} />
-          </section>
-        </div>
-
-        <aside className="space-y-5">
+        <div className="grid gap-6 md:grid-cols-2">
           <section className="admin-panel p-5" aria-labelledby="publishing-heading">
             <h2 id="publishing-heading" className="admin-section-title">Publishing</h2>
             <label htmlFor="post-status" className="mt-4 mb-2 block text-sm font-medium">Status</label>
@@ -189,7 +192,6 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
               {type === "PROJECT" && <label className="flex items-start gap-3 text-sm"><input className="mt-1 size-4 accent-[var(--accent)]" name="isPinned" type="checkbox" defaultChecked={initialData?.isPinned} /><span><strong className="block font-medium">Feature on homepage</strong><span className="admin-muted">Add this project to the homepage bento.</span></span></label>}
               {type === "PROJECT" && <label className="flex items-start gap-3 text-sm"><input className="mt-1 size-4 accent-[var(--accent)]" name="showAsBlog" type="checkbox" defaultChecked={initialData?.showAsBlog} /><span><strong className="block font-medium">Publish as a Note too</strong><span className="admin-muted">Include the case study in the Notes index.</span></span></label>}
             </div>
-            <button type="submit" className="admin-button-primary mt-5 w-full">{submitLabel}</button>
           </section>
 
           <section className="admin-panel p-5" aria-labelledby="thumbnail-heading">
@@ -198,7 +200,7 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
               {thumbnail ? <Image src={thumbnail} alt="Current thumbnail preview" fill sizes="20rem" unoptimized className="object-cover" /> : <span className="flex flex-col items-center gap-2 text-sm admin-muted"><FaImage className="text-xl" aria-hidden="true" />Choose image</span>}
             </button>
           </section>
-        </aside>
+        </div>
       </div>
 
       {showThumbnailPicker && <MediaPicker onSelect={(url) => { setThumbnail(url); setShowThumbnailPicker(false); }} onClose={() => setShowThumbnailPicker(false)} />}

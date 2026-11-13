@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { markdownComponents } from "@/components/markdownComponents";
 import { FaArrowLeft, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6";
 
@@ -129,7 +130,7 @@ export default async function ProjectPage({
           </div>
         )}
         <div className="prose prose-lg article-prose mx-auto max-w-3xl">
-          <ReactMarkdown components={markdownComponents}>{project.content}</ReactMarkdown>
+          <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>{project.content}</ReactMarkdown>
         </div>
       </div>
     </article>

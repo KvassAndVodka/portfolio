@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
 import { FaArrowLeft } from "react-icons/fa6";
 
 import { markdownComponents } from "@/components/markdownComponents";
@@ -89,7 +90,7 @@ export default async function NotePage({ params }: Readonly<{ params: Params }>)
 
       <div className="site-shell max-w-3xl py-16 md:py-24">
         <div className="prose prose-lg article-prose max-w-none">
-          <MDXRemote source={post.content} components={markdownComponents} />
+          <MDXRemote source={post.content} components={markdownComponents} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
         </div>
       </div>
     </article>
