@@ -22,6 +22,7 @@ const SPAN = W - LEFT - RIGHT;
 /** Daily traffic as a halftone elevation profile: dots fill the area under the views ridge, darker where visitors account for them. */
 export default function AnalyticsChart({ data }: Readonly<{ data: DailyVisit[] }>) {
   const max = Math.max(...data.map((d) => d.views), 1);
+  const empty = data.every((d) => d.views === 0);
   const peak = data.findIndex((d) => d.views === max);
   const last = data.length - 1;
   const x = (i: number) => (last > 0 ? LEFT + (i * SPAN) / last : LEFT + SPAN / 2);
@@ -59,7 +60,7 @@ export default function AnalyticsChart({ data }: Readonly<{ data: DailyVisit[] }
     <section className="admin-panel h-full min-w-0 p-5 md:p-6" aria-labelledby="traffic-heading">
       <h2 id="traffic-heading" className="admin-section-title">Traffic over 14 days</h2>
       <p className="mt-1 text-sm admin-muted">
-        {data.length > 0 ? `Peak ${max} views on ${data[peak].label}. Today in orange.` : "Page views and estimated daily visitors."}
+        {empty ? "Page views and estimated daily visitors." : `Peak ${max} views on ${data[peak].label}. Today in orange.`}
       </p>
 
       <DotsReveal className="mt-6 min-w-0">
@@ -67,8 +68,17 @@ export default function AnalyticsChart({ data }: Readonly<{ data: DailyVisit[] }
           <title id="traffic-title">Daily portfolio traffic</title>
           <desc id="traffic-description">Halftone elevation profile of daily page views, with visitors shaded darker. Every value is also available below the chart.</desc>
           {dots.map((d) => <circle data-dot key={`${d.cx}-${d.cy}`} cx={d.cx} cy={d.cy} r={d.r} fill={d.visitor ? "var(--foreground)" : "var(--line-strong)"} />)}
-          <path d={ridge("views")} fill="none" stroke="var(--foreground)" strokeWidth="1.5" />
-          <path d={ridge("visitors")} fill="none" stroke="var(--postcard-orange)" strokeWidth="1.5" strokeDasharray="5 4" />
+          {empty ? (
+            <>
+              {Array.from({ length: Math.floor(SPAN / STEP) }, (_, k) => <circle data-dot key={k} cx={LEFT + STEP / 2 + k * STEP} cy={BASE - STEP / 2} r="0.9" fill="var(--line-strong)" />)}
+              <text x={LEFT + SPAN / 2} y={BASE - 70} textAnchor="middle" className="fill-[var(--muted)] font-mono text-[13px]">No views in the last 14 days</text>
+            </>
+          ) : (
+            <>
+              <path d={ridge("views")} fill="none" stroke="var(--foreground)" strokeWidth="1.5" />
+              <path d={ridge("visitors")} fill="none" stroke="var(--postcard-orange)" strokeWidth="1.5" strokeDasharray="5 4" />
+            </>
+          )}
           <line x1={LEFT} x2={W - RIGHT} y1={BASE} y2={BASE} stroke="var(--foreground)" strokeWidth="1.5" />
           {data.map((d, i) => (
             <g key={d.isoDate} tabIndex={0} className="traffic-point" aria-label={`${d.label}: ${d.views} views, ${d.visitors} estimated visitors`}>
@@ -78,7 +88,7 @@ export default function AnalyticsChart({ data }: Readonly<{ data: DailyVisit[] }
               <title>{`${d.label}: ${d.views} views, ${d.visitors} visitors`}</title>
             </g>
           ))}
-          {data.length > 0 && (
+          {!empty && (
             <>
               <circle cx={x(last)} cy={at(x(last) - 0.01, "views")} r="5" fill="var(--postcard-orange)" stroke="var(--background)" strokeWidth="2" />
               <g transform={`translate(${x(peak)},${at(x(peak), "views") - 12})`}>
@@ -87,7 +97,7 @@ export default function AnalyticsChart({ data }: Readonly<{ data: DailyVisit[] }
               </g>
             </>
           )}
-          <g className="font-mono text-[11px]">
+          <g className="font-mono text-[11px]" visibility={empty ? "hidden" : undefined}>
             <line x1={LEFT - 22} x2={LEFT - 22} y1={BASE} y2={scaleTop} stroke="var(--foreground)" strokeWidth="1.5" />
             <text x={LEFT - 30} y={scaleTop + 4} textAnchor="end" className="fill-[var(--muted)]">{scale}</text>
             <g transform={`translate(${W - RIGHT - 250},${TOP - 16})`} aria-hidden="true">
