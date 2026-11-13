@@ -1,9 +1,10 @@
-import { geoNaturalEarth1, geoPath } from "d3-geo";
+import { geoContains, geoNaturalEarth1, geoPath } from "d3-geo";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import { alpha2ToNumeric } from "i18n-iso-countries";
 import { feature } from "topojson-client";
 import type { GeometryCollection, Topology } from "topojson-specification";
 import worldAtlas from "world-atlas/countries-110m.json";
+import DotsReveal from "@/components/admin/DotsReveal";
 
 interface CountryStat {
   countryCode: string;
@@ -52,14 +53,24 @@ function numericCountryCode(countryCode: string) {
   return alpha2ToNumeric(countryCode)?.padStart(3, "0");
 }
 
-function visitorFill(visitors: number, maximum: number) {
-  if (visitors === 0) return "var(--admin-map-land)";
-  const intensity = Math.log1p(visitors) / Math.log1p(Math.max(maximum, 1));
-  if (intensity <= 0.25) return "var(--admin-map-level-1)";
-  if (intensity <= 0.5) return "var(--admin-map-level-2)";
-  if (intensity <= 0.75) return "var(--admin-map-level-3)";
-  return "var(--admin-map-level-4)";
-}
+// The world as a dot screen: each cell holds the numeric code of the country under it, or null for sea.
+// Sampled once per server process; only the visitor counts change per request.
+const COLS = 132;
+const ROWS = 68;
+const CELL_W = MAP_WIDTH / COLS;
+const CELL_H = MAP_HEIGHT / ROWS;
+const countryBoxes = countryFeatures.map((country) => ({ country, box: mapPath.bounds(country), code: String(country.id).padStart(3, "0") }));
+const landCells = Array.from({ length: ROWS * COLS }, (_, index) => {
+  const x = ((index % COLS) + 0.5) * CELL_W;
+  const y = (Math.floor(index / COLS) + 0.5) * CELL_H;
+  const lonLat = projection.invert?.([x, y]);
+  if (!lonLat) return null;
+  const hit = countryBoxes.find(({ country, box }) => x >= box[0][0] && x <= box[1][0] && y >= box[0][1] && y <= box[1][1] && geoContains(country, lonLat));
+  return hit ? { x, y, code: hit.code } : null;
+}).filter((cell) => cell !== null);
+// Small countries (the Philippines) can fall between grid points, so each country with readers also gets a dot at its centre.
+const centres = new Map(countryFeatures.map((country) => [String(country.id).padStart(3, "0"), mapPath.centroid(country)]));
+const home = projection([124.65, 8.48]) ?? [0, 0]; // Cagayan de Oro
 
 export default function VisitorCountryMap({ countries }: Readonly<{ countries: CountryStat[] }>) {
   const maximumVisitors = Math.max(...countries.map((country) => country.visitors), 1);
@@ -81,7 +92,8 @@ export default function VisitorCountryMap({ countries }: Readonly<{ countries: C
 
       {countries.length > 0 ? (
         <div className="grid xl:grid-cols-[minmax(0,1.75fr)_minmax(17rem,0.65fr)]">
-          <figure className="min-w-0 bg-[var(--admin-map-water)] p-3 sm:p-5 md:p-6">
+          <figure className="min-w-0 p-3 sm:p-5 md:p-6">
+            <DotsReveal>
             <svg
               className="block h-auto w-full"
               viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
@@ -90,48 +102,61 @@ export default function VisitorCountryMap({ countries }: Readonly<{ countries: C
             >
               <title id="visitor-map-title">Estimated visitors by country</title>
               <desc id="visitor-map-description">
-                Countries with more estimated visitors use a stronger orange fill. Exact values are available by focusing a shaded country and in the ranking beside the map.
+                A dot screen of the world. Countries with more estimated visitors print larger orange dots. Exact values are available by focusing a country with visitors and in the ranking beside the map.
               </desc>
+              {landCells.map((cell) => {
+                const stat = countriesByNumericCode.get(cell.code);
+                const intensity = stat ? Math.log1p(stat.visitors) / Math.log1p(maximumVisitors) : 0;
+                return (
+                  <circle
+                    data-dot
+                    key={`${cell.x}-${cell.y}`}
+                    cx={cell.x}
+                    cy={cell.y}
+                    r={stat ? 1.7 + intensity * 2.2 : 1.15}
+                    fill={stat ? "var(--accent)" : "color-mix(in srgb, var(--muted) 75%, var(--background))"}
+                  />
+                );
+              })}
+              {countries.map((country) => {
+                const code = numericCountryCode(country.countryCode);
+                const centre = code ? centres.get(code) : undefined;
+                if (!centre) return null;
+                const intensity = Math.log1p(country.visitors) / Math.log1p(maximumVisitors);
+                return <circle data-dot key={country.countryCode} cx={centre[0]} cy={centre[1]} r={2.2 + intensity * 2.6} fill="var(--accent)" />;
+              })}
               {countryFeatures.map((country) => {
                 const numericCode = String(country.id).padStart(3, "0");
                 const countryStat = countriesByNumericCode.get(numericCode);
-                const path = mapPath(country as CountryFeature);
-                if (!path) return null;
+                const path = countryStat ? mapPath(country as CountryFeature) : null;
+                if (!path || !countryStat) return null;
 
-                const label = countryStat
-                  ? `${countryName(countryStat.countryCode)}: ${countryStat.visitors.toLocaleString()} estimated visitors and ${countryStat.views.toLocaleString()} page views`
-                  : undefined;
+                const label = `${countryName(countryStat.countryCode)}: ${countryStat.visitors.toLocaleString()} estimated visitors and ${countryStat.views.toLocaleString()} page views`;
 
                 return (
                   <path
                     key={numericCode}
                     d={path}
-                    fill={visitorFill(countryStat?.visitors ?? 0, maximumVisitors)}
-                    stroke="var(--admin-map-border)"
-                    strokeWidth="0.75"
-                    vectorEffect="non-scaling-stroke"
-                    className={countryStat ? "visitor-country" : undefined}
-                    tabIndex={countryStat ? 0 : undefined}
+                    fill="transparent"
+                    className="visitor-country"
+                    tabIndex={0}
                     aria-label={label}
-                    aria-hidden={countryStat ? undefined : true}
                   >
-                    {label && <title>{label}</title>}
+                    <title>{label}</title>
                   </path>
                 );
               })}
+              <circle cx={home[0]} cy={home[1]} r="7" fill="none" stroke="var(--foreground)" strokeWidth="1.5" />
+              <text x={home[0] + 11} y={home[1] + 4} className="fill-[var(--foreground)] font-mono text-[12px] font-semibold">CDO</text>
             </svg>
+            </DotsReveal>
 
             <figcaption className="mt-2 flex flex-col gap-2 text-xs admin-muted sm:flex-row sm:items-center sm:justify-between">
-              <span>Natural Earth boundaries · country-level only</span>
-              <span className="flex items-center gap-1.5" aria-label="Map color scale from fewer to more visitors">
+              <span>Natural Earth boundaries · country-level only · Cagayan de Oro marked</span>
+              <span className="flex items-center gap-1.5" aria-label="Dot size scale from fewer to more visitors">
                 <span>Fewer</span>
-                {[1, 2, 3, 4].map((level) => (
-                  <span
-                    key={level}
-                    className="size-3 rounded-[0.2rem] border border-[var(--admin-map-border)]"
-                    style={{ background: `var(--admin-map-level-${level})` }}
-                    aria-hidden="true"
-                  />
+                {[1.7, 2.6, 3.9].map((r) => (
+                  <svg key={r} width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r={r} fill="var(--accent)" /></svg>
                 ))}
                 <span>More</span>
               </span>
