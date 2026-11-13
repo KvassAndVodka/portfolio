@@ -212,17 +212,12 @@ function hasIntegratedGpu() {
 }
 
 /**
- * Phones, low-end machines, and software rendering get the lighter story: flat 2D map,
+ * Touch devices (phones, tablets) and software rendering get the lighter story: flat 2D map,
  * no terrain or buildings, fewer cars, a coarser cloud. Same scroll, same acts.
+ * Laptops and PCs always get 3D, whatever their window width, core count or memory.
  */
 function isLiteDevice() {
-  const navigatorWithMemory = navigator as Navigator & { deviceMemory?: number };
-  return (
-    window.matchMedia("(max-width: 767px)").matches ||
-    SOFTWARE_GPU.test(gpuRenderer()) ||
-    (navigator.hardwareConcurrency ?? 8) <= 4 ||
-    (navigatorWithMemory.deviceMemory ?? 8) <= 4
-  );
+  return window.matchMedia("(pointer: coarse)").matches || SOFTWARE_GPU.test(gpuRenderer());
 }
 
 export default function StoryJourney({ places }: Readonly<{ places: readonly StoryPlace[] }>) {
