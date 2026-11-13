@@ -1,13 +1,32 @@
 import type { Post } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
+import AdminPageHead from "@/components/admin/AdminPageHead";
 import DeleteButton from "@/components/admin/DeleteButton";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminTrash() {
   const deletedPosts = await prisma.post.findMany({ where: { deletedAt: { not: null } }, orderBy: { deletedAt: "desc" } });
-  return <div className="space-y-6 pb-16"><header><h1 className="admin-page-title">Trash</h1><p className="mt-2 text-sm admin-muted">Restore content or permanently remove it. Permanent deletion cannot be undone.</p></header><section className="admin-panel overflow-hidden" aria-label="Deleted content">{deletedPosts.length > 0 ? <ul className="divide-y divide-[var(--admin-border)]">{deletedPosts.map((post) => <TrashItem key={post.id} post={post} />)}</ul> : <div className="px-5 py-12"><p className="font-medium">Trash is empty</p><p className="mt-1 text-sm admin-muted">Deleted projects and notes will remain recoverable here.</p></div>}</section></div>;
+  return (
+    <>
+      <AdminPageHead kicker="Return to sender" title="Trash" lead="Restore an item, or delete it forever. Deleting forever cannot be undone." />
+      {deletedPosts.length > 0 ? (
+        <ol aria-label="Deleted content">{deletedPosts.map((post, index) => <TrashItem key={post.id} post={post} position={index + 1} />)}</ol>
+      ) : (
+        <div className="py-14"><p className="font-semibold">Trash is empty</p><p className="site-muted mt-1">Deleted projects and notes stay here until you delete them forever.</p></div>
+      )}
+    </>
+  );
 }
 
-function TrashItem({ post }: Readonly<{ post: Post }>) {
-  return <li className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center"><div className="min-w-0 flex-1"><div className="flex items-center gap-2"><p className="truncate font-medium">{post.title}</p><span className="admin-status admin-status-danger">Deleted {post.type === "PROJECT" ? "project" : "note"}</span></div><p className="mt-1 text-xs admin-muted">{post.deletedAt ? `Deleted ${formatDistanceToNow(post.deletedAt, { addSuffix: true })}` : "Deletion date unavailable"}</p></div><DeleteButton id={post.id} isTrash /></li>;
+function TrashItem({ post, position }: Readonly<{ post: Post; position: number }>) {
+  return (
+    <li data-reveal className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-x-4 gap-y-3 border-b border-[var(--line)] py-6 sm:grid-cols-[3rem_minmax(0,1fr)_auto]">
+      <span className="admin-index">{String(position).padStart(2, "0")}</span>
+      <div className="min-w-0">
+        <p className="truncate font-semibold">{post.title}</p>
+        <p className="admin-label site-muted mt-1">{post.type === "PROJECT" ? "Project" : "Note"} · {post.deletedAt ? `deleted ${formatDistanceToNow(post.deletedAt, { addSuffix: true })}` : "deletion date unknown"}</p>
+      </div>
+      <div className="col-start-2 sm:col-start-auto"><DeleteButton id={post.id} isTrash /></div>
+    </li>
+  );
 }

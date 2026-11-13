@@ -6,7 +6,7 @@ type AdminRouteLoadingProps = Readonly<{
 
 export default function AdminRouteLoading({ label, items = 5, variant = "list" }: AdminRouteLoadingProps) {
   return (
-    <div className="admin-route-loading space-y-6 pb-16" aria-live="polite" aria-busy="true">
+    <div className="admin-route-loading space-y-6 pb-16 pt-12" aria-live="polite" aria-busy="true">
       <span className="sr-only">Loading {label}</span>
       <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div className="space-y-3">

@@ -46,21 +46,21 @@
   --rail-foreground: #161616;
   --rail-line: #d8d6cf;
   --rail-accent: #c63c12;
-  --admin-background: #f3f3ef;
-  --admin-surface: #ffffff;
-  --admin-surface-subtle: #ecebe6;
-  --admin-foreground: #161616;
-  --admin-muted: #5f5d57;
-  --admin-border: #d8d6cf;
+  --admin-background: var(--background);
+  --admin-surface: var(--surface-raised);
+  --admin-surface-subtle: var(--surface);
+  --admin-foreground: var(--foreground);
+  --admin-muted: var(--muted);
+  --admin-border: var(--line);
   --admin-success: #22643a;
   --admin-success-soft: #e2f3e7;
   --admin-warning: #815600;
   --admin-warning-soft: #fff0c9;
   --admin-danger: #a92713;
   --admin-danger-soft: #ffe1d6;
-  --admin-map-water: #ecebe6;
-  --admin-map-land: #d8d6cf;
-  --admin-map-border: #ffffff;
+  --admin-map-water: var(--surface);
+  --admin-map-land: var(--line);
+  --admin-map-border: var(--surface-raised);
   --admin-map-level-1: #ffe1d6;
   --admin-map-level-2: #ffad8d;
   --admin-map-level-3: #ff5a24;
@@ -105,21 +105,12 @@ html.dark,
   --rail-background: #23201c;
   --rail-foreground: #f8f8f2;
   --rail-line: #303036;
-  --admin-background: #09090a;
-  --admin-surface: #171719;
-  --admin-surface-subtle: #202024;
-  --admin-foreground: #f8f8f2;
-  --admin-muted: #b7b5ae;
-  --admin-border: #303036;
   --admin-success: #88d69e;
   --admin-success-soft: #193523;
   --admin-warning: #f1c468;
   --admin-warning-soft: #3a2d14;
   --admin-danger: #ff9c82;
   --admin-danger-soft: #431b12;
-  --admin-map-water: #0c0c0d;
-  --admin-map-land: #252529;
-  --admin-map-border: #09090a;
   --admin-map-level-1: #482012;
   --admin-map-level-2: #7f2d13;
   --admin-map-level-3: #c63c12;
@@ -164,24 +155,43 @@ body {
   color: var(--admin-muted);
 }
 
+/* Page titles use the site's display scale and end on the postcard's orange full stop. */
 .admin-page-title {
-  font-size: clamp(2rem, 3vw, 2.75rem);
-  font-weight: 650;
-  line-height: 1.02;
+  font-size: clamp(2.65rem, 6.2vw, 5rem);
+  font-weight: 620;
+  line-height: 0.95;
   letter-spacing: -0.035em;
   text-wrap: balance;
 }
 
-.admin-section-title {
-  font-size: 1rem;
-  font-weight: 650;
-  line-height: 1.3;
+.admin-page-title::after {
+  content: ".";
+  color: var(--postcard-orange);
+}
+
+/* Section titles are Geist Mono labels, like the site's figure captions. */
+.admin-section-title,
+.admin-label {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.admin-index {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
 }
 
 .admin-panel {
   background: var(--admin-surface);
   border: 1px solid var(--admin-border);
-  border-radius: 0.75rem;
+  border-radius: 1rem;
 }
 
 .admin-skeleton {
@@ -198,8 +208,8 @@ body {
 .admin-textarea {
   width: 100%;
   min-height: 2.75rem;
-  border: 1px solid var(--admin-border);
-  border-radius: 0.5rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
   background: var(--admin-surface);
   color: var(--admin-foreground);
   padding: 0.7rem 0.8rem;
@@ -220,8 +230,8 @@ body {
 .admin-field:focus,
 .admin-select:focus,
 .admin-textarea:focus {
-  border-color: var(--focus);
-  outline: 2px solid color-mix(in srgb, var(--focus) 28%, transparent);
+  border-color: var(--foreground);
+  outline: 2px solid color-mix(in srgb, var(--postcard-orange) 45%, transparent);
   outline-offset: 1px;
 }
 
@@ -233,25 +243,35 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   font-size: 0.875rem;
-  font-weight: 650;
+  font-weight: 600;
+  transition-property: scale, background-color, border-color, color, opacity;
+  transition-duration: 140ms;
+  transition-timing-function: var(--ease-out-expo);
 }
 
+.admin-button-primary:active,
+.admin-button-secondary:active,
+.admin-icon-button:active {
+  scale: 0.97;
+}
+
+/* Ink on paper for the main action, an outline for the rest (the site's button pair). */
 .admin-button-primary {
-  border: 1px solid var(--accent);
-  background: var(--accent);
-  color: var(--accent-ink);
+  border: 1px solid var(--foreground);
+  background: var(--foreground);
+  color: var(--background);
   padding-inline: 1rem;
 }
 
 .admin-button-primary:hover {
-  background: var(--accent-hover);
+  opacity: 0.88;
 }
 
 .admin-button-secondary {
-  border: 1px solid var(--admin-border);
-  background: var(--admin-surface);
+  border: 1px solid var(--foreground);
+  background: transparent;
   color: var(--admin-foreground);
   padding-inline: 1rem;
 }
@@ -267,21 +287,25 @@ body {
   color: var(--admin-muted);
 }
 
-.admin-status {
-  display: inline-flex;
-  min-height: 1.65rem;
-  align-items: center;
-  gap: 0.35rem;
-  border-radius: 999px;
-  padding-inline: 0.6rem;
-  font-size: 0.75rem;
-  font-weight: 650;
+.admin-icon-button:hover {
+  color: var(--admin-foreground);
 }
 
-.admin-status-published { background: var(--admin-success-soft); color: var(--admin-success); }
-.admin-status-scheduled { background: var(--admin-warning-soft); color: var(--admin-warning); }
-.admin-status-draft { background: var(--admin-surface-subtle); color: var(--admin-muted); }
-.admin-status-danger { background: var(--admin-danger-soft); color: var(--admin-danger); }
+.admin-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.admin-status-published { color: var(--admin-success); }
+.admin-status-scheduled { color: var(--accent); }
+.admin-status-draft { color: var(--admin-muted); }
+.admin-status-danger { color: var(--admin-danger); }
 
 .visitor-country {
   cursor: help;
@@ -2090,9 +2114,7 @@ svg.button-external-icon {
 .theme-toggle,
 .header-menu-button,
 .contact-submit,
-.filter-tabs button,
-.admin-icon-button,
-.admin-nav-item {
+.filter-tabs button {
   transition-property: scale, translate, background-color, border-color, color;
   transition-duration: 140ms;
   transition-timing-function: var(--ease-out-expo);
@@ -2105,34 +2127,6 @@ svg.button-external-icon {
 .contact-submit:active,
 .filter-tabs button:active {
   scale: 0.97;
-}
-
-.admin-icon-button:active {
-  scale: 0.94;
-}
-
-.admin-nav-item:hover {
-  translate: 2px 0;
-}
-
-.admin-nav-item:active {
-  scale: 0.985;
-}
-
-.admin-overlay,
-.admin-icon-swap {
-  transition: opacity 160ms ease, rotate 160ms ease;
-}
-
-@starting-style {
-  .admin-overlay {
-    opacity: 0;
-  }
-
-  .admin-icon-swap {
-    opacity: 0;
-    rotate: -45deg;
-  }
 }
 
 /* ---------- Story homepage ---------- */
