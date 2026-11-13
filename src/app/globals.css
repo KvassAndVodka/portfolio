@@ -58,13 +58,6 @@
   --admin-warning-soft: #fff0c9;
   --admin-danger: #a92713;
   --admin-danger-soft: #ffe1d6;
-  --admin-map-water: var(--surface);
-  --admin-map-land: var(--line);
-  --admin-map-border: var(--surface-raised);
-  --admin-map-level-1: #ffe1d6;
-  --admin-map-level-2: #ffad8d;
-  --admin-map-level-3: #ff5a24;
-  --admin-map-level-4: #c63c12;
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -111,10 +104,6 @@ html.dark,
   --admin-warning-soft: #3a2d14;
   --admin-danger: #ff9c82;
   --admin-danger-soft: #431b12;
-  --admin-map-level-1: #482012;
-  --admin-map-level-2: #7f2d13;
-  --admin-map-level-3: #c63c12;
-  --admin-map-level-4: #ff7342;
 }
 
 * {
@@ -322,9 +311,9 @@ body {
   stroke-width: 3;
 }
 
-.traffic-point:focus-visible circle:nth-of-type(2) {
+.traffic-point:focus-visible rect {
   stroke: var(--focus);
-  stroke-width: 4;
+  stroke-width: 2;
 }
 
 @media (prefers-reduced-motion: reduce) {
