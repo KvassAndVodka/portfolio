@@ -11,9 +11,9 @@ type ContentType = "BLOG" | "PROJECT";
 type ContentStatus = "DRAFT" | "PUBLISHED" | "SCHEDULED";
 
 const statusOptions: Array<{ value: ContentStatus; label: string; description: string }> = [
-  { value: "DRAFT", label: "Draft", description: "Only visible in admin" },
-  { value: "PUBLISHED", label: "Published", description: "Visible on the portfolio" },
-  { value: "SCHEDULED", label: "Scheduled", description: "Publishes at a chosen time" },
+  { value: "DRAFT", label: "Draft", description: "Only in the admin" },
+  { value: "PUBLISHED", label: "Published", description: "Live on the site" },
+  { value: "SCHEDULED", label: "Scheduled", description: "Goes live later" },
 ];
 
 type PostFormProps = Readonly<{
@@ -196,12 +196,12 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
             <legend className={fieldLabel}>Status</legend>
             <div className="mt-3 grid gap-2 sm:grid-cols-3">
               {statusOptions.map((option) => (
-                <label key={option.value} className="flex min-h-11 cursor-pointer flex-col justify-center rounded-[8px] border border-[var(--line)] px-4 py-3 transition-colors hover:border-[var(--foreground)] has-[:checked]:border-[var(--foreground)] has-[:checked]:bg-[color-mix(in_srgb,var(--foreground)_5%,transparent)] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--focus)]">
+                <label key={option.value} className="flex min-h-11 cursor-pointer flex-col justify-start rounded-[8px] border border-[var(--line)] px-4 py-3 transition-colors hover:border-[var(--foreground)] has-[:checked]:border-[var(--foreground)] has-[:checked]:bg-[color-mix(in_srgb,var(--foreground)_5%,transparent)] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--focus)]">
                   <span className="flex items-center gap-2 font-semibold">
                     <input type="radio" name="status" value={option.value} checked={status === option.value} onChange={() => setStatus(option.value)} className="size-4 accent-[var(--postcard-orange)]" />
                     {option.label}
                   </span>
-                  <span className="site-muted mt-1 pl-6 text-sm">{option.description}</span>
+                  <span className="site-muted mt-1 truncate pl-6 text-sm">{option.description}</span>
                 </label>
               ))}
             </div>
