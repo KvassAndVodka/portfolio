@@ -8,6 +8,7 @@ import { FaArrowRight, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa
 import ProjectTechnologyList, { ProjectTechnologyMarks } from "@/components/ProjectTechnologyList";
 import useScrollReveal from "@/hooks/useScrollReveal";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { formatProjectCategory } from "@/lib/projectCategory";
 import type { ProjectPreview } from "@/lib/projects";
 
 type ProjectCardProps = Readonly<{
@@ -16,14 +17,6 @@ type ProjectCardProps = Readonly<{
   index?: number;
   project: ProjectPreview;
 }>;
-
-export function formatProjectCategory(category?: string) {
-  if (!category) return "Independent project";
-
-  return category
-    .replace(/[-_]/g, " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
 
 export default function ProjectCard({
   compact = false,

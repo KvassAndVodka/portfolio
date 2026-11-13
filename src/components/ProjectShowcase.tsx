@@ -3,7 +3,8 @@
 import { useMemo, useRef, useState } from "react";
 import { FaArrowUpRightFromSquare, FaGithub, FaRotateRight } from "react-icons/fa6";
 
-import ProjectCard, { formatProjectCategory } from "@/components/ProjectCard";
+import ProjectCard from "@/components/ProjectCard";
+import { formatProjectCategory } from "@/lib/projectCategory";
 import { useTimedFetch } from "@/hooks/useTimedFetch";
 import { Flip, gsap, prefersReducedMotion, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import type { ProjectPreview } from "@/lib/projects";

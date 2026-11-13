@@ -6,7 +6,7 @@ import { useRef, useState, type FocusEvent } from "react";
 import { FaArrowRight, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6";
 
 import AsciiPlate from "@/components/AsciiPlate";
-import { formatProjectCategory } from "@/components/ProjectCard";
+import { formatProjectCategory } from "@/lib/projectCategory";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { getLenis } from "@/lib/lenis";
 import type { ProjectPreview } from "@/lib/projects";
