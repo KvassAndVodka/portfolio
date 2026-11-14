@@ -43,7 +43,6 @@ type Camera = { lng: number; lat: number; zoom: number; pitch: number; bearing: 
 const OVERLOOK_VIEW = { zoom: 11.6, pitch: 58, bearing: 0 };
 const CLOSE_UP = { zoom: 17, pitch: 60 };
 
-// ponytail: placeholder path until the resume PDF is added to public/.
 const RESUME_URL = "/resume.pdf";
 
 /**
