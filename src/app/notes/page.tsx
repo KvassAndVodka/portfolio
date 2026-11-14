@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
 import NotesIndex from "@/components/NotesIndex";
+import PageHead from "@/components/PageHead";
+import SiteFooter from "@/components/SiteFooter";
 import { getPosts, toPostPreview } from "@/lib/posts";
 import { createPageMetadata } from "@/lib/seo";
 
@@ -13,22 +15,23 @@ export const metadata: Metadata = createPageMetadata({
 export default async function NotesPage() {
   const notes = await getPosts();
 
+  const pad = (value: number) => String(value).padStart(2, "0");
+
   return (
     <div>
-      <section className="subpage-hero">
-        <div className="site-shell">
-          <h1 className="page-title">Technical notes and build logs.</h1>
-          <p className="body-large mt-7">
-            Software engineering, data systems, infrastructure, and lessons from active projects.
-          </p>
-        </div>
-      </section>
+      <PageHead
+        labels={["Field notes", `${pad(notes.length)} ${notes.length === 1 ? "entry" : "entries"}`]}
+        title="Technical notes and build logs"
+        lead="Software engineering, data systems, infrastructure, and lessons from active projects."
+      />
 
-      <section className="min-h-[45vh] py-20 md:py-28">
-        <div className="site-shell max-w-6xl">
+      <section className="page-body">
+        <div className="site-shell max-w-5xl">
           <NotesIndex initialNotes={notes.map(toPostPreview)} />
         </div>
       </section>
+
+      <SiteFooter />
     </div>
   );
 }

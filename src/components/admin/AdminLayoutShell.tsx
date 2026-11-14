@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { FaFileLines, FaGear, FaHouse, FaImages, FaLaptopCode, FaPlus } from "react-icons/fa6";
 import ThemeToggle from "@/components/ThemeToggle";
-import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import Toaster from "@/components/admin/Toaster";
 
 const navigation = [
   { label: "Desk", href: "/admin", exact: true },
@@ -29,21 +29,35 @@ const tabLabel = "font-mono text-[0.625rem] font-semibold uppercase tracking-[0.
 
 /**
  * The admin in the public site's identity: the ticket-strip header on desktop, a tab bar on phones.
- * Each page's `data-reveal` elements rise in on arrival, the same restrained motion as the public pages.
+ * Each page's `data-reveal` elements rise in on arrival (CSS, see `.admin-shell [data-reveal]`).
  */
 export default function AdminLayoutShell({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
-  const mainRef = useRef<HTMLElement>(null);
-  const isActive = (href: string, exact?: boolean) =>
+  const navRef = useRef<HTMLElement>(null);
+  const ruleRef = useRef<HTMLSpanElement>(null);
+  const [ruleReady, setRuleReady] = useState(false);
+  // The link just clicked, so the rule slides at once instead of waiting for the next page to load.
+  const [pending, setPending] = useState<{ href: string; from: string } | null>(null);
+  const routeActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href) || (href === "/admin/notes" && pathname.startsWith("/admin/archives"));
+  const isActive = (href: string, exact?: boolean) =>
+    pending && pending.from === pathname ? pending.href === href : routeActive(href, exact);
+  const activeHref = navigation.find((item) => isActive(item.href, item.exact))?.href;
 
-  useGSAP(
-    () => {
-      if (prefersReducedMotion()) return;
-      gsap.from("[data-reveal]", { y: 14, autoAlpha: 0, duration: 0.6, stagger: 0.04, clearProps: "transform,opacity,visibility" });
-    },
-    { scope: mainRef, dependencies: [pathname] },
-  );
+  // One orange rule under the header links that slides to the active one (transform only).
+  useLayoutEffect(() => {
+    const rule = ruleRef.current;
+    const nav = navRef.current;
+    const link = nav?.querySelector<HTMLElement>(`[data-href="${activeHref}"]`);
+    if (!rule || !nav) return;
+    rule.style.opacity = link ? "1" : "0";
+    if (link) {
+      const box = link.getBoundingClientRect();
+      rule.style.transform = `translateX(${box.left - nav.getBoundingClientRect().left + 12}px) scaleX(${box.width - 24})`;
+    }
+    const frame = requestAnimationFrame(() => setRuleReady(true));
+    return () => cancelAnimationFrame(frame);
+  }, [activeHref]);
 
   return (
     <div className="admin-shell flex h-dvh min-h-0 flex-col overflow-hidden">
@@ -54,15 +68,16 @@ export default function AdminLayoutShell({ children }: Readonly<{ children: Reac
           </Link>
           <span className="admin-label site-muted ml-5 mr-auto hidden lg:inline">Admin</span>
 
-          <nav aria-label="Admin" className="primary-navigation relative hidden items-center md:flex">
+          <nav ref={navRef} aria-label="Admin" className="primary-navigation relative hidden items-center md:flex">
             {navigation.map((item) => {
               const active = isActive(item.href, item.exact);
               return (
-                <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={`primary-nav-link ${active ? "after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-[var(--postcard-orange)]" : ""}`}>
+                <Link key={item.href} href={item.href} data-href={item.href} aria-current={active ? "page" : undefined} onClick={() => setPending({ href: item.href, from: pathname })} className="primary-nav-link">
                   <span className="primary-nav-label"><span>{item.label}</span><span aria-hidden="true">{item.label}</span></span>
                 </Link>
               );
             })}
+            <span ref={ruleRef} aria-hidden="true" className="admin-tabs-rule" data-ready={ruleReady || undefined} />
             <Link href="/admin/create?type=BLOG" className="primary-nav-link primary-nav-contact">
               <span className="primary-nav-label"><span>Write</span><span aria-hidden="true">Write</span></span>
             </Link>
@@ -79,16 +94,23 @@ export default function AdminLayoutShell({ children }: Readonly<{ children: Reac
       </header>
 
       {/* The page scrolls here, not on the window, so Lenis (the public site's smooth scroll) stays out of it. */}
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden" data-lenis-prevent>
-        <main ref={mainRef} className="site-shell pb-16">{children}</main>
+      {/* Positioned, so absolutely placed children (screen-reader-only labels) stay inside it; otherwise they
+          land below the screen and give the whole page a second scrollbar. */}
+      <div className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden" data-lenis-prevent>
+        <main className="site-shell pb-16">{children}</main>
       </div>
+
+      <Toaster />
 
       <nav aria-label="Admin" className="grid shrink-0 grid-cols-5 border-t border-[var(--line)] bg-[var(--postcard-paper)] pb-[env(safe-area-inset-bottom)] text-[var(--postcard-ink)] md:hidden">
         {tabs.map(({ label, href, icon: Icon, exact }) => {
           const write = label === "Write";
           const active = !write && isActive(href, exact);
+          let tone = "text-[var(--postcard-muted)]";
+          if (write) tone = "bg-[var(--postcard-orange)] text-[var(--postcard-on-orange)]";
+          else if (active) tone = "";
           return (
-            <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`${tabLabel} flex min-h-16 flex-col items-center justify-center gap-1.5 ${write ? "bg-[var(--postcard-orange)] text-[var(--postcard-on-orange)]" : active ? "" : "text-[var(--postcard-muted)]"}`}>
+            <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`${tabLabel} admin-tab flex min-h-16 flex-col items-center justify-center gap-1.5 ${tone}`}>
               <Icon aria-hidden="true" className="text-base" />
               {label}
             </Link>

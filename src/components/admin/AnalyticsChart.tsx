@@ -1,4 +1,5 @@
 import DotsReveal from "@/components/admin/DotsReveal";
+import { monotoneAt, monotoneSlopes } from "@/lib/monotone";
 
 interface DailyVisit {
   isoDate: string;
@@ -26,22 +27,26 @@ export default function AnalyticsChart({ data }: Readonly<{ data: DailyVisit[] }
   const peak = data.findIndex((d) => d.views === max);
   const last = data.length - 1;
   const x = (i: number) => (last > 0 ? LEFT + (i * SPAN) / last : LEFT + SPAN / 2);
-  // Catmull-Rom through the daily values, so the ridge and the dots under it follow one smooth curve.
-  const at = (px: number, key: Series) => {
-    if (last < 1) return BASE - ((data[0]?.[key] ?? 0) / max) * (BASE - TOP);
-    const f = ((px - LEFT) / SPAN) * last;
-    const i = Math.min(last - 1, Math.max(0, Math.floor(f)));
-    const t = f - i;
-    const p = (k: number) => data[Math.min(last, Math.max(0, k))][key];
-    const [p0, p1, p2, p3] = [p(i - 1), p(i), p(i + 1), p(i + 2)];
-    const value = 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t * t * t);
-    return BASE - (Math.max(0, value) / max) * (BASE - TOP);
+  // One monotone curve per series: through every day's value, with no bumps or dips the data doesn't have.
+  // The ridge and the dots under it read from the same curve.
+  const curves = {
+    views: { values: data.map((d) => d.views), slopes: monotoneSlopes(data.map((d) => d.views)) },
+    visitors: { values: data.map((d) => d.visitors), slopes: monotoneSlopes(data.map((d) => d.visitors)) },
   };
-  const ridge = (key: Series) =>
-    Array.from({ length: 121 }, (_, k) => {
-      const px = LEFT + (k / 120) * SPAN;
-      return `${k ? "L" : "M"}${px.toFixed(1)},${at(px, key).toFixed(1)}`;
-    }).join("");
+  const y = (value: number) => BASE - (Math.max(0, value) / max) * (BASE - TOP);
+  const at = (px: number, key: Series) => y(monotoneAt(curves[key].values, curves[key].slopes, last < 1 ? 0 : ((px - LEFT) / SPAN) * last));
+  // Drawn as true cubic Béziers between the days, so the line has no corners.
+  const ridge = (key: Series) => {
+    const { values, slopes } = curves[key];
+    if (last < 1) return `M${LEFT},${y(values[0] ?? 0)}H${W - RIGHT}`;
+    const third = 1 / 3;
+    return values.reduce((path, value, i) => {
+      if (i === 0) return `M${x(0).toFixed(1)},${y(value).toFixed(1)}`;
+      const c1 = `${(x(i - 1) + (x(i) - x(i - 1)) * third).toFixed(1)},${y(values[i - 1] + slopes[i - 1] * third).toFixed(1)}`;
+      const c2 = `${(x(i) - (x(i) - x(i - 1)) * third).toFixed(1)},${y(value - slopes[i] * third).toFixed(1)}`;
+      return `${path}C${c1} ${c2} ${x(i).toFixed(1)},${y(value).toFixed(1)}`;
+    }, "");
+  };
 
   const dots: { cx: number; cy: number; r: number }[] = [];
   for (let cx = LEFT + STEP / 2; cx < W - RIGHT; cx += STEP) {
@@ -78,8 +83,8 @@ export default function AnalyticsChart({ data }: Readonly<{ data: DailyVisit[] }
             </>
           ) : (
             <>
-              <path d={ridge("views")} fill="none" stroke="var(--foreground)" strokeWidth="1.5" />
-              <path d={ridge("visitors")} fill="none" stroke="var(--foreground)" strokeWidth="1.5" strokeDasharray="5 4" />
+              <path d={ridge("views")} fill="none" stroke="var(--foreground)" strokeWidth="1.5" strokeLinejoin="round" />
+              <path d={ridge("visitors")} fill="none" stroke="var(--foreground)" strokeWidth="1.5" strokeLinejoin="round" strokeDasharray="5 4" />
             </>
           )}
           <line x1={LEFT} x2={W - RIGHT} y1={BASE} y2={BASE} stroke="var(--foreground)" strokeWidth="1.5" />

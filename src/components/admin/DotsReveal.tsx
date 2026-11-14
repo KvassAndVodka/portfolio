@@ -9,7 +9,7 @@ export default function DotsReveal({ children, className = "" }: Readonly<{ chil
   useGSAP(
     () => {
       if (prefersReducedMotion()) return;
-      gsap.fromTo(ref.current, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 1.4, ease: "power2.out", clearProps: "clipPath" });
+      gsap.fromTo(ref.current, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "outExpo", clearProps: "clipPath" });
     },
     { scope: ref },
   );

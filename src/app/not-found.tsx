@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Page not found" };
 export default function NotFound() {
   return (
     <StatusPage
-      eyebrow="Error 404 · Off the map"
+      eyebrow="Error 404 · Not Found"
       title="This page isn't on the map."
       lead="The link may be old, or the page has moved. The work and the writing are still where they were."
     >

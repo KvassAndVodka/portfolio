@@ -5,6 +5,7 @@ import { useRef, useSyncExternalStore } from "react";
 import { FaMoon, FaSun } from "react-icons/fa6";
 
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { switchTheme } from "@/lib/themeTransition";
 
 const emptySubscribe = () => () => undefined;
 
@@ -31,11 +32,11 @@ export default function ThemeToggle() {
   return (
     <button
       type="button"
-      className="theme-toggle flex min-h-11 min-w-11 items-center justify-center rounded-[0.75rem] border site-rule px-3 text-xs font-semibold text-[var(--muted)] hover:border-[var(--line-strong)] hover:text-[var(--foreground)]"
+      className="theme-toggle"
       aria-label={mounted ? `Switch to ${nextTheme} mode` : "Change color theme"}
       title={mounted ? `Switch to ${nextTheme} mode` : "Change color theme"}
       disabled={!mounted}
-      onClick={() => setTheme(nextTheme)}
+      onClick={(event) => switchTheme(setTheme, nextTheme, event.currentTarget)}
     >
       {mounted && (
         <span className="inline-flex" ref={iconRef}>

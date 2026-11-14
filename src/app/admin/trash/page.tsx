@@ -1,7 +1,7 @@
 import type { Post } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 import AdminPageHead from "@/components/admin/AdminPageHead";
-import DeleteButton from "@/components/admin/DeleteButton";
+import { TrashedItemActions } from "@/components/admin/DeleteButton";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminTrash() {
@@ -26,7 +26,7 @@ function TrashItem({ post, position }: Readonly<{ post: Post; position: number }
         <p className="truncate font-semibold">{post.title}</p>
         <p className="admin-label site-muted mt-1">{post.type === "PROJECT" ? "Project" : "Note"} · {post.deletedAt ? `deleted ${formatDistanceToNow(post.deletedAt, { addSuffix: true })}` : "deletion date unknown"}</p>
       </div>
-      <div className="col-start-2 sm:col-start-auto"><DeleteButton id={post.id} isTrash /></div>
+      <div className="col-start-2 sm:col-start-auto"><TrashedItemActions id={post.id} /></div>
     </li>
   );
 }

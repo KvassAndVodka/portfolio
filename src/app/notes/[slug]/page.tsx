@@ -8,6 +8,7 @@ import remarkGfm from "remark-gfm";
 import { FaArrowLeft } from "react-icons/fa6";
 
 import { markdownComponents } from "@/components/markdownComponents";
+import SiteFooter from "@/components/SiteFooter";
 import { getPost, getPosts } from "@/lib/posts";
 import { absoluteUrl, breadcrumbJsonLd, createPageMetadata, defaultSocialImage, serializeJsonLd } from "@/lib/seo";
 
@@ -43,9 +44,13 @@ export async function generateMetadata({ params }: Readonly<{ params: Params }>)
 
 export default async function NotePage({ params }: Readonly<{ params: Params }>) {
   const { slug } = await params;
-  const post = await getPost(slug);
+  const [post, posts] = await Promise.all([getPost(slug), getPosts()]);
 
   if (!post) notFound();
+
+  const pad = (value: number) => String(value).padStart(2, "0");
+  // The same number the note has in the log: counted from the first note, newest last.
+  const number = posts.length - posts.findIndex((entry) => entry.slug === post.slug);
 
   const noteUrl = absoluteUrl(`/notes/${post.slug}`);
   const noteJsonLd = {
@@ -67,44 +72,52 @@ export default async function NotePage({ params }: Readonly<{ params: Params }>)
   };
 
   return (
-    <article>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: serializeJsonLd(noteJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: serializeJsonLd(
-            breadcrumbJsonLd([
-              { name: "Notes", path: "/notes" },
-              { name: post.title, path: `/notes/${post.slug}` },
-            ]),
-          ),
-        }}
-      />
-      <header className="subpage-hero">
-        <div className="site-shell max-w-5xl">
-          <Link className="back-link mb-12" href="/notes">
-            <FaArrowLeft aria-hidden="true" />
-            Back to notes
-          </Link>
-          {post.category && <p className="eyebrow mb-6">{post.category}</p>}
-          <h1 className="page-title !max-w-[15ch]">{post.title}</h1>
-          <div className="meta-list mt-8">
-            <time dateTime={post.publishedAt}>
-              {format(new Date(post.publishedAt), "MMMM d, yyyy")}
-            </time>
-            <span>{post.readTime}</span>
+    <>
+      <article>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(noteJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: serializeJsonLd(
+              breadcrumbJsonLd([
+                { name: "Notes", path: "/notes" },
+                { name: post.title, path: `/notes/${post.slug}` },
+              ]),
+            ),
+          }}
+        />
+        <header className="subpage-hero">
+          <div className="site-shell max-w-5xl">
+            <Link className="back-link mb-12" href="/notes">
+              <FaArrowLeft aria-hidden="true" />
+              All notes
+            </Link>
+            <p className="page-head-labels">
+              {number <= posts.length && <span>No. {pad(number)}</span>}
+              {post.category && <span>{post.category}</span>}
+              <time dateTime={post.publishedAt}>{format(new Date(post.publishedAt), "d MMM yyyy")}</time>
+              <span>{post.readTime}</span>
+            </p>
+            <h1 className="page-title !max-w-[15ch]">
+              {post.title}
+              <span className="title-dot">.</span>
+            </h1>
+            <p className="body-large mt-7">{post.summary}</p>
+          </div>
+        </header>
+
+        <div className="site-shell max-w-5xl pb-20 md:pb-28">
+          <div className="paper-sheet">
+            <div className="prose prose-lg article-prose max-w-none">
+              <MDXRemote source={post.content} components={markdownComponents} options={{ mdxOptions: { remarkPlugins: [remarkGfm], rehypePlugins: [[rehypeHighlight, { detect: true }]] } }} />
+            </div>
           </div>
         </div>
-      </header>
-
-      <div className="site-shell max-w-3xl py-16 md:py-24">
-        <div className="prose prose-lg article-prose max-w-none">
-          <MDXRemote source={post.content} components={markdownComponents} options={{ mdxOptions: { remarkPlugins: [remarkGfm], rehypePlugins: [[rehypeHighlight, { detect: true }]] } }} />
-        </div>
-      </div>
-    </article>
+      </article>
+      <SiteFooter />
+    </>
   );
 }

@@ -11,7 +11,7 @@ export default function ErrorPage({ error, retry }: Readonly<{ error: unknown; r
 
   return (
     <StatusPage
-      eyebrow="Error 500 · Route interrupted"
+      eyebrow="Error 500 · Internal Server Error"
       title="Something broke on the way here."
       lead="This page hit an error while loading. Try it again, or head back to the start."
     >

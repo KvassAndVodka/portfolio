@@ -90,10 +90,10 @@ export default function TornMap() {
     () => {
       if (prefersReducedMotion()) return;
       // Marching squares emit segments row by row, so drawing each level in reads as a survey scan.
-      gsap.fromTo(".torn-contour", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 2, ease: "power2.inOut", stagger: 0.04 });
+      gsap.fromTo(".torn-contour", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.8, ease: "power2.out", stagger: { amount: 0.3 } });
       gsap.fromTo(".torn-edge", { strokeDashoffset: 0 }, { strokeDashoffset: -16, duration: 1.6, ease: "none", repeat: -1 });
-      gsap.fromTo(".torn-route-reveal", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 2.6, delay: 0.8, ease: "power1.inOut" });
-      gsap.fromTo(".torn-end", { scale: 0, rotate: -45, transformOrigin: "50% 50%" }, { scale: 1, rotate: 0, duration: 0.5, delay: 3.3, ease: "back.out(3)" });
+      gsap.fromTo(".torn-route-reveal", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.8, delay: 0.2, ease: "power2.inOut" });
+      gsap.fromTo(".torn-end", { scale: 0.6, autoAlpha: 0, rotate: -45, transformOrigin: "50% 50%" }, { scale: 1, autoAlpha: 1, rotate: 0, duration: 0.35, delay: 0.95, ease: "back.out(3)" });
     },
     { scope: root },
   );

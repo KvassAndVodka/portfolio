@@ -147,9 +147,24 @@ inspect the work. The portrait establishes identity; the project evidence establ
 ## Header
 
 - A ticket strip in the card colours, as wide as the page shell (`82rem`), with a soft shadow.
-- A stub on the left holds "JR." and is split from the links by a dashed tear line.
+- "JR." sits at the left of the strip, with no divider line after it.
 - Links in mono uppercase; Contact is an orange tab with an arrow at the far right.
 - The same header is used on every public page.
+
+## Projects and notes pages
+
+- Index heads: mono labels ("Atlas / 08 case studies"), the title with an orange full stop, the lead, and a
+  faint contour corner behind it (hidden on phones).
+- Projects: atlas-page cards like the gallery's, two columns (one on phones): a mono strip with
+  "Fig. 03 / 08", category and year; the screenshot or a still ASCII plate; title, summary, what
+  changed, built with, and the actions. Figure numbers stay the same across filters.
+- Filters are mono capitals with an orange rule under the active one; search is an underlined field.
+- Notes: a numbered log on one grid-paper sheet ("No. 14", newest first). A note keeps its number as
+  newer ones arrive.
+- Six projects or ten notes to a page. Page numbers are mono, the current page is the orange tab, and
+  a page change glides back to the top of the list.
+- A case study or note: mono back link, mono labels, title, summary, then the body on the same grid
+  paper as the admin editor. The footer closes every public page except the 404 and error pages.
 
 ## Home projects (the gallery)
 
@@ -175,12 +190,12 @@ inspect the work. The portrait establishes identity; the project evidence establ
   coordinates, contours) over insider references. No in-jokes such as HTTP codes, loopback
   addresses, or projection codes.
 - Do not overlap text with the portrait. Move the text, not the photo.
-- Use the postcard vocabulary (cream surface, stamps, mono labels) in the hero, the header, the contact
-  section, and the home page's project and practice-area cards. Notes, archives, and the projects
-  index stay plain.
+- Use the postcard vocabulary (cream surface, mono labels in rust, the orange full stop) everywhere:
+  the hero, the header, the contact section, the home cards, and the projects and notes pages.
 - Do not use generated lifestyle imagery as a substitute for project evidence.
-- Cards use a border or a shadow, never both. Projects-index cards use a border only; the home page's
-  gallery and practice-area cards use the postcard shadow only.
+- Cards use a border or a shadow, never both. Paper surfaces (cards, the notes log, article sheets)
+  use the postcard shadow only.
+- Rules are solid hairlines. No dashed tear lines in new work.
 - Card radii stop at `1rem`; buttons inside the postcard use `8px`.
 - Technologies are structured lists, not a wall of pills, and source or live links stay visible on
   project cards.

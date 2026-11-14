@@ -1,9 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import { format } from 'date-fns';
-import { FaTrash } from 'react-icons/fa';
 import AdminPageHead from '@/components/admin/AdminPageHead';
 import { revalidatePath } from 'next/cache';
 import UploadMediaButton from '@/components/admin/UploadMediaButton';
+import DeleteMediaButton from './DeleteMediaButton';
 import { requireAdmin } from '@/lib/require-admin';
 
 async function deleteMedia(formData: FormData) {
@@ -50,12 +50,7 @@ export default async function AdminMedia() {
                                     <p className="site-muted font-mono text-[0.75rem]">{item.mimeType.split('/')[1]} · {format(new Date(item.createdAt), 'd MMM')}</p>
                                     <div className="-mr-2 ml-auto flex shrink-0">
                                         <CopyUrlButton url={`/api/media/${item.id}`} />
-                                        <form action={deleteMedia}>
-                                            <input type="hidden" name="id" value={item.id} />
-                                            <button type="submit" className="admin-icon-button hover:!text-[var(--admin-danger)]" aria-label={`Delete ${item.filename}`}>
-                                                <FaTrash size={14} aria-hidden="true" />
-                                            </button>
-                                        </form>
+                                        <DeleteMediaButton id={item.id} filename={item.filename} action={deleteMedia} />
                                     </div>
                                 </div>
                             </div>

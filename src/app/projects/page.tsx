@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
+import PageHead from "@/components/PageHead";
 import ProjectShowcase from "@/components/ProjectShowcase";
+import SiteFooter from "@/components/SiteFooter";
 import { getProjects, toProjectPreview } from "@/lib/projects";
 import { createPageMetadata } from "@/lib/seo";
 
@@ -13,22 +15,23 @@ export const metadata: Metadata = createPageMetadata({
 export default async function ProjectsPage() {
   const projects = (await getProjects()).map(toProjectPreview);
 
+  const pad = (value: number) => String(value).padStart(2, "0");
+
   return (
     <div>
-      <section className="subpage-hero">
-        <div className="site-shell">
-          <h1 className="page-title">Systems built to do real work.</h1>
-          <p className="body-large mt-7">
-            Case studies with the problem, my implementation, the technology, and links you can inspect.
-          </p>
-        </div>
-      </section>
+      <PageHead
+        labels={["Atlas", `${pad(projects.length)} case studies`]}
+        title="Systems built to do real work"
+        lead="Case studies with the problem, my implementation, the technology, and links you can inspect."
+      />
 
-      <section className="py-20 md:py-28">
+      <section className="page-body">
         <div className="site-shell">
           <ProjectShowcase initialProjects={projects} loadImmediately />
         </div>
       </section>
+
+      <SiteFooter />
     </div>
   );
 }

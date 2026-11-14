@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { FaTimes, FaImage, FaCloudUploadAlt } from 'react-icons/fa';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { FaXmark } from 'react-icons/fa6';
+import AdminTabs from './AdminTabs';
 import MediaUploader from './MediaUploader';
 import { getRecentMedia } from '@/lib/actions';
 
@@ -35,6 +36,14 @@ export default function MediaPicker({ onSelect, onClose, initialTab = 'library' 
         }
     };
 
+    // A real modal <dialog>: the browser keeps focus inside it, puts it above everything, and closes it on Escape.
+    const dialogRef = useRef<HTMLDialogElement>(null);
+    // Before paint: until showModal() runs, the dialog would show unstyled for a frame.
+    useLayoutEffect(() => {
+        const dialog = dialogRef.current;
+        if (dialog && !dialog.open) dialog.showModal();
+    }, []);
+
     useEffect(() => {
         let cancelled = false;
         void getRecentMedia().then((items) => {
@@ -51,82 +60,72 @@ export default function MediaPicker({ onSelect, onClose, initialTab = 'library' 
         void loadMedia();
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4" role="dialog" aria-modal="true" aria-labelledby="media-picker-title">
-            <div className="admin-panel flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden">
-
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-stone-100 dark:border-white/5">
-                    <h3 id="media-picker-title" className="font-bold text-lg">Select image</h3>
-                    <button onClick={onClose} className="admin-icon-button" aria-label="Close media picker">
-                        <FaTimes className="text-stone-500" />
-                    </button>
-                </div>
-
-                {/* Tabs */}
-                <div className="flex border-b border-stone-100 dark:border-white/5">
-                    <button
-                        onClick={() => setActiveTab('library')}
-                        className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'library' ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-stone-500 hover:text-stone-900 dark:hover:text-stone-300'}`}
-                    >
-                        <FaImage /> Library
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('upload')}
-                        className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'upload' ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-stone-500 hover:text-stone-900 dark:hover:text-stone-300'}`}
-                    >
-                        <FaCloudUploadAlt /> Upload New
-                    </button>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-4 bg-stone-50/50 dark:bg-black/20">
-                    {activeTab === 'library' ? (
-                        <div className="space-y-4">
-                            {loading ? (
-                                <div className="py-20 text-center text-stone-400">Loading library...</div>
-                            ) : mediaItems.length === 0 ? (
-                                <div className="py-20 text-center text-stone-500">
-                                    <p>No images found.</p>
-                                    <button onClick={() => setActiveTab('upload')} className="text-[var(--accent)] hover:underline mt-2 text-sm font-bold">Upload one now</button>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {mediaItems.map(item => (
-                                        <button
-                                            key={item.id}
-                                            onClick={() => onSelect(item.url, item.filename)}
-                                            className="group relative aspect-square bg-white dark:bg-stone-800 rounded-xl overflow-hidden border border-stone-200 dark:border-white/5 hover:border-[var(--accent)] focus:ring-2 ring-[var(--accent)] outline-none transition-all"
-                                        >
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img
-                                                src={item.url}
-                                                alt={item.filename}
-                                                className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                                                loading="lazy"
-                                            />
-                                            <div className="absolute inset-x-0 bottom-0 bg-black/60 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <p className="text-[10px] text-white truncate">{item.filename}</p>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="h-full flex flex-col items-center justify-center py-12">
-                            <div className="w-full max-w-md">
-                                <MediaUploader onUploadComplete={handleUploadComplete} />
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Footer */}
-                <div className="p-4 border-t border-stone-100 dark:border-white/5 bg-white dark:bg-[#0c0a09] text-xs text-stone-400 text-center">
-                    Select an image to insert it into your post.
+    let library: React.ReactNode;
+    if (loading) {
+        library = (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4" aria-busy="true" aria-label="Loading images">
+                {Array.from({ length: 8 }, (_, index) => <div key={index} className="admin-skeleton aspect-square rounded-[2px]" />)}
+            </div>
+        );
+    } else if (mediaItems.length === 0) {
+        library = (
+            <div className="grid min-h-[14rem] place-items-center text-center">
+                <div>
+                    <p className="admin-label site-muted">No images yet</p>
+                    <button type="button" onClick={() => setActiveTab('upload')} className="admin-button-secondary mt-4">Upload the first one</button>
                 </div>
             </div>
-        </div>
+        );
+    } else {
+        library = (
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-5 md:grid-cols-4">
+                {mediaItems.map((item) => (
+                    <li key={item.id}>
+                        <button type="button" onClick={() => onSelect(item.url, item.filename)} className="media-tile">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={item.url} alt="" loading="lazy" />
+                            <span className="media-tile-name">{item.filename}</span>
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        );
+    }
+
+    return (
+        <dialog
+            ref={dialogRef}
+            className="admin-modal media-sheet flex max-h-[85vh] w-[min(100%-2rem,48rem)] flex-col overflow-hidden"
+            aria-labelledby="media-picker-title"
+            onCancel={(event) => {
+                event.preventDefault();
+                onClose();
+            }}
+        >
+                <header className="flex items-start justify-between gap-4 px-6 pt-6">
+                    <div>
+                        <p className="admin-label text-[var(--postcard-rust)]">Media</p>
+                        <h3 id="media-picker-title" className="mt-2 text-[1.75rem] font-[620] leading-none tracking-[-0.035em]">
+                            Choose an image<span className="text-[var(--postcard-orange)]">.</span>
+                        </h3>
+                    </div>
+                    <button type="button" onClick={onClose} className="admin-icon-button -mr-2 -mt-2" aria-label="Close media picker">
+                        <FaXmark aria-hidden="true" />
+                    </button>
+                </header>
+
+                <div className="mt-4 border-b border-[var(--line)] px-6">
+                    <AdminTabs
+                        label="Image source"
+                        value={activeTab}
+                        onChange={setActiveTab}
+                        options={[{ value: 'library', text: 'Library', count: loading ? undefined : mediaItems.length }, { value: 'upload', text: 'Upload' }]}
+                    />
+                </div>
+
+                <div className="admin-list-swap min-h-[18rem] flex-1 overflow-y-auto p-6" key={activeTab}>
+                    {activeTab === 'library' ? library : <MediaUploader onUploadComplete={handleUploadComplete} />}
+                </div>
+        </dialog>
     );
 }

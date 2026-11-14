@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { FaCopy, FaCheck } from 'react-icons/fa';
+import { toast } from '@/components/admin/Toaster';
 
 export default function CopyUrlButton({ url }: Readonly<{ url: string }>) {
     const [copied, setCopied] = useState(false);
@@ -10,8 +11,9 @@ export default function CopyUrlButton({ url }: Readonly<{ url: string }>) {
         const fullUrl = window.location.origin + url;
         navigator.clipboard.writeText(fullUrl).then(() => {
             setCopied(true);
+            toast('Image link on your clipboard', { label: 'Copied' });
             setTimeout(() => setCopied(false), 2000);
-        }).catch(() => undefined);
+        }).catch(() => toast("Couldn't copy the link", { tone: 'error' }));
     };
 
     return (
