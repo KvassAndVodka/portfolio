@@ -84,10 +84,7 @@ export default function VisitorCountryMap({ countries }: Readonly<{ countries: C
   return (
     <section className="admin-panel overflow-hidden" aria-labelledby="countries-heading">
       <div className="border-b border-[var(--admin-border)] p-5 md:px-6">
-        <h2 id="countries-heading" className="admin-section-title">Visitors by country</h2>
-        <p className="mt-1 text-sm admin-muted">
-          Country-level estimates from aggregated IP data over the last 30 days.
-        </p>
+        <h2 id="countries-heading" className="admin-section-title" title="Country-level estimates from aggregated IP data">Visitors by country</h2>
       </div>
 
       {/* The dot world always prints; with no countries yet, the ranking gives way to a note. */}
@@ -109,7 +106,7 @@ export default function VisitorCountryMap({ countries }: Readonly<{ countries: C
                 const intensity = stat ? Math.log1p(stat.visitors) / Math.log1p(maximumVisitors) : 0;
                 return (
                   <circle
-                    data-dot
+                    
                     key={`${cell.x}-${cell.y}`}
                     cx={cell.x}
                     cy={cell.y}
@@ -123,7 +120,7 @@ export default function VisitorCountryMap({ countries }: Readonly<{ countries: C
                 const centre = code ? centres.get(code) : undefined;
                 if (!centre) return null;
                 const intensity = Math.log1p(country.visitors) / Math.log1p(maximumVisitors);
-                return <circle data-dot key={country.countryCode} cx={centre[0]} cy={centre[1]} r={2.2 + intensity * 2.6} fill="var(--accent)" />;
+                return <circle key={country.countryCode} cx={centre[0]} cy={centre[1]} r={2.2 + intensity * 2.6} fill="var(--accent)" />;
               })}
               {countryFeatures.map((country) => {
                 const numericCode = String(country.id).padStart(3, "0");
@@ -152,7 +149,7 @@ export default function VisitorCountryMap({ countries }: Readonly<{ countries: C
             </DotsReveal>
 
             <figcaption className="mt-2 flex flex-col gap-2 text-xs admin-muted sm:flex-row sm:items-center sm:justify-between">
-              <span>Natural Earth boundaries · country-level only · Cagayan de Oro marked</span>
+              <span>Estimates · CDO marked</span>
               <span className="flex items-center gap-1.5" aria-label="Dot size scale from fewer to more visitors">
                 <span>Fewer</span>
                 {[1.7, 2.6, 3.9].map((r) => (

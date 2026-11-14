@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import geoip from "geoip-lite";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { trafficSource } from "@/lib/traffic-source";
 
 const ALLOWED_EVENTS = new Set(["page_view", "contact_submit"]);
 const EXCLUDED_PREFIXES = ["/admin", "/auth", "/api"];
@@ -63,7 +64,8 @@ export async function POST(request: NextRequest) {
         event,
         ipHash,
         userAgent: request.headers.get("user-agent")?.slice(0, 500),
-        referer: request.headers.get("referer")?.slice(0, 500),
+        // The header would only name this site (it is the tracking call's own page), so the page reports where the visit came from.
+        referer: trafficSource(fields.ref, fields.referrer, request.headers.get("host")),
         country: geo?.country || null,
         city: geo?.city || null,
         latitude: geo?.ll?.[0] ?? null,

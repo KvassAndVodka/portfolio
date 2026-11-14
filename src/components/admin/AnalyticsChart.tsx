@@ -19,7 +19,7 @@ const STEP = 9;
 const BASE = H - BOTTOM;
 const SPAN = W - LEFT - RIGHT;
 
-/** Daily traffic as a halftone elevation profile: dots fill the area under the views ridge, darker where visitors account for them. */
+/** Daily traffic as a halftone elevation profile: dots fill the area under the views ridge; visitors run as a dashed line on the same count scale. */
 export default function AnalyticsChart({ data }: Readonly<{ data: DailyVisit[] }>) {
   const max = Math.max(...data.map((d) => d.views), 1);
   const empty = data.every((d) => d.views === 0);
@@ -43,13 +43,12 @@ export default function AnalyticsChart({ data }: Readonly<{ data: DailyVisit[] }
       return `${k ? "L" : "M"}${px.toFixed(1)},${at(px, key).toFixed(1)}`;
     }).join("");
 
-  const dots: { cx: number; cy: number; r: number; visitor: boolean }[] = [];
+  const dots: { cx: number; cy: number; r: number }[] = [];
   for (let cx = LEFT + STEP / 2; cx < W - RIGHT; cx += STEP) {
     const top = at(cx, "views");
-    const visitorTop = at(cx, "visitors");
     for (let cy = BASE - STEP / 2; cy > top; cy -= STEP) {
       const height = (BASE - cy) / (BASE - TOP); // 0 at the baseline, 1 at the highest peak
-      dots.push({ cx, cy, r: 0.8 + height * 3.2, visitor: cy >= visitorTop });
+      dots.push({ cx, cy, r: 0.8 + height * 3.2 });
     }
   }
   // A round step for the scale bar, about a fifth of the peak.
@@ -58,25 +57,29 @@ export default function AnalyticsChart({ data }: Readonly<{ data: DailyVisit[] }
 
   return (
     <section className="admin-panel h-full min-w-0 p-5 md:p-6" aria-labelledby="traffic-heading">
-      <h2 id="traffic-heading" className="admin-section-title">Traffic over 14 days</h2>
-      <p className="mt-1 text-sm admin-muted">
-        {empty ? "Page views and estimated daily visitors." : `Peak ${max} views on ${data[peak].label}. Today in orange.`}
-      </p>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+        <h2 id="traffic-heading" className="admin-section-title">Traffic</h2>
+        <p className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[0.75rem] admin-muted" aria-hidden="true">
+          <span className="flex items-center gap-1.5"><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="var(--line-strong)" /></svg>views</span>
+          <span className="flex items-center gap-1.5"><svg width="18" height="10"><path d="M0 5h18" stroke="var(--foreground)" strokeWidth="1.5" strokeDasharray="4 3" /></svg>visitors</span>
+          <span className="flex items-center gap-1.5"><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="var(--postcard-orange)" /></svg>today</span>
+        </p>
+      </div>
 
       <DotsReveal className="mt-6 min-w-0">
-        <svg className="block h-auto w-full overflow-visible" viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="traffic-title traffic-description">
+        <svg className="traffic-chart block h-auto w-full overflow-visible" viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="traffic-title traffic-description">
           <title id="traffic-title">Daily portfolio traffic</title>
-          <desc id="traffic-description">Halftone elevation profile of daily page views, with visitors shaded darker. Every value is also available below the chart.</desc>
-          {dots.map((d) => <circle data-dot key={`${d.cx}-${d.cy}`} cx={d.cx} cy={d.cy} r={d.r} fill={d.visitor ? "var(--foreground)" : "var(--line-strong)"} />)}
+          <desc id="traffic-description">Halftone elevation profile of daily page views over the last {data.length} days, with estimated visitors as a dashed line. Every value is also available below the chart.</desc>
+          {dots.map((d) => <circle key={`${d.cx}-${d.cy}`} cx={d.cx} cy={d.cy} r={d.r} fill="var(--line-strong)" />)}
           {empty ? (
             <>
-              {Array.from({ length: Math.floor(SPAN / STEP) }, (_, k) => <circle data-dot key={k} cx={LEFT + STEP / 2 + k * STEP} cy={BASE - STEP / 2} r="0.9" fill="var(--line-strong)" />)}
-              <text x={LEFT + SPAN / 2} y={BASE - 70} textAnchor="middle" className="fill-[var(--muted)] font-mono text-[13px]">No views in the last 14 days</text>
+              {Array.from({ length: Math.floor(SPAN / STEP) }, (_, k) => <circle key={k} cx={LEFT + STEP / 2 + k * STEP} cy={BASE - STEP / 2} r="0.9" fill="var(--line-strong)" />)}
+              <text x={LEFT + SPAN / 2} y={BASE - 70} textAnchor="middle" className="chart-text fill-[var(--muted)] font-mono text-[13px]">No views in the last 14 days</text>
             </>
           ) : (
             <>
               <path d={ridge("views")} fill="none" stroke="var(--foreground)" strokeWidth="1.5" />
-              <path d={ridge("visitors")} fill="none" stroke="var(--postcard-orange)" strokeWidth="1.5" strokeDasharray="5 4" />
+              <path d={ridge("visitors")} fill="none" stroke="var(--foreground)" strokeWidth="1.5" strokeDasharray="5 4" />
             </>
           )}
           <line x1={LEFT} x2={W - RIGHT} y1={BASE} y2={BASE} stroke="var(--foreground)" strokeWidth="1.5" />
@@ -84,7 +87,7 @@ export default function AnalyticsChart({ data }: Readonly<{ data: DailyVisit[] }
             <g key={d.isoDate} tabIndex={0} className="traffic-point" aria-label={`${d.label}: ${d.views} views, ${d.visitors} estimated visitors`}>
               <rect x={x(i) - SPAN / Math.max(last, 1) / 2} y={TOP} width={SPAN / Math.max(last, 1)} height={BASE - TOP} fill="transparent" />
               <line x1={x(i)} x2={x(i)} y1={BASE} y2={BASE + 6} stroke="var(--foreground)" />
-              {i % 2 === 0 && <text x={x(i)} y={BASE + 22} textAnchor="middle" className="fill-[var(--muted)] font-mono text-[11px]">{d.label}</text>}
+              {(last - i) % 7 === 0 && <text x={x(i)} y={BASE + 22} textAnchor="middle" className="chart-text fill-[var(--muted)] font-mono text-[11px]">{d.label}</text>}
               <title>{`${d.label}: ${d.views} views, ${d.visitors} visitors`}</title>
             </g>
           ))}
@@ -93,18 +96,13 @@ export default function AnalyticsChart({ data }: Readonly<{ data: DailyVisit[] }
               <circle cx={x(last)} cy={at(x(last) - 0.01, "views")} r="5" fill="var(--postcard-orange)" stroke="var(--background)" strokeWidth="2" />
               <g transform={`translate(${x(peak)},${at(x(peak), "views") - 12})`}>
                 <path d="M-6 0L0 -10L6 0Z" fill="var(--foreground)" />
-                <text x="10" y="-1" className="fill-[var(--foreground)] font-mono text-[12px] font-semibold">{max} · {data[peak].label}</text>
+                <text x="10" y="-1" className="chart-text fill-[var(--foreground)] font-mono text-[12px] font-semibold">{max} · {data[peak].label}</text>
               </g>
             </>
           )}
           <g className="font-mono text-[11px]" visibility={empty ? "hidden" : undefined}>
             <line x1={LEFT - 22} x2={LEFT - 22} y1={BASE} y2={scaleTop} stroke="var(--foreground)" strokeWidth="1.5" />
-            <text x={LEFT - 30} y={scaleTop + 4} textAnchor="end" className="fill-[var(--muted)]">{scale}</text>
-            <g transform={`translate(${W - RIGHT - 250},${TOP - 16})`} aria-hidden="true">
-              <circle cx="4" cy="0" r="4" fill="var(--foreground)" /><text x="13" y="4" className="fill-[var(--muted)]">visitors</text>
-              <circle cx="88" cy="0" r="4" fill="var(--line-strong)" /><text x="97" y="4" className="fill-[var(--muted)]">other views</text>
-              <circle cx="198" cy="0" r="4" fill="var(--postcard-orange)" /><text x="207" y="4" className="fill-[var(--muted)]">today</text>
-            </g>
+            <text x={LEFT - 26} y={scaleTop - 8} className="chart-text fill-[var(--muted)]">{scale} views</text>
           </g>
         </svg>
       </DotsReveal>
