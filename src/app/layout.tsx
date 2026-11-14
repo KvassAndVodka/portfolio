@@ -76,6 +76,13 @@ const globalJsonLd = {
       image: absoluteUrl("/IMG_20260730_122436.jpg"),
       email: siteConfig.email,
       jobTitle: "Software Engineer",
+      description: siteConfig.description,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Cagayan de Oro",
+        addressCountry: "PH",
+      },
+      knowsAbout: ["Software engineering", "Full-stack web development", "Data systems", "GIS", "Infrastructure"],
       sameAs: [siteConfig.github, siteConfig.linkedin],
       alumniOf: {
         "@type": "CollegeOrUniversity",

@@ -9,7 +9,7 @@ import { FaArrowLeft } from "react-icons/fa6";
 
 import { markdownComponents } from "@/components/markdownComponents";
 import { getPost, getPosts } from "@/lib/posts";
-import { absoluteUrl, createPageMetadata, defaultSocialImage, serializeJsonLd } from "@/lib/seo";
+import { absoluteUrl, breadcrumbJsonLd, createPageMetadata, defaultSocialImage, serializeJsonLd } from "@/lib/seo";
 
 type Params = Promise<{ slug: string }>;
 
@@ -71,6 +71,17 @@ export default async function NotePage({ params }: Readonly<{ params: Params }>)
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(noteJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(
+            breadcrumbJsonLd([
+              { name: "Notes", path: "/notes" },
+              { name: post.title, path: `/notes/${post.slug}` },
+            ]),
+          ),
+        }}
       />
       <header className="subpage-hero">
         <div className="site-shell max-w-5xl">
