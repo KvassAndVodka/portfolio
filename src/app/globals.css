@@ -242,8 +242,781 @@ body {
 
 .admin-button-primary:active,
 .admin-button-secondary:active,
-.admin-icon-button:active {
+.admin-icon-button:active,
+.admin-tab:active,
+.paper-insert-toggle:active {
   scale: 0.97;
+}
+
+.admin-tab,
+.paper-insert-toggle {
+  transition:
+    scale 140ms var(--ease-out-expo),
+    rotate 160ms var(--ease-out-expo),
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+/* A modal: fades in from 97% at the centre (not from a trigger), and the scrim fades with it. */
+.admin-modal {
+  transition: opacity 200ms ease;
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+.admin-modal > * {
+  transition:
+    opacity 200ms var(--ease-out-expo),
+    scale 200ms var(--ease-out-expo);
+
+  @starting-style {
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+
+/* The date picker: a paper sheet that opens from its field (top-left), not from the centre. */
+.date-popover {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  width: min(20.5rem, calc(100vw - 2rem));
+  padding: 0.875rem;
+  border-radius: 2px;
+  background: var(--postcard-paper);
+  box-shadow: var(--postcard-shadow);
+  color: var(--postcard-ink);
+  transform-origin: top left;
+  transition:
+    opacity 160ms var(--ease-out-expo),
+    scale 160ms var(--ease-out-expo);
+
+  @starting-style {
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+
+.date-month,
+.date-weekday {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.date-weekday {
+  display: grid;
+  min-height: 1.75rem;
+  place-items: center;
+  color: var(--postcard-muted);
+}
+
+.date-step {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--postcard-muted);
+  transition:
+    scale 140ms var(--ease-out-expo),
+    color 160ms ease;
+}
+
+.date-step:hover {
+  color: var(--postcard-ink);
+}
+
+.date-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.date-day {
+  display: grid;
+  aspect-ratio: 1;
+  min-height: 2.5rem;
+  place-items: center;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  transition:
+    scale 140ms var(--ease-out-expo),
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.date-day:hover {
+  background: color-mix(in srgb, var(--postcard-ink) 7%, transparent);
+}
+
+.date-day[data-outside] {
+  color: color-mix(in srgb, var(--postcard-muted) 55%, transparent);
+}
+
+.date-day[data-today] {
+  box-shadow: inset 0 0 0 1px var(--postcard-ink);
+}
+
+.date-day[aria-pressed="true"] {
+  background: var(--postcard-orange);
+  color: var(--postcard-on-orange);
+  font-weight: 650;
+}
+
+.date-step:active,
+.date-day:active {
+  scale: 0.95;
+}
+
+.date-time {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--postcard-ink) 12%, transparent);
+}
+
+/* A time segment: the value in mono between two small step buttons. */
+.date-step-field {
+  display: inline-grid;
+  justify-items: center;
+}
+
+.date-step-field button {
+  display: grid;
+  width: 2.75rem;
+  height: 1.5rem;
+  place-items: center;
+  color: var(--postcard-muted);
+  font-size: 0.625rem;
+  transition:
+    scale 140ms var(--ease-out-expo),
+    color 160ms ease;
+}
+
+.date-step-field button:hover {
+  color: var(--postcard-ink);
+}
+
+.date-step-field button:active {
+  scale: 0.9;
+}
+
+.date-step-field [role="spinbutton"] {
+  display: grid;
+  min-width: 2.75rem;
+  min-height: 2.25rem;
+  place-items: center;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--postcard-ink) 20%, transparent);
+  font-family: var(--font-mono), monospace;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.date-step-field [role="spinbutton"]:focus-visible {
+  outline: 2px solid var(--postcard-orange);
+  outline-offset: 2px;
+}
+
+.date-colon {
+  font-family: var(--font-mono), monospace;
+  font-weight: 600;
+}
+
+/* Tab rows (note status, project view): one orange rule slides to the chosen tab. */
+.admin-tabs {
+  position: relative;
+}
+
+.admin-tabs button {
+  min-height: 3rem;
+  color: var(--admin-muted);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    color 160ms ease,
+    scale 140ms var(--ease-out-expo);
+}
+
+.admin-tabs button:hover,
+.admin-tabs button[aria-pressed="true"] {
+  color: var(--foreground);
+}
+
+.admin-tabs button:active {
+  scale: 0.97;
+}
+
+/* A 1px line scaled to the tab's width and moved to its left edge: transform only. */
+.admin-tabs-rule {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  height: 2px;
+  background: var(--postcard-orange);
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+.admin-tabs-rule[data-ready] {
+  transition: transform 240ms var(--ease-out-expo);
+}
+
+/* In the admin header it sits where the public header's underline does. */
+.primary-navigation .admin-tabs-rule {
+  bottom: 0.25rem;
+}
+
+/* Page entrance: each data-reveal block rises 4px and fades in as it appears. CSS, not GSAP: a tween that
+   wrote inline styles into streamed content before React hydrated it broke hydration. You change admin
+   pages all day, so it is short; the second and third blocks trail by 30ms each. */
+.admin-shell [data-reveal] {
+  transition:
+    opacity 200ms ease,
+    translate 200ms var(--ease-out-expo);
+
+  @starting-style {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+
+.admin-shell [data-reveal]:nth-of-type(2) {
+  transition-delay: 30ms;
+}
+
+.admin-shell [data-reveal]:nth-of-type(n + 3) {
+  transition-delay: 60ms;
+}
+
+/* A filtered list fades in instead of swapping in one frame. */
+.admin-list-swap {
+  transition:
+    opacity 180ms ease,
+    translate 180ms var(--ease-out-expo);
+
+  @starting-style {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+
+/* ---- Media picker: a paper sheet, like the editor it opens from ---- */
+
+.media-sheet {
+  --foreground: var(--postcard-ink);
+  --line: color-mix(in srgb, var(--postcard-ink) 12%, transparent);
+  border-radius: 2px;
+  background: var(--postcard-paper);
+  box-shadow: var(--postcard-shadow);
+  color: var(--postcard-ink);
+}
+
+.media-tile {
+  display: grid;
+  width: 100%;
+  gap: 0.5rem;
+  text-align: left;
+  transition: scale 140ms var(--ease-out-expo);
+}
+
+.media-tile img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--line);
+  transition: box-shadow 160ms ease;
+}
+
+.media-tile:hover img,
+.media-tile:focus-visible img {
+  box-shadow: 0 0 0 2px var(--postcard-orange);
+}
+
+.media-tile:focus-visible {
+  outline: none;
+}
+
+.media-tile:active {
+  scale: 0.97;
+}
+
+.media-tile-name {
+  overflow: hidden;
+  color: var(--postcard-muted);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The upload zone sits on the grid paper; a solid hairline, darker while a file is held over it. */
+.media-drop {
+  display: grid;
+  min-height: 14rem;
+  place-content: center;
+  justify-items: center;
+  gap: 0.6rem;
+  border-radius: 2px;
+  background-image:
+    linear-gradient(var(--postcard-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--postcard-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+  box-shadow: inset 0 0 0 1px var(--line);
+  cursor: pointer;
+  text-align: center;
+  transition:
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.media-drop:hover,
+.media-drop:focus-visible,
+.media-drop[data-dragging] {
+  box-shadow: inset 0 0 0 2px var(--postcard-orange);
+  outline: none;
+}
+
+.media-drop[data-dragging] {
+  background-color: color-mix(in srgb, var(--postcard-orange) 6%, transparent);
+}
+
+.media-drop-title {
+  font-size: 1.05rem;
+  font-weight: 620;
+  letter-spacing: -0.02em;
+}
+
+.media-drop-label {
+  color: var(--postcard-muted);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ---- Toasts: inverted ticket slips stacked in the bottom corner (above the tab bar on phones) ---- */
+
+.toaster {
+  --toast-h: 3.25rem;
+  --toast-gap: 0.5rem;
+  position: fixed;
+  z-index: 60;
+  right: 1rem;
+  bottom: calc(4rem + env(safe-area-inset-bottom) + 0.75rem);
+  left: 1rem;
+  height: var(--toast-h);
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .toaster {
+    bottom: 1.5rem;
+    left: auto;
+    width: 24rem;
+  }
+}
+
+/*
+ * One slip in the site's ticket shape, inverted: ink on light pages, paper on dark ones. The newest sits in
+ * front; older ones tuck behind it, smaller, so only their top edge shows. Hovering the stack fans it out.
+ * Sonner's motion: in from below over 400ms with a soft ease, out in 200ms, all transitions so a burst retargets.
+ */
+.toast {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  height: var(--toast-h);
+  align-items: stretch;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--postcard-ink);
+  box-shadow: 0 16px 32px -14px rgb(0 0 0 / 45%);
+  color: var(--postcard-paper);
+  font-size: 0.875rem;
+  pointer-events: auto;
+  transform-origin: bottom center;
+  translate: 0 calc(var(--depth) * -0.6rem);
+  scale: calc(1 - var(--depth) * 0.05);
+  z-index: calc(10 - var(--depth));
+  transition:
+    opacity 400ms ease,
+    translate 400ms ease,
+    scale 400ms ease;
+
+  @starting-style {
+    opacity: 0;
+    translate: 0 100%;
+  }
+}
+
+/* Tucked-behind slips show only their edge, not a second line of text. */
+.toast[data-behind] > * {
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.toast > * {
+  transition: opacity 200ms ease;
+}
+
+/* Fanned out: each slip steps up by its own height, and a strip fills the gap so the pointer never falls through. */
+.toaster:hover .toast {
+  translate: 0 calc(var(--depth) * -1 * (var(--toast-h) + var(--toast-gap)));
+  scale: 1;
+}
+
+.toaster:hover .toast[data-behind] > * {
+  opacity: 1;
+}
+
+.toaster:hover .toast::after {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  width: 100%;
+  height: var(--toast-gap);
+  content: "";
+}
+
+.toast[data-leaving] {
+  opacity: 0;
+  translate: 0 0.75rem;
+  transition-duration: 200ms;
+}
+
+/* The stub: a mono label with an orange dot, split from the message by a rule, like the header's ticket. */
+.toast-stub {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.5rem;
+  width: 6.75rem;
+  padding-inline: 1rem 0.75rem;
+  border-right: 1px solid color-mix(in srgb, var(--postcard-paper) 18%, transparent);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.toast-stub::before {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--postcard-orange);
+  content: "";
+}
+
+/* Errors: a rust stub with paper text in both themes (the dark theme's lighter rust is too pale for text). */
+.toast[data-tone="error"] .toast-stub {
+  background: #a3300e;
+  color: #fff8ed;
+}
+
+.toast[data-tone="error"] .toast-stub::before {
+  background: #fff8ed;
+}
+
+.toast p {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  overflow: hidden;
+  padding-inline: 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toast-action,
+.toast-close {
+  display: grid;
+  flex: none;
+  min-width: 2.75rem;
+  place-items: center;
+  transition:
+    scale 140ms var(--ease-out-expo),
+    background-color 160ms ease,
+    opacity 200ms ease;
+}
+
+.toast-action {
+  padding-inline: 0.75rem;
+  color: var(--postcard-orange);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.toast-close {
+  color: color-mix(in srgb, var(--postcard-paper) 60%, transparent);
+}
+
+.toast-action:hover,
+.toast-close:hover {
+  background: color-mix(in srgb, var(--postcard-paper) 10%, transparent);
+}
+
+.toast-action:active,
+.toast-close:active {
+  scale: 0.97;
+}
+
+/* ---- Settings ---- */
+
+/* Theme choices as miniatures of the site, each in its own palette whatever the current theme is. */
+.theme-option {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: start;
+  text-align: left;
+  transition: scale 140ms var(--ease-out-expo);
+}
+
+.theme-option:active {
+  scale: 0.97;
+}
+
+.theme-option-frame {
+  display: block;
+  width: 100%;
+  padding: 3px;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition: box-shadow 200ms var(--ease-out-expo);
+}
+
+.theme-option:hover .theme-option-frame {
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.theme-option[aria-pressed="true"] .theme-option-frame {
+  box-shadow: inset 0 0 0 2px var(--postcard-orange);
+}
+
+.theme-option-label {
+  color: var(--admin-muted);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 160ms ease;
+}
+
+.theme-option[aria-pressed="true"] .theme-option-label {
+  color: var(--foreground);
+}
+
+.theme-mini {
+  --mini-page: #f3ede2;
+  --mini-paper: #fff8ed;
+  --mini-ink: #161616;
+  --mini-muted: rgb(22 22 22 / 22%);
+  display: grid;
+  aspect-ratio: 4 / 3;
+  align-content: start;
+  gap: 7%;
+  overflow: hidden;
+  border-radius: 7px;
+  background: var(--mini-page);
+  padding: 7% 8%;
+}
+
+.theme-mini-dark {
+  --mini-page: #1b1916;
+  --mini-paper: #2a2723;
+  --mini-ink: #f8f8f2;
+  --mini-muted: rgb(248 248 242 / 22%);
+}
+
+.theme-mini-strip {
+  display: flex;
+  height: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 6%;
+  border-radius: 2px;
+  background: var(--mini-paper);
+  box-shadow: 0 3px 6px -3px rgb(0 0 0 / 30%);
+}
+
+.theme-mini-mark {
+  width: 14%;
+  height: 34%;
+  border-radius: 1px;
+  background: var(--mini-ink);
+}
+
+.theme-mini-tab {
+  width: 18%;
+  height: 60%;
+  background: var(--postcard-orange);
+}
+
+.theme-mini-title {
+  position: relative;
+  width: 58%;
+  height: 0.6rem;
+  margin-top: 6%;
+  border-radius: 1px;
+  background: var(--mini-ink);
+}
+
+/* The orange full stop after the title. */
+.theme-mini-title::after {
+  position: absolute;
+  bottom: 0;
+  left: calc(100% + 3px);
+  width: 0.3rem;
+  height: 0.3rem;
+  border-radius: 50%;
+  background: var(--postcard-orange);
+  content: "";
+}
+
+.theme-mini-line {
+  width: 78%;
+  height: 0.25rem;
+  border-radius: 1px;
+  background: var(--mini-muted);
+}
+
+.theme-mini-line-short {
+  width: 52%;
+  margin-top: -3%;
+}
+
+/* System: light and dark, split on the diagonal. */
+.theme-mini-split {
+  display: grid;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.theme-mini-split > * {
+  grid-area: 1 / 1;
+}
+
+.theme-mini-split > :last-child {
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+/* What's live: one ruled mono row per public file. */
+.settings-links li + li {
+  border-top: 1px solid var(--line);
+}
+
+.settings-links a {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr) auto;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8125rem;
+  transition: color 160ms ease;
+}
+
+.settings-links a:hover {
+  color: var(--accent);
+}
+
+.settings-links svg {
+  font-size: 0.7rem;
+  color: var(--admin-muted);
+}
+
+/* "Refreshed at …" fades in where the result appears. */
+.refresh-done {
+  transition: opacity 200ms ease;
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+/* The Note / Project switch. */
+.type-switch {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: scale 140ms var(--ease-out-expo);
+}
+
+.type-switch:active {
+  scale: 0.97;
+}
+
+.type-switch button,
+.type-switch-active > span {
+  display: grid;
+  min-height: 2.25rem;
+  place-items: center;
+  padding-inline: 0.875rem;
+}
+
+.type-switch button {
+  color: var(--admin-muted);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.type-switch-active {
+  position: absolute;
+  inset: 3px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-radius: 6px;
+  background: var(--foreground);
+  color: var(--background);
+  pointer-events: none;
+  clip-path: inset(0 50% 0 0 round 6px);
+  transition: clip-path 240ms var(--ease-out-expo);
+}
+
+.type-switch[data-value="PROJECT"] .type-switch-active {
+  clip-path: inset(0 0 0 50% round 6px);
+}
+
+/* A dragged row lifts: a touch larger, with a shadow, still solid. */
+.admin-sortable-row[data-dragging] {
+  position: relative;
+  z-index: 1;
+  scale: 1.02;
+  box-shadow: var(--postcard-shadow);
 }
 
 /* Ink on paper for the main action, an outline for the rest (the site's button pair). */
@@ -324,15 +1097,59 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Remove movement, keep the colour and opacity fades (the public pages do the same). */
   .admin-shell *,
   .admin-shell *::before,
   .admin-shell *::after {
     scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
+    transition-property: color, background-color, border-color, opacity, fill, stroke !important;
   }
 
   .admin-skeleton {
     animation: none;
+  }
+}
+
+/* Scrollbars: a thin ink pill on a clear track, darker on hover, orange while dragged. The pill sits inside a
+   transparent border so it floats off the edge. One selector per rule: the CSS optimizer drops a rule (and
+   the one after it) whose selector list mixes pseudo-elements. */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--foreground) 22%, transparent) padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--foreground) 40%, transparent);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--postcard-orange);
+}
+
+/* Firefox has no scrollbar pseudo-elements; it gets the standard thin bar. Chromium would ignore the pseudo-
+   elements above if scrollbar-color applied to it, so this is limited to Firefox. */
+@-moz-document url-prefix() {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--foreground) 28%, transparent) transparent;
   }
 }
 
@@ -347,14 +1164,14 @@ input {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Colour only. A transform transition here would chase GSAP-driven transforms, like the map pins. */
 a,
 button {
   transition:
     color 180ms ease,
     background-color 180ms ease,
     border-color 180ms ease,
-    opacity 180ms ease,
-    transform 180ms ease;
+    opacity 180ms ease;
 }
 
 button {
@@ -373,11 +1190,6 @@ button {
 .site-shell {
   width: min(100% - 2rem, 82rem);
   margin-inline: auto;
-}
-
-.filter-toolbar > *,
-.project-card-heading > * {
-  min-width: 0;
 }
 
 .site-rule {
@@ -419,10 +1231,6 @@ button {
   box-shadow: 0 16px 34px -16px rgb(0 0 0 / 45%);
 }
 
-.mobile-navigation-panel {
-  height: calc(100dvh - var(--header-offset));
-}
-
 .scroll-progress {
   position: fixed;
   z-index: 60;
@@ -433,7 +1241,7 @@ button {
   pointer-events: none;
 }
 
-/* The ticket's stub: the wordmark, torn off from the links by a dashed line. */
+/* The ticket's stub: the wordmark at the left of the strip. */
 .brand-lockup {
   position: relative;
   display: inline-flex;
@@ -442,7 +1250,6 @@ button {
   align-items: center;
   padding-inline: 1.375rem;
   box-sizing: border-box;
-  border-right: 2px dashed var(--postcard-tear);
   color: var(--foreground);
 }
 
@@ -524,38 +1331,131 @@ button {
   pointer-events: none;
 }
 
-.primary-navigation .header-theme-toggle {
+/* The theme switch is a bare icon in the strip, set off by a rule, like the links beside it. */
+.header-theme-toggle {
   display: inline-flex;
-  margin-left: 0.2rem;
-  padding-left: 1rem;
+  align-self: stretch;
+  align-items: center;
   border-left: 1px solid var(--line);
 }
 
-.primary-navigation .header-theme-toggle button {
-  min-width: 2.5rem;
-  min-height: 2.5rem;
-  padding: 0.65rem;
+.primary-navigation .header-theme-toggle {
+  margin-left: 0.2rem;
+  padding-left: 0.5rem;
 }
 
-.header-menu-button {
+.theme-toggle {
+  display: grid;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  place-items: center;
   background: transparent;
+  color: var(--muted);
+}
+
+.theme-toggle:hover {
   color: var(--foreground);
-  transition:
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease;
+}
+
+.header-controls {
+  height: 100%;
+  align-items: center;
+  gap: 0.375rem;
+  padding-right: 0.375rem;
+}
+
+/* On phones, Menu is the ticket's orange tab, where Contact sits on wider screens. */
+.header-menu-button {
+  display: inline-flex;
+  min-width: 6rem;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding-inline: 0.875rem;
+  background: var(--postcard-orange);
+  color: var(--postcard-on-orange);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .header-menu-button[aria-expanded="true"] {
-  border-color: var(--foreground);
-  background: var(--foreground);
-  color: var(--background);
+  background: var(--postcard-ink);
+  color: var(--postcard-paper);
+}
+
+/* The open menu: a postcard sheet over the whole screen, header included. The strip turns
+   see-through over it, so only the wordmark and its controls float on the paper. */
+.site-header .header-inner {
+  z-index: 1;
+}
+
+/* The strip clears once the opening circle has reached it, so the page never shows through. */
+.site-header[data-menu-open="true"] .header-inner {
+  background: transparent;
+  box-shadow: none;
+  transition: background-color 0s 150ms, box-shadow 0s 150ms;
+}
+
+.site-header[data-menu-open="true"] .header-theme-toggle {
+  border-color: transparent;
+}
+
+.mobile-navigation-panel {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  padding-top: var(--header-offset);
+  box-sizing: border-box;
+  background-color: var(--postcard-paper);
+  background-image:
+    linear-gradient(var(--postcard-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--postcard-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* The stops are centred in the space above Contact; Contact and the footer sit at the bottom. */
+.mobile-nav-sheet {
+  --foreground: var(--postcard-ink);
+  --muted: var(--postcard-muted);
+  --accent: var(--postcard-rust);
+  display: flex;
+  width: 100%;
+  min-height: 100%;
+  flex-direction: column;
+  padding: 1rem 2rem max(1.5rem, env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  color: var(--postcard-ink);
+  text-align: center;
+}
+
+.mobile-nav-sheet > nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mobile-nav-sheet > nav > .mobile-nav-item:first-child,
+.mobile-nav-sheet > nav > .mobile-nav-item:last-child {
+  margin-top: auto;
 }
 
 .mobile-nav-link {
-  position: relative;
-  transition:
-    color 200ms ease;
+  display: flex;
+  min-height: 5rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  color: var(--foreground);
+  transition: color 200ms ease;
 }
 
 .mobile-nav-link:hover,
@@ -563,12 +1463,77 @@ button {
   color: var(--accent);
 }
 
-.mobile-nav-link svg {
+.mobile-nav-index {
+  color: var(--accent);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.mobile-nav-text {
+  font-size: 2.75rem;
+  font-weight: 620;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.mobile-nav-contact {
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-inline: 1.125rem;
+  background: var(--postcard-orange);
+  color: var(--postcard-on-orange);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mobile-nav-contact svg {
   transition: transform 220ms var(--ease-out-expo);
 }
 
-.mobile-nav-link[aria-current="page"] svg {
-  transform: translateX(-0.35rem);
+.mobile-nav-contact .mobile-nav-text {
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+}
+
+.mobile-nav-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  line-height: 1.7;
+  text-transform: uppercase;
+}
+
+.mobile-nav-social {
+  display: flex;
+}
+
+.mobile-nav-social a {
+  display: grid;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  place-items: center;
+  color: var(--foreground);
+  font-size: 1.125rem;
+}
+
+.mobile-nav-social a:hover {
+  color: var(--accent);
 }
 
 .display-title {
@@ -674,13 +1639,6 @@ svg.button-external-icon {
   background: color-mix(in srgb, var(--background) 70%, transparent);
 }
 
-.button-primary:active,
-.button-secondary:active,
-.text-link:active,
-.project-card-links a:active {
-  transform: scale(0.985);
-}
-
 .text-link {
   display: inline-flex;
   align-items: center;
@@ -692,34 +1650,6 @@ svg.button-external-icon {
 
 .text-link:hover {
   color: var(--accent);
-}
-
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  color: var(--muted);
-  font-size: 0.84rem;
-  font-weight: 620;
-}
-
-.back-link:hover {
-  color: var(--foreground);
-}
-
-.meta-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem 1.4rem;
-  color: var(--muted);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 0.7rem;
-}
-
-.meta-list > * + *::before {
-  margin-right: 1.4rem;
-  color: var(--line-strong);
-  content: "/";
 }
 
 .hero-field {
@@ -780,16 +1710,6 @@ svg.button-external-icon {
 
 .section-title-wide span {
   color: var(--accent);
-}
-
-.project-card-media::after {
-  position: absolute;
-  inset: 0;
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-  content: "";
-  opacity: 0;
-  transition: opacity 180ms ease;
-  pointer-events: none;
 }
 
 .technology-stage {
@@ -1012,10 +1932,6 @@ svg.button-external-icon {
   background: var(--postcard-rust);
 }
 
-.contact-submit:active:not(:disabled) {
-  transform: scale(0.985);
-}
-
 .contact-submit:disabled {
   cursor: progress;
   opacity: 0.7;
@@ -1216,7 +2132,6 @@ svg.button-external-icon {
   color: #ff7342;
 }
 
-
 /* The wordmark closes the page and bleeds off its bottom edge: cropped just under the baseline, so it
    reads as too big for the screen while every letter stays legible. */
 .site-footer-wordmark {
@@ -1250,137 +2165,6 @@ svg.button-external-icon {
   text-transform: uppercase;
 }
 
-.project-grid {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: clamp(1rem, 2.5vw, 2rem);
-}
-
-.project-grid-compact {
-  grid-auto-flow: dense;
-  gap: clamp(0.75rem, 1.5vw, 1.25rem);
-}
-
-.project-grid-compact > * {
-  min-width: 0;
-  grid-column: span 4;
-}
-
-.project-grid-compact > :nth-child(5n + 1) {
-  grid-column: span 8;
-}
-
-.project-grid-compact[data-count="1"] > * {
-  grid-column: 1 / -1;
-}
-
-.project-grid-compact[data-count="2"] > * {
-  grid-column: span 6;
-}
-
-.project-grid-compact[data-count="3"] > :nth-child(1) {
-  grid-column: span 7;
-}
-
-.project-grid-compact[data-count="3"] > :nth-child(2) {
-  grid-column: span 5;
-}
-
-.project-grid-compact[data-count="3"] > :nth-child(3) {
-  grid-column: 1 / -1;
-}
-
-.project-grid-compact[data-count="4"] > :nth-child(1),
-.project-grid-compact[data-count="4"] > :nth-child(4) {
-  grid-column: span 7;
-}
-
-.project-grid-compact[data-count="4"] > :nth-child(2),
-.project-grid-compact[data-count="4"] > :nth-child(3) {
-  grid-column: span 5;
-}
-
-.project-grid-index > .project-card {
-  grid-column: span 6;
-}
-
-.project-grid-index > .project-card-featured {
-  grid-column: 1 / -1;
-}
-
-.project-card {
-  display: flex;
-  transform-style: preserve-3d;
-  transition: border-color 240ms var(--ease-out-quart), background-color 240ms ease;
-  height: 100%;
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 0.75rem;
-  background: var(--surface-raised);
-}
-
-.project-card:hover {
-  border-color: var(--accent);
-}
-
-.project-card-featured {
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(20rem, 0.85fr);
-  min-height: clamp(28rem, 46vw, 36rem);
-}
-
-.project-card-bento {
-  min-height: clamp(24rem, 34vw, 30rem);
-}
-
-.project-grid-compact[data-count="1"] .project-card-bento {
-  min-height: clamp(28rem, 44vw, 36rem);
-}
-
-.project-grid-compact[data-count="3"] > :nth-child(3),
-.project-grid-compact[data-count="4"] > :nth-child(n + 3) {
-  min-height: clamp(21rem, 28vw, 25rem);
-}
-
-.project-card-media {
-  position: relative;
-  display: block;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  background: var(--surface);
-}
-
-.project-card-featured .project-card-media {
-  min-height: 100%;
-  aspect-ratio: auto;
-}
-
-.project-card-media img {
-  transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.project-card-fallback {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  min-height: 0;
-  flex-direction: column;
-  justify-content: space-between;
-  background: var(--accent-fill);
-  color: var(--accent-fill-ink);
-  padding: clamp(1.25rem, 3vw, 2rem);
-}
-
-.project-card-fallback > span {
-  max-width: 18ch;
-  font-size: clamp(1.2rem, 2.2vw, 1.75rem);
-  font-weight: 620;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  text-wrap: balance;
-}
-
 .project-technology-marks {
   display: flex;
   flex-wrap: wrap;
@@ -1391,59 +2175,6 @@ svg.button-external-icon {
 .project-technology-marks svg {
   width: clamp(2rem, 4vw, 3.5rem);
   height: clamp(2rem, 4vw, 3.5rem);
-}
-
-.project-card-body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  padding: clamp(1.25rem, 3vw, 2rem);
-}
-
-.project-card-featured .project-card-body {
-  padding: clamp(1.75rem, 4vw, 3rem);
-}
-
-.project-card-heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.1rem;
-}
-
-.project-card-category {
-  margin: 0;
-  color: var(--accent);
-  font-size: 0.76rem;
-  font-weight: 650;
-}
-
-.project-card-selection {
-  color: var(--muted);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 0.64rem;
-  white-space: nowrap;
-}
-
-.project-card h3 {
-  max-width: 20ch;
-  font-size: clamp(1.5rem, 2.5vw, 2.15rem);
-  font-weight: 570;
-  line-height: 1.04;
-  letter-spacing: -0.04em;
-  text-wrap: balance;
-}
-
-.project-card h3 a:hover {
-  color: var(--accent);
-}
-
-.project-card-summary {
-  margin-top: 1rem;
-  color: var(--muted);
-  font-size: 0.94rem;
-  line-height: 1.6;
 }
 
 .project-technology-list {
@@ -1468,206 +2199,6 @@ svg.button-external-icon {
   width: 0.9rem;
   height: 0.9rem;
   color: var(--foreground);
-}
-
-.project-card-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: auto;
-  padding-top: 1.8rem;
-}
-
-.project-card-links a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--muted-strong);
-  font-size: 0.78rem;
-  font-weight: 650;
-}
-
-.project-card-links .project-card-case-study {
-  min-height: 2.5rem;
-  border: 1px solid var(--foreground);
-  border-radius: 0.5rem;
-  background: var(--foreground);
-  color: var(--background);
-  padding: 0.6rem 0.8rem;
-}
-
-.project-card-links .project-card-case-study:hover {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-.project-card-links a:hover {
-  color: var(--accent);
-}
-
-.project-card-links svg {
-  flex: none;
-  font-size: 0.78rem;
-}
-
-.evidence-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(17rem, 0.8fr);
-  gap: clamp(3rem, 7vw, 7rem);
-  align-items: start;
-}
-
-.archive-row {
-  display: grid;
-  grid-template-columns: minmax(7rem, 0.7fr) minmax(0, 3fr) auto;
-  gap: clamp(1rem, 3vw, 3rem);
-  align-items: start;
-  padding-block: 1.65rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.archive-row:first-child {
-  border-top: 1px solid var(--line);
-}
-
-.archive-row:hover h2 {
-  color: var(--accent);
-}
-
-.archive-row time,
-.archive-row-meta {
-  color: var(--muted);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 0.7rem;
-}
-
-.archive-row h2 {
-  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
-  font-weight: 570;
-  line-height: 1.15;
-  letter-spacing: -0.03em;
-}
-
-.archive-row p {
-  max-width: 62ch;
-  margin-top: 0.65rem;
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.55;
-}
-
-.filter-toolbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(15rem, 22rem);
-  gap: 1.5rem;
-  align-items: end;
-  margin-bottom: 3rem;
-}
-
-.filter-index {
-  display: grid;
-  gap: 0.8rem;
-}
-
-.project-result-count {
-  color: var(--muted);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 0.68rem;
-}
-
-.filter-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.filter-tabs button {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  min-height: 2.75rem;
-  border: 1px solid var(--line);
-  border-radius: 0.75rem;
-  padding: 0.65rem 0.9rem;
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 620;
-}
-
-.filter-tabs button > span:not(.filter-active-indicator) {
-  position: relative;
-  z-index: 1;
-}
-
-.filter-active-indicator {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  background: var(--foreground);
-}
-
-.filter-tabs button:hover,
-.filter-tabs button[aria-pressed="true"] {
-  border-color: var(--foreground);
-  color: var(--background);
-}
-
-.search-field {
-  display: grid;
-  gap: 0.55rem;
-  color: var(--muted-strong);
-  font-size: 0.78rem;
-  font-weight: 620;
-}
-
-.search-field input {
-  min-height: 3rem;
-  width: 100%;
-  border: 1px solid var(--line-strong);
-  border-radius: 0.75rem;
-  background: var(--surface-raised);
-  padding: 0.75rem 0.9rem;
-  color: var(--foreground);
-  font-size: 0.9rem;
-  font-weight: 400;
-}
-
-.search-field input::placeholder {
-  color: var(--muted);
-}
-
-.search-field input:focus {
-  border-color: var(--focus);
-}
-
-.empty-state {
-  border: 1px solid var(--line);
-  border-radius: 0.75rem;
-  padding: clamp(2rem, 6vw, 4rem);
-}
-
-.empty-state h2,
-.empty-state h3 {
-  max-width: 30ch;
-  font-size: clamp(1.35rem, 2.5vw, 1.8rem);
-  font-weight: 650;
-  letter-spacing: -0.03em;
-}
-
-.empty-state p {
-  max-width: 58ch;
-  margin-top: 0.8rem;
-  color: var(--muted);
-  font-size: 1.05rem;
-  line-height: 1.6;
-}
-
-.empty-state-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
 }
 
 .project-loading-state {
@@ -1707,14 +2238,6 @@ svg.button-external-icon {
   100% {
     transform: scaleX(0.28);
   }
-}
-
-.project-skeleton {
-  min-height: 30rem;
-}
-
-.project-skeleton-media {
-  aspect-ratio: 16 / 10;
 }
 
 .skeleton-shimmer {
@@ -1771,21 +2294,10 @@ svg.button-external-icon {
   gap: 0.75rem;
 }
 
-.archive-row-meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-}
-
 @keyframes skeleton-shimmer {
   to {
     background-position: -240% 0;
   }
-}
-
-.subpage-hero {
-  padding-block: clamp(6rem, 12vw, 10rem) clamp(4.5rem, 9vw, 8rem);
-  border-bottom: 1px solid var(--line);
 }
 
 .article-prose {
@@ -1910,17 +2422,6 @@ svg.button-external-icon {
   transform: translateY(0);
 }
 
-@media (min-width: 768px) and (max-width: 1023px) {
-  .project-grid-compact[data-count] > :nth-child(n) {
-    grid-column: span 6;
-  }
-
-  .project-grid-compact[data-count]:not([data-count="2"]) > :first-child {
-    grid-column: 1 / -1;
-  }
-}
-
-
 @media (max-width: 767px) {
   .display-title {
     max-width: 13ch;
@@ -1944,11 +2445,6 @@ svg.button-external-icon {
     font-size: 1rem;
     line-height: 1.6;
   }
-
-  .subpage-hero {
-    padding-block: 4rem 3.5rem;
-  }
-
 
   .hero-kicker {
     margin-bottom: 1rem;
@@ -1976,41 +2472,6 @@ svg.button-external-icon {
       );
   }
 
-  .project-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .project-grid.project-grid-compact[data-count] > :nth-child(n),
-  .project-grid-index > :nth-child(n) {
-    grid-column: 1 / -1;
-    transform: none;
-  }
-
-  .project-card-featured {
-    display: flex;
-    min-height: 0;
-  }
-
-  .project-card,
-  .project-card-bento,
-  .project-grid-compact[data-count="1"] .project-card-bento,
-  .project-grid-compact[data-count="3"] > :nth-child(3),
-  .project-grid-compact[data-count="4"] > :nth-child(n + 3) {
-    height: auto;
-    min-height: 0;
-  }
-
-  .project-card-media,
-  .project-card-featured .project-card-media {
-    min-height: 0;
-    aspect-ratio: 1.618 / 1;
-  }
-
-  .project-card-fallback {
-    padding: 1.15rem;
-  }
-
   .project-technology-marks {
     gap: 0.7rem;
   }
@@ -2020,87 +2481,9 @@ svg.button-external-icon {
     height: 1.8rem;
   }
 
-  .project-card-fallback > span {
-    font-size: 1.0625rem;
-  }
-
-  .project-card-body,
-  .project-card-featured .project-card-body {
-    padding: 1.15rem;
-  }
-
-  .project-card-heading {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  .project-card-selection {
-    white-space: normal;
-  }
-
-  .project-card h3 {
-    max-width: 100%;
-    font-size: clamp(1.45rem, 7.5vw, 1.9rem);
-    overflow-wrap: anywhere;
-  }
-
-  .project-card-links {
-    gap: 0.5rem 0.85rem;
-    padding-top: 1.5rem;
-  }
-
-  .project-card-links a {
-    min-height: 2.75rem;
-  }
-
-  .evidence-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .archive-row {
-    grid-template-columns: 1fr;
-    gap: 0.65rem;
-    padding-block: 1.35rem;
-  }
-
-  .archive-row h2 {
-    overflow-wrap: anywhere;
-  }
-
-  .archive-row-meta {
-    justify-self: start;
-    margin-top: 0.15rem;
-  }
-
-  .filter-toolbar {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-    margin-bottom: 2rem;
-  }
-
-  .filter-tabs {
-    gap: 0.5rem;
-  }
-
-  .filter-tabs button {
-    flex: 1 1 auto;
-  }
-
   .note-skeleton {
     grid-template-columns: 1fr;
     gap: 0.75rem;
-  }
-
-  .meta-list {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .meta-list > * + *::before {
-    margin-right: 0;
-    content: none;
   }
 
   .article-prose {
@@ -2111,19 +2494,6 @@ svg.button-external-icon {
     overflow-wrap: anywhere;
   }
 
-  .subpage-hero .button-primary,
-  .subpage-hero .button-secondary {
-    width: 100%;
-  }
-
-  .empty-state-actions {
-    flex-direction: column;
-  }
-
-  .empty-state-actions .button-primary,
-  .empty-state-actions .button-secondary {
-    width: 100%;
-  }
 }
 
 @media (max-width: 359px) {
@@ -2137,17 +2507,10 @@ svg.button-external-icon {
     transform: translateY(-0.85rem);
   }
 
-  .mobile-nav-link:hover svg {
-    transform: translateX(-0.35rem);
+  .mobile-nav-contact:hover svg {
+    transform: translateX(0.35rem);
   }
 
-  .project-card:hover .project-card-media::after {
-    opacity: 1;
-  }
-
-  .project-card:hover .project-card-media img {
-    transform: scale(1.025);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2155,11 +2518,12 @@ svg.button-external-icon {
     scroll-behavior: auto;
   }
 
+  /* Remove movement, keep the fades: only colour and opacity still transition. */
   *,
   *::before,
   *::after {
     scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
+    transition-property: color, background-color, border-color, opacity, fill, stroke, text-decoration-color !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
@@ -2177,6 +2541,8 @@ svg.button-external-icon {
 /* Press feedback. Uses the standalone `scale` property so it never fights GSAP transforms. */
 .button-primary,
 .button-secondary,
+.text-link,
+.project-card-links a,
 .theme-toggle,
 .header-menu-button,
 .contact-submit,
@@ -2188,9 +2554,11 @@ svg.button-external-icon {
 
 .button-primary:active,
 .button-secondary:active,
+.text-link:active,
+.project-card-links a:active,
 .theme-toggle:active,
 .header-menu-button:active,
-.contact-submit:active,
+.contact-submit:active:not(:disabled),
 .filter-tabs button:active {
   scale: 0.97;
 }
@@ -2373,8 +2741,10 @@ html.dark {
 }
 
 /* Stuck on by hand: a slight tilt, and a small wiggle under the pointer. */
-.postcard-stamp:hover {
-  rotate: -2deg;
+@media (hover: hover) and (pointer: fine) {
+  .postcard-stamp:hover {
+    rotate: -2deg;
+  }
 }
 
 /* The printed face: orange field inside a thin ink frame, value along the top, place along the bottom. */
@@ -2507,6 +2877,7 @@ html.dark {
   font-size: 0.875rem;
   font-weight: 600;
   transition:
+    scale 140ms var(--ease-out-expo),
     background-color 180ms ease,
     color 180ms ease;
 }
@@ -2527,7 +2898,7 @@ html.dark {
 }
 
 .postcard-button:active {
-  transform: scale(0.985);
+  scale: 0.97;
 }
 
 /* Below laptop width the side-by-side card has no room for the portrait's spill, so the photo panel
@@ -2707,6 +3078,10 @@ a.story-place-organization:hover {
   color: var(--muted-strong);
   font-size: 1rem;
   line-height: 1.6;
+}
+
+.story-place-more {
+  display: none;
 }
 
 .story-place-detail-link {
@@ -3147,11 +3522,18 @@ a.story-place-organization:hover {
   color: var(--accent);
 }
 
-.story-rail button:hover .story-rail-node,
 .story-rail button[data-active] .story-rail-node {
   border-color: var(--accent);
   background: var(--accent);
   scale: 1.3;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .story-rail button:hover .story-rail-node {
+    border-color: var(--accent);
+    background: var(--accent);
+    scale: 1.3;
+  }
 }
 
 .story-pin-inner {
@@ -3235,10 +3617,16 @@ a.story-place-organization:hover {
   letter-spacing: -0.01em;
 }
 
-.story-pin-inner:hover .story-pin-label,
 .story-pin-inner:focus-visible .story-pin-label {
   border-color: var(--accent);
   transform: translateY(-2px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .story-pin-inner:hover .story-pin-label {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
 }
 
 .story-pin-inner:hover .story-pin-label::after,
@@ -3372,8 +3760,79 @@ a.story-place-organization:hover {
     font-size: clamp(1.9rem, 9vw, 2.5rem);
   }
 
+  /* One card shape for every place, whatever the copy's length: the map stays in view. The plain
+     (static) column still shows everything. */
+  /* Grid items grow to their widest line unless told otherwise; the one-line rows below need the cap. */
+  .story:not([data-mode="static"]) .story-places ol,
+  .story:not([data-mode="static"]) .story-place {
+    min-width: 0;
+  }
+
+  .story:not([data-mode="static"]) .story-place-organization {
+    display: flex;
+    max-width: 100%;
+  }
+
+  .story:not([data-mode="static"]) .story-place-organization > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .story:not([data-mode="static"]) .story-place-detail {
+    display: -webkit-box;
+    overflow: hidden;
     font-size: 0.92rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
+  /* "More" lifts the cut for one card: the full name and detail, the map pans on underneath. */
+  .story:not([data-mode="static"]) .story-place[data-expanded] .story-place-organization > span {
+    white-space: normal;
+  }
+
+  .story:not([data-mode="static"]) .story-place[data-expanded] .story-place-detail {
+    display: block;
+  }
+
+  .story:not([data-mode="static"]) .story-place-more {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    margin-block: -0.5rem -0.75rem;
+    color: var(--accent);
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: scale 140ms var(--ease-out-expo);
+  }
+
+  .story:not([data-mode="static"]) .story-place-more:active {
+    scale: 0.97;
+  }
+
+  .story:not([data-mode="static"]) .story-place-more[hidden] {
+    display: none;
+  }
+
+  .story:not([data-mode="static"]) .story-place-meta {
+    flex-direction: row;
+    gap: 0 0.75rem;
+    white-space: nowrap;
+  }
+
+  .story:not([data-mode="static"]) .story-place-meta > * + *::before {
+    margin-right: 0.75rem;
+    content: "/";
+  }
+
+  .story:not([data-mode="static"]) .story-place-meta > :last-child {
+    display: none;
   }
 
   /* Years only on phones, lifted clear of the map attribution. */
@@ -3496,5 +3955,634 @@ a.story-place-organization:hover {
 @media (max-width: 767px) {
   .status-page-actions > * {
     width: 100%;
+  }
+}
+
+/* ---------- Theme switch: the new palette grows out of the button (see lib/themeTransition.ts) ---------- */
+/* The page's own colour transitions would fade a second time inside the circle; hold them during the switch. */
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
+}
+
+/* No cross-fade: the new snapshot is revealed by the circle, the old one stays put underneath. */
+::view-transition-old(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* ---------- Subpages: the projects atlas, the notes log, and the case-study and note sheets ---------- */
+/* The same postcard vocabulary as the home page: cream paper on the page colour, mono labels in rust,
+   one orange signal, the full stop in orange. Solid hairlines only; no dashed tear lines. */
+
+.title-dot {
+  color: var(--postcard-orange);
+}
+
+/* Mono labels over a title: section, count, date. Separated by a thin slash. */
+.page-head-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0;
+  margin-bottom: 1.75rem;
+  color: var(--accent);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.page-head-labels > * + *::before {
+  margin-inline: 0.75rem;
+  color: var(--line-strong);
+  content: "/";
+}
+
+.page-head {
+  position: relative;
+  overflow: hidden;
+  padding-block: clamp(7rem, 13vw, 10.5rem) clamp(3.5rem, 7vw, 5.5rem);
+}
+
+/* A survey-sheet corner behind the title: decoration only, faint, and kept off phones where it would sit under the text. */
+.page-head-contours {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(48vw, 40rem);
+  height: 100%;
+  fill: none;
+  stroke: var(--foreground);
+  stroke-opacity: 0.14;
+  stroke-width: 1;
+  pointer-events: none;
+  mask-image: linear-gradient(to left, #000 55%, transparent);
+}
+
+.page-head-contours .is-index {
+  stroke-opacity: 0.26;
+  stroke-width: 1.6;
+}
+
+.page-head .site-shell {
+  position: relative;
+}
+
+.page-body {
+  padding-bottom: clamp(5rem, 10vw, 8rem);
+}
+
+.subpage-hero {
+  padding-block: clamp(6.5rem, 12vw, 9.5rem) clamp(3rem, 6vw, 4.5rem);
+}
+
+.back-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.back-link:hover {
+  color: var(--foreground);
+}
+
+.back-link svg {
+  transition: translate 200ms var(--ease-out-expo);
+}
+
+/* ---- Projects: the toolbar ---- */
+
+.filter-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem 3rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.filter-index {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.project-result-count,
+.search-field {
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Categories read like the header links: mono capitals, the active one in ink with an orange rule under it. */
+.filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -0.75rem;
+}
+
+.filter-tabs button {
+  position: relative;
+  min-height: 2.75rem;
+  padding-inline: 0.75rem;
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.filter-tabs button:hover,
+.filter-tabs button[aria-pressed="true"] {
+  color: var(--foreground);
+}
+
+.filter-active-indicator {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.3rem;
+  left: 0.75rem;
+  height: 2px;
+  background: var(--postcard-orange);
+}
+
+.search-field {
+  display: grid;
+  width: min(100%, 20rem);
+  gap: 0.35rem;
+}
+
+.search-field input {
+  min-height: 2.75rem;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  transition: border-color 160ms ease;
+}
+
+.search-field input::placeholder {
+  color: var(--muted);
+}
+
+.search-field input:focus {
+  border-bottom-color: var(--foreground);
+  outline: none;
+}
+
+/* ---- Projects: atlas pages ---- */
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.project-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--postcard-paper);
+  box-shadow: var(--postcard-shadow);
+  color: var(--postcard-ink);
+  --foreground: var(--postcard-ink);
+  --muted: var(--postcard-muted);
+  --accent: var(--postcard-rust);
+  --line: color-mix(in srgb, var(--postcard-ink) 12%, transparent);
+}
+
+.project-card-strip {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: stretch;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.project-card-strip > span {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  padding-inline: 1.25rem;
+  color: var(--muted);
+}
+
+.project-card-strip .project-card-figure {
+  border-right: 1px solid var(--line);
+  color: var(--accent);
+}
+
+.project-card-strip .project-card-category {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-card-strip .project-card-year {
+  margin-left: auto;
+}
+
+.project-card-media {
+  position: relative;
+  display: grid;
+  aspect-ratio: 16 / 9;
+  place-items: center;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  background: var(--background);
+}
+
+.project-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+}
+
+.project-card h2 {
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+  font-weight: 620;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.project-card h2 a {
+  transition: color 160ms ease;
+}
+
+.project-card h2 a:hover {
+  color: var(--accent);
+}
+
+.project-card-summary {
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.project-card-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--accent);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.project-card-outcome {
+  margin-top: 1.25rem;
+  color: var(--accent);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.project-card-built {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.project-card-built ul,
+.project-spec ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.8125rem;
+}
+
+.project-card-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
+/* ---- Pagination: page numbers in mono, the current page as the orange tab ---- */
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pagination ol {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pagination button {
+  display: inline-flex;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding-inline: 0.75rem;
+  color: var(--muted);
+  transition:
+    scale 140ms var(--ease-out-expo),
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  color: var(--foreground);
+}
+
+.pagination button:active:not(:disabled) {
+  scale: 0.97;
+}
+
+.pagination button[aria-current="page"] {
+  background: var(--postcard-orange);
+  color: var(--postcard-on-orange);
+}
+
+.pagination button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* ---- Notes: a numbered log on a paper sheet ---- */
+
+.notes-sheet,
+.paper-sheet,
+.empty-state {
+  --foreground: var(--postcard-ink);
+  --muted: var(--postcard-muted);
+  --muted-strong: var(--postcard-ink-soft);
+  --accent: var(--postcard-rust);
+  --line: color-mix(in srgb, var(--postcard-ink) 12%, transparent);
+  border-radius: 2px;
+  background-color: var(--postcard-paper);
+  background-image:
+    linear-gradient(var(--postcard-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--postcard-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+  box-shadow: var(--postcard-shadow);
+  color: var(--postcard-ink);
+}
+
+.notes-sheet-strip {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0 1.25rem;
+  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.notes-sheet-strip > :first-child {
+  color: var(--accent);
+}
+
+.notes-sheet-strip > :last-child {
+  margin-left: auto;
+}
+
+.notes-sheet ol {
+  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+.notes-sheet li + li {
+  border-top: 1px solid var(--line);
+}
+
+.archive-row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  align-items: baseline;
+  padding-block: 1.75rem;
+  color: var(--foreground);
+}
+
+.archive-row-number,
+.archive-row-meta {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.archive-row-number {
+  color: var(--accent);
+}
+
+.archive-row h2 {
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  font-weight: 620;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  transition: color 160ms ease;
+}
+
+.archive-row p {
+  max-width: 60ch;
+  margin-top: 0.5rem;
+  color: var(--muted);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.archive-row-meta {
+  display: grid;
+  justify-items: end;
+  gap: 0.35rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.archive-row-meta svg {
+  color: var(--accent);
+  transition: translate 200ms var(--ease-out-expo);
+}
+
+.archive-row:focus-visible h2 {
+  color: var(--accent);
+}
+
+/* ---- Empty and error states sit on the same paper ---- */
+
+.empty-state {
+  padding: clamp(2rem, 6vw, 3.5rem);
+}
+
+.empty-state h2,
+.empty-state h3 {
+  max-width: 30ch;
+  font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+  font-weight: 620;
+  letter-spacing: -0.03em;
+}
+
+.empty-state p {
+  max-width: 58ch;
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+/* ---- A case study or a note: the body on the same grid paper it is written on in the admin ---- */
+
+.project-spec {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem 3rem;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.project-spec dl {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.project-spec dt {
+  margin-bottom: 0.4rem;
+  color: var(--accent);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.project-spec-outcome {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.project-spec-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.paper-figure {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--surface);
+  box-shadow: var(--postcard-shadow);
+}
+
+.paper-sheet {
+  padding: clamp(2rem, 7vw, 5rem) clamp(1.25rem, 7vw, 5rem);
+}
+
+/* Hover movement only for real pointers; a tap on a phone would leave it stuck. */
+@media (hover: hover) and (pointer: fine) {
+  .back-link:hover svg {
+    translate: -0.25rem 0;
+  }
+
+  .archive-row:hover h2 {
+    color: var(--accent);
+  }
+
+  .archive-row:hover .archive-row-meta svg {
+    translate: 0.3rem 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .page-head-contours {
+    display: none;
+  }
+
+  .project-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .search-field {
+    width: 100%;
+  }
+
+  .archive-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+
+  .archive-row-meta {
+    display: flex;
+    justify-items: start;
+    gap: 1rem;
+  }
+
+  .archive-row-meta svg {
+    display: none;
+  }
+
+  .pagination-step span {
+    display: none;
   }
 }

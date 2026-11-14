@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { FaArrowUpRightFromSquare, FaMagnifyingGlass } from "react-icons/fa6";
 import DeleteButton from "@/components/admin/DeleteButton";
+import AdminTabs from "@/components/admin/AdminTabs";
 
 interface NoteItem {
   id: string;
@@ -37,13 +38,12 @@ export default function NotesManager({ notes, initialStatus }: NotesManagerProps
   return (
     <>
       <div className="flex flex-col-reverse gap-4 border-b border-[var(--line)] md:flex-row md:items-center md:justify-between">
-        <div role="group" aria-label="Filter notes by status" className="-mb-px flex gap-6 overflow-x-auto">
-          {statuses.map((value) => (
-            <button key={value} type="button" aria-pressed={status === value} onClick={() => setStatus(value)} className={`admin-label min-h-12 whitespace-nowrap border-b-2 ${status === value ? "border-[var(--postcard-orange)]" : "site-muted border-transparent hover:text-[var(--foreground)]"}`}>
-              {value === "ALL" ? "All" : value.toLowerCase()} <span className="text-[var(--accent)]">{pad(value === "ALL" ? notes.length : notes.filter((note) => note.status === value).length)}</span>
-            </button>
-          ))}
-        </div>
+        <AdminTabs
+          label="Filter notes by status"
+          value={status}
+          onChange={setStatus}
+          options={statuses.map((value) => ({ value, text: value === "ALL" ? "All" : value.toLowerCase(), count: value === "ALL" ? notes.length : notes.filter((note) => note.status === value).length }))}
+        />
         <label className="relative mt-6 md:mb-2 md:mt-0">
           <span className="sr-only">Search notes</span>
           <FaMagnifyingGlass className="site-muted pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
@@ -52,7 +52,7 @@ export default function NotesManager({ notes, initialStatus }: NotesManagerProps
       </div>
 
       {filtered.length > 0 ? (
-        <ol aria-label="Notes">
+        <ol aria-label="Notes" className="admin-list-swap" key={status}>
           {filtered.map((note, index) => {
             const words = note.content.trim().split(/\s+/).filter(Boolean).length;
             const editPath = note.type === "PROJECT" ? `/admin/projects/${note.slug}` : `/admin/notes/${note.slug}`;

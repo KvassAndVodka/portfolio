@@ -1,10 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaArrowLeft, FaArrowUpRightFromSquare, FaImage, FaXmark } from "react-icons/fa6";
+import DateTimeField from "./DateTimeField";
 import MediaPicker from "./MediaPicker";
+import { toast } from "./Toaster";
 import PaperEditor from "./PaperEditor";
 
 type ContentType = "BLOG" | "PROJECT";
@@ -90,13 +92,37 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
   const focusedError = useRef(false);
   const invalid = (name: string) => ({ "aria-invalid": errors[name] ? true : undefined, "aria-errormessage": errors[name] ? `${name}-error` : undefined });
   const isEditing = Boolean(initialData?.id);
+  // Saved through onSubmit, not the form's action prop: a failed action prop either shows the error page or,
+  // if caught, resets the fields. Here a failure leaves everything as typed and says so in a toast.
+  const [saving, startSaving] = useTransition();
+  const save = async (formData: FormData) => {
+    const saved = () => toast(isEditing ? "Your changes are saved" : `${type === "PROJECT" ? "Project" : "Note"} created`, { label: "Saved" });
+    try {
+      await action(formData);
+      saved();
+    } catch (error) {
+      // Creating ends in a redirect, which Next signals by throwing: that's the success, and Next follows it.
+      const redirected = typeof error === "object" && error !== null && "digest" in error && String(error.digest).startsWith("NEXT_REDIRECT");
+      if (!redirected) {
+        toast("Couldn't save. Your text is still here.", { tone: "error" });
+        return;
+      }
+      saved();
+      throw error;
+    }
+  };
   const publicPath = type === "PROJECT" ? `/projects/${initialData?.slug}` : `/notes/${initialData?.slug}`;
   const listPath = type === "PROJECT" ? "/admin/projects" : "/admin/notes";
   const sheetLabel = "font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.1em]";
 
   return (
     <form
-      action={action}
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (saving) return;
+        const formData = new FormData(event.currentTarget);
+        startSaving(() => save(formData));
+      }}
       className="post-form pb-24"
       // Replace the browser's validation bubble with a message under each field, and bring the first problem into view.
       onInvalidCapture={(event) => {
@@ -124,14 +150,17 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
         {isEditing ? (
           <p className={`${sheetLabel} site-muted`}>{type === "PROJECT" ? "Project" : "Note"} · {statusOptions.find((o) => o.value === status)?.label}</p>
         ) : (
-          <div className="inline-flex rounded-lg border border-[var(--line)] p-1" role="group" aria-label="Content type">
-            <button type="button" onClick={() => setType("BLOG")} aria-pressed={type === "BLOG"} className={`min-h-9 rounded-md px-3 text-sm font-medium ${type === "BLOG" ? "bg-[var(--accent-soft)] text-[var(--accent-hover)]" : "admin-muted"}`}>Note</button>
-            <button type="button" onClick={() => setType("PROJECT")} aria-pressed={type === "PROJECT"} className={`min-h-9 rounded-md px-3 text-sm font-medium ${type === "PROJECT" ? "bg-[var(--accent-soft)] text-[var(--accent-hover)]" : "admin-muted"}`}>Project</button>
+          <div className="type-switch" role="group" aria-label="Content type" data-value={type}>
+            <button type="button" onClick={() => setType("BLOG")} aria-pressed={type === "BLOG"}>Note</button>
+            <button type="button" onClick={() => setType("PROJECT")} aria-pressed={type === "PROJECT"}>Project</button>
+            {/* The same labels in the active style, clipped to the active half: the ink slides and each label
+                changes colour exactly as the edge passes it. */}
+            <span className="type-switch-active" aria-hidden="true"><span>Note</span><span>Project</span></span>
           </div>
         )}
         <p className={`${sheetLabel} site-muted ml-auto hidden sm:block`} aria-live="polite">{words} words · {Math.max(1, Math.round(words / 230))} min</p>
         {isEditing && initialData?.slug && <a href={publicPath} target="_blank" className="admin-icon-button max-sm:ml-auto" aria-label="Preview public page"><FaArrowUpRightFromSquare aria-hidden="true" /></a>}
-        <button type="submit" className="admin-button-primary">{submitLabel}</button>
+        <button type="submit" className="admin-button-primary disabled:opacity-60" disabled={saving} aria-busy={saving}>{saving ? "Saving…" : submitLabel}</button>
       </div>
 
       {/* The post is written on a sheet of paper laid on the desk: the postcard's cream and 20 px grid, shadow only. */}
@@ -209,7 +238,7 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
           {status === "SCHEDULED" && (
             <div className="mt-7 max-w-xs">
               <label htmlFor="scheduled-for" className={fieldLabel}>Publish on</label>
-              <input id="scheduled-for" {...invalid("scheduledFor")} className={line} name="scheduledFor" type="datetime-local" defaultValue={toLocalDateTime(initialData?.publishedAt)} required />
+              <DateTimeField id="scheduled-for" invalid={Boolean(errors.scheduledFor)} className={`${line} min-h-11`} name="scheduledFor" defaultValue={toLocalDateTime(initialData?.publishedAt)} required />
               <FieldError name="scheduledFor" message={errors.scheduledFor} />
             </div>
           )}

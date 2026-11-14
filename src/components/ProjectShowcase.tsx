@@ -3,19 +3,20 @@
 import { useMemo, useRef, useState } from "react";
 import { FaArrowUpRightFromSquare, FaGithub, FaRotateRight } from "react-icons/fa6";
 
+import Pagination, { paginate } from "@/components/Pagination";
 import ProjectCard from "@/components/ProjectCard";
 import { formatProjectCategory } from "@/lib/projectCategory";
 import { useTimedFetch } from "@/hooks/useTimedFetch";
 import { Flip, gsap, prefersReducedMotion, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { scrollBelowHeader } from "@/lib/lenis";
 import type { ProjectPreview } from "@/lib/projects";
 
 type ProjectShowcaseProps = Readonly<{
-  compact?: boolean;
-  featured?: boolean;
   initialProjects?: ProjectPreview[];
-  limit?: number;
   loadImmediately?: boolean;
 }>;
+
+const PAGE_SIZE = 6;
 
 export default function ProjectShowcase({
   loadImmediately = false,
@@ -50,16 +51,14 @@ function finishReveals(cards: NodeListOf<Element>) {
 }
 
 function ProjectShowcaseContent({
-  compact = false,
   enabled,
-  featured = false,
   initialProjects,
-  limit,
 }: ProjectShowcaseProps & Readonly<{ enabled: boolean }>) {
   const rootRef = useRef<HTMLDivElement>(null);
   const layoutRef = useRef<Flip.FlipState | null>(null);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [page, setPage] = useState(1);
 
   // Record card positions before a filter change so Flip can animate the reflow.
   const captureLayout = () => {
@@ -68,13 +67,21 @@ function ProjectShowcaseContent({
     finishReveals(cards);
     layoutRef.current = Flip.getState(cards);
   };
+  // A new filter starts from the first page.
   const changeCategory = (category: string) => {
     captureLayout();
     setActiveCategory(category);
+    setPage(1);
   };
   const changeSearch = (value: string) => {
     captureLayout();
     setSearch(value);
+    setPage(1);
+  };
+  // A new page jumps back to the top of the list: no reflow animation, it's a different set of cards.
+  const changePage = (next: number) => {
+    setPage(next);
+    if (rootRef.current) scrollBelowHeader(rootRef.current);
   };
   const { data, retry, status } = useTimedFetch<{ projects: ProjectPreview[] }>(
     "/api/projects",
@@ -83,17 +90,7 @@ function ProjectShowcaseContent({
     enabled,
   );
 
-  const availableProjects = useMemo(() => {
-    const projects = data?.projects ?? [];
-    const selected = featured
-      ? (() => {
-        const pinned = projects.filter((project) => project.isPinned);
-        return pinned.length > 0 ? pinned : projects.slice(0, 3);
-      })()
-      : projects;
-
-    return typeof limit === "number" ? selected.slice(0, limit) : selected;
-  }, [data, featured, limit]);
+  const availableProjects = useMemo(() => data?.projects ?? [], [data]);
 
   const categories = useMemo(
     () => [
@@ -117,6 +114,7 @@ function ProjectShowcaseContent({
 
     return matchesCategory && matchesSearch;
   });
+  const shown = paginate(filteredProjects, page, PAGE_SIZE);
 
   useGSAP(
     () => {
@@ -126,12 +124,13 @@ function ProjectShowcaseContent({
       const cards = rootRef.current?.querySelectorAll(".project-card");
       if (!cards?.length) return;
       finishReveals(cards);
+      if (prefersReducedMotion()) return;
       // Transforms only: `absolute: true` placed entering cards against the wrong containing block, over the hero.
       Flip.from(state, {
         targets: cards,
-        duration: 0.5,
+        duration: 0.3,
         ease: "power3.out",
-        onEnter: (elements) => gsap.fromTo(elements, { autoAlpha: 0, scale: 0.96 }, { autoAlpha: 1, scale: 1, duration: 0.4 }),
+        onEnter: (elements) => gsap.fromTo(elements, { autoAlpha: 0, scale: 0.96 }, { autoAlpha: 1, scale: 1, duration: 0.22 }),
         // The grid changed height, so triggers further down the page start at the wrong place.
         onComplete: () => ScrollTrigger.refresh(),
       });
@@ -180,12 +179,12 @@ function ProjectShowcaseContent({
           on GitHub.
         </p>
         <div className="empty-state-actions">
-          <button className="button-secondary" type="button" onClick={retry}>
+          <button className="postcard-button" type="button" onClick={retry}>
             <FaRotateRight aria-hidden="true" />
             Try again
           </button>
           <a
-            className="button-primary"
+            className="postcard-button postcard-button-primary"
             href="https://github.com/KvassAndVodka"
             aria-label="Javier Raut on GitHub (opens in a new tab)"
             rel="noreferrer"
@@ -202,71 +201,67 @@ function ProjectShowcaseContent({
 
   return (
     <div ref={rootRef}>
-        {!compact && availableProjects.length > 0 && (
-          <div className="filter-toolbar">
-            <div className="filter-index">
-              <p className="project-result-count" aria-live="polite">
-                Showing {filteredProjects.length} of {availableProjects.length} projects
-              </p>
-              <div className="filter-tabs" aria-label="Filter projects by category">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    type="button"
-                    onClick={() => changeCategory(category)}
-                    aria-pressed={activeCategory === category}
-                  >
-                    <span>{category}</span>
-                    {activeCategory === category && (
-                      <span aria-hidden="true" className="filter-active-indicator" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <label className="search-field">
-              Search projects{" "}
-              <input
-                type="search"
-                placeholder="Title, summary, or technology"
-                value={search}
-                onChange={(event) => changeSearch(event.target.value)}
-              />
-            </label>
-          </div>
-        )}
-
-          {filteredProjects.length === 0 ? (
-            <div className="empty-state project-filter-empty" role="status">
-              <p>No projects match those filters.</p>
+      <div className="filter-toolbar">
+        <div className="filter-index">
+          <p className="project-result-count" aria-live="polite">
+            Showing {filteredProjects.length} of {availableProjects.length}
+          </p>
+          <div className="filter-tabs" aria-label="Filter projects by category">
+            {categories.map((category) => (
               <button
-                className="button-secondary mt-6"
+                key={category}
                 type="button"
-                onClick={() => {
-                  changeSearch("");
-                  changeCategory("All");
-                }}
+                onClick={() => changeCategory(category)}
+                aria-pressed={activeCategory === category}
               >
-                Clear filters
+                <span>{category}</span>
+                {activeCategory === category && <span aria-hidden="true" className="filter-active-indicator" />}
               </button>
-            </div>
-          ) : (
-            <div
-              className={`project-grid ${compact ? "project-grid-compact" : "project-grid-index"}`}
-              data-count={filteredProjects.length}
-            >
-              {filteredProjects.map((project, index) => (
-                <ProjectCard
-                  compact={compact}
-                  index={index}
-                  key={project.slug}
-                  project={project}
-                  featured={!compact && index === 0}
-                />
-              ))}
-            </div>
-          )}
+            ))}
+          </div>
+        </div>
+
+        <label className="search-field">
+          Search
+          <input
+            type="search"
+            placeholder="Title, summary, or technology"
+            value={search}
+            onChange={(event) => changeSearch(event.target.value)}
+          />
+        </label>
+      </div>
+
+      {filteredProjects.length === 0 ? (
+        <div className="empty-state project-filter-empty" role="status">
+          <p>No projects match those filters.</p>
+          <button
+            className="postcard-button mt-6"
+            type="button"
+            onClick={() => {
+              changeSearch("");
+              changeCategory("All");
+            }}
+          >
+            Clear filters
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="project-grid" key={shown.page}>
+            {shown.items.map((project, position) => (
+              <ProjectCard
+                index={availableProjects.indexOf(project)}
+                key={project.slug}
+                position={position}
+                project={project}
+                total={availableProjects.length}
+              />
+            ))}
+          </div>
+          <Pagination label="Project pages" page={shown.page} pages={shown.pages} onChange={changePage} />
+        </>
+      )}
     </div>
   );
 }

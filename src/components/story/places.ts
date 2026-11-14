@@ -9,10 +9,10 @@ export const places: StoryPlace[] = [
     area: "Cagayan de Oro",
     coordinates: [124.6566, 8.4855],
     period: "2022 - 2026",
-    role: "BS Computer Science, Magna Cum Laude",
+    role: "BS Computer Science",
     organization: "University of Science and Technology of Southern Philippines",
     detail:
-      "Graduated under a DOST-SEI JLSS scholarship and received the department's Alan Turing Award as one of its outstanding students. Helped found the Computer Science Student Society as Vice President — Internal, shaping how a brand-new organization ran day to day.",
+      "Graduated magna cum laude under a DOST-SEI JLSS scholarship and received the department's Alan Turing Award as one of its outstanding students. Helped found the Computer Science Student Society as Vice President — Internal, shaping how a brand-new organization ran day to day.",
     url: "https://www.ustp.edu.ph/",
   },
   {

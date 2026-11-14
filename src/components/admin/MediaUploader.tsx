@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { FaCloudUploadAlt, FaSpinner, FaCheck, FaTimes } from 'react-icons/fa';
+import { toast } from './Toaster';
 
 type MediaUploaderProps = Readonly<{
     onUploadComplete?: (url: string) => void;
@@ -40,6 +41,7 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
             }
 
             setSuccess(true);
+            toast(`${file.name} is in the library`, { label: 'Uploaded' });
             if (onUploadComplete) {
                 onUploadComplete(data.url);
             }
@@ -88,14 +90,9 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
                 role="button"
                 tabIndex={0}
                 aria-label="Upload an image"
-                className={`relative border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all gap-4
-                    ${isDragging
-                        ? 'border-[var(--accent)] bg-[var(--accent)]/5'
-                        : 'border-stone-200 dark:border-white/10 hover:border-[var(--accent)] hover:bg-stone-50 dark:hover:bg-white/5'
-                    }
-                    ${error ? 'border-red-500/50 bg-red-500/5' : ''}
-                    ${success ? 'border-emerald-500/50 bg-emerald-500/5' : ''}
-                `}
+                className="media-drop"
+                data-dragging={isDragging || undefined}
+                data-state={error ? 'error' : success ? 'done' : undefined}
             >
                 <input
                     type="file"
@@ -108,32 +105,27 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
                 />
 
                 {isUploading ? (
-                    <FaSpinner className="text-3xl text-[var(--accent)] animate-spin" />
+                    <>
+                        <FaSpinner aria-hidden="true" className="text-xl text-[var(--postcard-rust)] animate-spin [animation-duration:700ms]" />
+                        <p className="media-drop-label">Uploading…</p>
+                    </>
                 ) : success ? (
-                    <div className="flex flex-col items-center gap-2 text-emerald-500">
-                        <FaCheck className="text-3xl" />
-                        <span className="font-bold">Uploaded!</span>
-                    </div>
+                    <>
+                        <FaCheck aria-hidden="true" className="text-xl text-[var(--admin-success)]" />
+                        <p className="media-drop-label">Uploaded</p>
+                    </>
                 ) : (
                     <>
-                        <div className={`p-4 rounded-full bg-stone-100 dark:bg-white/10 text-stone-400 ${isDragging ? 'text-[var(--accent)] bg-[var(--accent)]/10' : ''}`}>
-                            <FaCloudUploadAlt size={32} />
-                        </div>
-                        <div className="text-center">
-                            <p className="font-bold text-stone-600 dark:text-stone-300">
-                                {isDragging ? 'Drop it here!' : 'Click or Drag to Upload'}
-                            </p>
-                            <p className="text-xs text-stone-400 mt-1">
-                                Supports JPG, PNG, WebP
-                            </p>
-                        </div>
+                        <FaCloudUploadAlt aria-hidden="true" className="text-2xl text-[var(--postcard-muted)]" />
+                        <p className="media-drop-title">{isDragging ? 'Drop it here' : 'Drop an image, or choose a file'}</p>
+                        <p className="media-drop-label">JPG, PNG or WebP</p>
                     </>
                 )}
 
                 {error && (
-                    <div className="absolute bottom-4 flex items-center gap-2 text-xs font-bold text-red-500 bg-red-50 dark:bg-white p-2 rounded-lg shadow-sm">
-                        <FaTimes /> {error}
-                    </div>
+                    <p role="alert" className="media-drop-label flex items-center gap-2 !text-[var(--admin-danger)]">
+                        <FaTimes aria-hidden="true" /> {error}
+                    </p>
                 )}
             </div>
         </div>

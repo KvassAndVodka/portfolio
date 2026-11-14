@@ -100,7 +100,7 @@ function InsertMenu({ editor, onImage, appendTo }: Readonly<{ editor: Editor; on
         aria-label={open ? "Close insert menu" : "Insert image, table, code block or divider"}
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={`grid size-10 shrink-0 place-items-center rounded-full border border-[var(--postcard-tear)] bg-[var(--postcard-paper)] text-[var(--postcard-muted)] transition-transform hover:border-[var(--postcard-ink)] hover:text-[var(--postcard-ink)] ${open ? "rotate-45" : ""}`}
+        className={`paper-insert-toggle grid size-10 shrink-0 place-items-center rounded-full border border-[var(--postcard-tear)] bg-[var(--postcard-paper)] text-[var(--postcard-muted)] hover:border-[var(--postcard-ink)] hover:text-[var(--postcard-ink)] ${open ? "rotate-45" : ""}`}
       >
         <FaPlus aria-hidden="true" />
       </button>

@@ -219,6 +219,54 @@ function isLiteDevice() {
   return window.matchMedia("(pointer: coarse)").matches || SOFTWARE_GPU.test(gpuRenderer());
 }
 
+/**
+ * "More" under a phone card whose organization or detail is cut off; it lifts the cut for that card.
+ * It only shows when something is actually cut (measured whenever the card resizes), so short cards get none.
+ */
+function ExpandPlace() {
+  const ref = useRef<HTMLButtonElement>(null);
+  const [cut, setCut] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const card = ref.current?.closest<HTMLElement>(".story-place");
+    if (!card) return;
+    const measure = () => {
+      if (card.hasAttribute("data-expanded")) return;
+      const detail = card.querySelector<HTMLElement>(".story-place-detail");
+      const name = card.querySelector<HTMLElement>(".story-place-organization > span");
+      setCut(Boolean((detail && detail.scrollHeight > detail.clientHeight + 1) || (name && name.scrollWidth > name.clientWidth + 1)));
+    };
+    // Re-measures when the clamp turns on (the map goes live after mount) and when the width changes.
+    const observer = new ResizeObserver(measure);
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, []);
+
+  // The card grows from its old height to its new one: open with a strong ease-out, close faster.
+  // Height, not a transform, because the text reflows; one card, on a tap, so the layout cost is fine.
+  const toggle = () => {
+    const card = ref.current?.closest<HTMLElement>(".story-place");
+    if (!card) return;
+    const next = !open;
+    const from = card.offsetHeight;
+    card.toggleAttribute("data-expanded", next);
+    setOpen(next);
+    if (prefersReducedMotion()) return;
+    gsap.fromTo(
+      card,
+      { height: from, overflow: "hidden" },
+      { height: card.offsetHeight, duration: next ? 0.26 : 0.18, ease: next ? "outExpo" : "power2.out", clearProps: "height,overflow", overwrite: "auto" },
+    );
+  };
+
+  return (
+    <button ref={ref} type="button" className="story-place-more" hidden={!cut} aria-expanded={open} onClick={toggle}>
+      {open ? "Less" : "More"}
+    </button>
+  );
+}
+
 export default function StoryJourney({ places }: Readonly<{ places: readonly StoryPlace[] }>) {
   const rootRef = useRef<HTMLElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -279,7 +327,8 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
           0.8,
         )
         .from([".postcard-role", ".postcard-summary"], { y: 14, autoAlpha: 0, duration: 0.7, stagger: 0.08 }, 0.8)
-        .from([".postcard-button", ".postcard-social a"], { y: 12, autoAlpha: 0, duration: 0.5, stagger: 0.06 }, 1)
+        // clearProps: GSAP leaves `scale: none` inline, which would cancel the buttons' press scale.
+        .from([".postcard-button", ".postcard-social a"], { y: 12, autoAlpha: 0, duration: 0.5, stagger: 0.06, clearProps: "all" }, 1)
         .from(".postcard-stamp", { scale: 1.5, rotate: -14, autoAlpha: 0, duration: 0.55, ease: "back.out(2.2)" }, 1.15);
       return () => name.revert();
     },
@@ -408,7 +457,9 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
       if (cancelled) return;
       traffic.current?.destroy();
       traffic.current = null;
-      map.setStyle(style);
+      // Not a diff: a diffed paint change keeps the terrain's cached tile textures in the old colours
+      // until the zoom changes, and fires no "style.load" for the handler below.
+      map.setStyle(style, { diff: false });
       map.once("style.load", () => {
         if (cancelled) return;
         limitDetail(map);
@@ -1088,8 +1139,9 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
                     <Link className="postcard-button postcard-button-primary" href="/#contact">
                       Get in Touch
                     </Link>
-                    <a className="postcard-button" href={RESUME_URL}>
-                      Resume <FaArrowDown aria-hidden="true" />
+                    <a className="postcard-button" href={RESUME_URL} rel="noreferrer" target="_blank">
+                      Resume <FaArrowUpRightFromSquare aria-hidden="true" />
+                      <span className="sr-only"> (opens in a new tab)</span>
                     </a>
                   <span className="postcard-social">
                     <a
@@ -1170,14 +1222,15 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
                     <h3 className="story-place-role">{place.role}</h3>
                     {place.url ? (
                       <a className="story-place-organization" href={place.url} rel="noreferrer" target="_blank">
-                        {place.organization}
+                        <span>{place.organization}</span>
                         <FaArrowUpRightFromSquare aria-hidden="true" />
                         <span className="sr-only"> (opens in a new tab)</span>
                       </a>
                     ) : (
-                      <p className="story-place-organization">{place.organization}</p>
+                      <p className="story-place-organization"><span>{place.organization}</span></p>
                     )}
                     <p className="story-place-detail">{detailWithLink(place.detail)}</p>
+                    <ExpandPlace />
                     <p className="story-place-meta">
                       <time>{place.period}</time>
                       <span>{place.area}</span>

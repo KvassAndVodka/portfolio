@@ -10,7 +10,9 @@ import { useMemo, useState } from "react";
 import { FaArrowUpRightFromSquare, FaGripVertical, FaMagnifyingGlass, FaThumbtack } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
 import DeleteButton from "@/components/admin/DeleteButton";
+import { toast } from "@/components/admin/Toaster";
 import { toggleProjectPin, updateProjectOrder } from "@/lib/actions";
+import AdminTabs from "@/components/admin/AdminTabs";
 
 interface Project {
   id: string;
@@ -72,10 +74,12 @@ export default function SortableProjectList({ initialProjects, initialHealth }: 
     try {
       await updateProjectOrder(next.map((item) => item.id));
       setMessage("Homepage order saved.");
+      toast("New order is live", { label: "Home page" });
       router.refresh();
     } catch {
       setItems(previous);
       setMessage("The order could not be saved. Refresh and try again.");
+      toast("Couldn't save the order", { tone: "error" });
     } finally {
       setIsSaving(false);
     }
@@ -84,13 +88,12 @@ export default function SortableProjectList({ initialProjects, initialHealth }: 
   return (
     <>
       <div className="flex flex-col-reverse gap-4 border-b border-[var(--line)] md:flex-row md:items-center md:justify-between">
-        <div role="group" aria-label="Project view" className="-mb-px flex gap-6 overflow-x-auto">
-          {([["manage", "All projects", initialProjects.length], ["homepage", "Home page order", items.length]] as const).map(([value, text, count]) => (
-            <button key={value} type="button" onClick={() => setView(value)} aria-pressed={view === value} className={`admin-label min-h-12 whitespace-nowrap border-b-2 ${view === value ? "border-[var(--postcard-orange)]" : "site-muted border-transparent hover:text-[var(--foreground)]"}`}>
-              {text} <span className="text-[var(--accent)]">{pad(count)}</span>
-            </button>
-          ))}
-        </div>
+        <AdminTabs
+          label="Project view"
+          value={view}
+          onChange={setView}
+          options={[{ value: "manage", text: "All projects", count: initialProjects.length }, { value: "homepage", text: "Home page order", count: items.length }]}
+        />
         {view === "manage" && (
           <div className="mt-6 flex flex-col gap-2 sm:flex-row md:mb-2 md:mt-0">
             <label className="relative"><span className="sr-only">Search projects</span><FaMagnifyingGlass className="site-muted pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" /><input className="admin-field !pl-9 md:w-64" value={query} onChange={(event) => setQuery(event.currentTarget.value)} placeholder="Search projects" /></label>
@@ -100,14 +103,14 @@ export default function SortableProjectList({ initialProjects, initialHealth }: 
       </div>
 
       {view === "homepage" ? (
-        <section aria-labelledby="homepage-order-heading" className="pt-8">
+        <section aria-labelledby="homepage-order-heading" className="admin-list-swap pt-8">
           <h2 id="homepage-order-heading" className="admin-section-title">Featured on the home page</h2>
           <p className="site-muted mt-2 max-w-[60ch]">Drag projects into the order a recruiter should see them. With a keyboard, focus a handle, press Space, then use the arrow keys.</p>
           <p className="admin-label site-muted mt-3 min-h-5" aria-live="polite">{message || `${items.length} featured`}</p>
           {items.length > 0 ? <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}><SortableContext items={items.map((item) => item.id)} strategy={verticalListSortingStrategy}><ol className="mt-4 border-t border-[var(--line)]">{items.map((project, index) => <SortableRow key={project.id} project={project} position={index + 1} disabled={isSaving} />)}</ol></SortableContext></DndContext> : <EmptyProjects message="Feature a project from All projects to add it here." />}
         </section>
       ) : filtered.length > 0 ? (
-        <ol aria-label="Projects">{filtered.map((project, index) => <ProjectRow key={project.id} project={project} position={index + 1} />)}</ol>
+        <ol aria-label="Projects" className="admin-list-swap">{filtered.map((project, index) => <ProjectRow key={project.id} project={project} position={index + 1} />)}</ol>
       ) : (
         <EmptyProjects message={initialProjects.length ? "No projects match these filters." : "Create your first project to start building the portfolio."} />
       )}
@@ -118,7 +121,7 @@ export default function SortableProjectList({ initialProjects, initialHealth }: 
 function SortableRow({ project, position, disabled }: SortableRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id, disabled });
   return (
-    <li ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.55 : 1 }} className="flex min-h-16 items-center gap-3 border-b border-[var(--line)] bg-[var(--background)] py-3">
+    <li ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} data-dragging={isDragging || undefined} className="admin-sortable-row flex min-h-16 items-center gap-3 border-b border-[var(--line)] bg-[var(--background)] py-3">
       <button type="button" {...attributes} {...listeners} disabled={disabled} className="admin-icon-button cursor-grab active:cursor-grabbing" aria-label={`Move ${project.title}`}><FaGripVertical aria-hidden="true" /></button>
       <span className="admin-index w-8">{pad(position)}</span>
       <div className="min-w-0 flex-1"><p className="truncate font-semibold">{project.title}</p><p className={`admin-status admin-status-${project.status.toLowerCase()} mt-1`}>{project.status.toLowerCase()}</p></div>
@@ -148,7 +151,7 @@ function ProjectRow({ project, position }: Readonly<{ project: Project; position
       </div>
       <div className="col-start-2 flex items-center gap-1 md:col-start-auto md:self-start">
         <Link href={`/admin/projects/${project.slug}`} className="admin-button-secondary">Edit</Link>
-        <form action={toggleProjectPin.bind(null, project.id)}><button type="submit" aria-pressed={project.isPinned} className={`admin-icon-button ${project.isPinned ? "!text-[var(--accent)]" : ""}`} aria-label={project.isPinned ? `Remove ${project.title} from the home page` : `Feature ${project.title} on the home page`}><FaThumbtack aria-hidden="true" /></button></form>
+        <form action={async () => { await toggleProjectPin(project.id); toast(project.isPinned ? `${project.title} is off the home page` : `${project.title} is on the home page`, { label: "Home page" }); }}><button type="submit" aria-pressed={project.isPinned} className={`admin-icon-button ${project.isPinned ? "!text-[var(--accent)]" : ""}`} aria-label={project.isPinned ? `Remove ${project.title} from the home page` : `Feature ${project.title} on the home page`}><FaThumbtack aria-hidden="true" /></button></form>
         <a href={`/projects/${project.slug}`} target="_blank" className="admin-icon-button" aria-label={`Preview ${project.title} (opens in a new tab)`}><FaArrowUpRightFromSquare aria-hidden="true" /></a>
         <DeleteButton id={project.id} />
       </div>

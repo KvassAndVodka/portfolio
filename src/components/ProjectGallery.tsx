@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRef, useState, type FocusEvent } from "react";
 import { FaArrowRight, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6";
 
-import AsciiPlate from "@/components/AsciiPlate";
+import AsciiPlate, { PLATE_TONES } from "@/components/AsciiPlate";
 import { formatProjectCategory } from "@/lib/projectCategory";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { getLenis } from "@/lib/lenis";
@@ -14,13 +14,13 @@ import type { ProjectPreview } from "@/lib/projects";
 const label = "font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.1em]";
 const pad = (n: number) => String(n).padStart(2, "0");
 // Each project's plate tone, from the hero palette.
-const TONES = ["#ff5a24", "#976e63", "#b2350f", "#64504f"];
 const DESKTOP_MOTION = "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";
 
 /**
  * The home page's projects. On desktop the section pins over the ASCII cloud and vertical scroll moves a
  * horizontal track: a title slide, then one atlas-page card per project, each snapping to the centre. The
- * pin ends with the last card centred. Phones and reduced motion get the same cards stacked vertically.
+ * last card then holds still for half a screen of scroll, a breather before the next section, and the pin
+ * releases. Phones and reduced motion get the same cards stacked vertically.
  */
 export default function ProjectGallery({ projects }: Readonly<{ projects: ProjectPreview[] }>) {
   const ref = useRef<HTMLDivElement>(null);
@@ -41,16 +41,30 @@ export default function ProjectGallery({ projects }: Readonly<{ projects: Projec
         // How far the track moves to centre a slide on screen.
         const centred = (slide: HTMLElement) => slide.offsetLeft + slide.offsetWidth / 2 - root.clientWidth / 2;
         const distance = () => Math.max(1, centred(slides()[slides().length - 1]));
-        // Stops as scroll progress: the title slide where it starts, then each card centred.
-        stopsRef.current = () => slides().map((slide, i) => (i === 0 ? 0 : Math.min(1, Math.max(0, centred(slide) / distance()))));
+        // After the last card is centred, the pin holds for half a screen of scroll with nothing moving.
+        const hold = () => window.innerHeight * 0.5;
+        // The share of the pin spent moving the track; the rest is the hold. Measured on each refresh.
+        let moving = 1;
+        const measure = () => {
+          moving = distance() / (distance() + hold());
+        };
+        measure();
+        // Stops as scroll progress: the title slide where it starts, each card centred, then the end of the hold,
+        // so a small scroll there settles back on the last card and only a firm one moves on.
+        stopsRef.current = () => [
+          ...slides().map((slide, i) => (i === 0 ? 0 : moving * Math.min(1, Math.max(0, centred(slide) / distance())))),
+          1,
+        ];
 
         const tween = gsap.to(track, {
           x: () => -distance(),
-          ease: "none",
+          // Linear while moving, then flat through the hold.
+          ease: (progress) => Math.min(1, progress / moving),
           scrollTrigger: {
             trigger: root,
             start: "top top",
-            end: () => `+=${distance()}`,
+            end: () => `+=${distance() + hold()}`,
+            onRefresh: measure,
             pin: true,
             scrub: 0.6,
             // Measure this pin before CloudField's triggers, so their range includes the scroll it adds.
@@ -58,9 +72,11 @@ export default function ProjectGallery({ projects }: Readonly<{ projects: Projec
             invalidateOnRefresh: true,
             snap: { snapTo: (value) => gsap.utils.snap(stopsRef.current(), value), duration: { min: 0.25, max: 0.7 }, ease: "power2.out" },
             onUpdate: (self) => {
-              if (bar) bar.style.transform = `scaleX(${self.progress})`;
-              const stops = stopsRef.current();
-              const nearest = stops.reduce((best, stop, i) => (Math.abs(stop - self.progress) < Math.abs(stops[best] - self.progress) ? i : best), 0);
+              // The scale bar is full once the last card is centred.
+              if (bar) bar.style.transform = `scaleX(${Math.min(1, self.progress / moving)})`;
+              const stops = stopsRef.current().slice(0, -1); // the hold's end isn't a slide
+              const at = Math.min(self.progress, moving);
+              const nearest = stops.reduce((best, stop, i) => (Math.abs(stop - at) < Math.abs(stops[best] - at) ? i : best), 0);
               setActive(nearest - 1); // slide 0 is the title
             },
           },
@@ -151,7 +167,7 @@ function GalleryCard({ project, index, total, active, className }: GalleryCardPr
           {project.thumbnail ? (
             <Image src={project.thumbnail} alt="" fill unoptimized sizes="(max-width: 1023px) calc(100vw - 2rem), 36rem" className="object-cover" />
           ) : (
-            <AsciiPlate pattern={index} run={active} color={TONES[index % TONES.length]} className="text-[clamp(4px,min(1.02vh,0.56vw),11px)] max-lg:text-[clamp(4px,1.1vw,7px)]" />
+            <AsciiPlate pattern={index} run={active} color={PLATE_TONES[index % PLATE_TONES.length]} className="text-[clamp(4px,min(1.02vh,0.56vw),11px)] max-lg:text-[clamp(4px,1.1vw,7px)]" />
           )}
         </Link>
 

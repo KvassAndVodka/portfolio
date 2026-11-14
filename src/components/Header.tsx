@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
-import { FaArrowRight, FaBars, FaXmark } from "react-icons/fa6";
+import { FaArrowRight, FaBars, FaEnvelope, FaGithub, FaLinkedin, FaXmark } from "react-icons/fa6";
 
 import useReducedMotion from "@/hooks/useReducedMotion";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { siteConfig } from "@/lib/seo";
 
+import LocalTime from "./LocalTime";
 import ThemeToggle from "./ThemeToggle";
 
 const navigation = [
@@ -24,6 +26,8 @@ export default function Header() {
   const [isMenuRendered, setIsMenuRendered] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [currentHash, setCurrentHash] = useState("");
+  // The link just clicked, so the underline slides at once instead of waiting for the next page to load.
+  const [pending, setPending] = useState<{ href: string; from: string | null } | null>(null);
   const headerRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const menuIconRef = useRef<HTMLSpanElement>(null);
@@ -122,6 +126,15 @@ export default function Header() {
     });
   });
 
+  // The menu opens as a circle growing out of the Menu button, so you are pulled into it.
+  const menuCircle = (radius: number) => {
+    const button = menuButtonRef.current?.getBoundingClientRect();
+    const x = button ? button.left + button.width / 2 : window.innerWidth;
+    const y = button ? button.top + button.height / 2 : 0;
+    return `circle(${radius}px at ${x}px ${y}px)`;
+  };
+  const screenDiagonal = () => Math.hypot(window.innerWidth, window.innerHeight);
+
   // Keep the panel mounted while it animates out, then unmount it.
   useGSAP(
     () => {
@@ -134,10 +147,10 @@ export default function Header() {
         setIsMenuRendered(false);
         return;
       }
-      gsap.to(panel, {
-        autoAlpha: 0,
-        clipPath: "inset(0 0 100% 0)",
-        duration: 0.28,
+      gsap.fromTo(panel, { clipPath: menuCircle(screenDiagonal()) }, {
+        clipPath: menuCircle(0),
+        duration: 0.4,
+        ease: "power3.inOut",
         onComplete: () => setIsMenuRendered(false),
       });
     },
@@ -150,12 +163,8 @@ export default function Header() {
       if (!isMenuOpen || !isMenuRendered || !panel || reduceMotion) return;
       gsap
         .timeline()
-        .fromTo(
-          panel,
-          { autoAlpha: 0, clipPath: "inset(0 0 100% 0)" },
-          { autoAlpha: 1, clipPath: "inset(0 0 0% 0)", duration: 0.28 },
-        )
-        .from(panel.querySelectorAll(".mobile-nav-item"), { autoAlpha: 0, x: -32, duration: 0.24, stagger: 0.04 }, 0.04);
+        .fromTo(panel, { clipPath: menuCircle(0) }, { clipPath: menuCircle(screenDiagonal()), duration: 0.45, ease: "outExpo" })
+        .from(panel.querySelectorAll(".mobile-nav-item"), { autoAlpha: 0, y: 28, duration: 0.4, stagger: 0.06, ease: "power3.out" }, 0.22);
     },
     { dependencies: [isMenuOpen, isMenuRendered, reduceMotion] },
   );
@@ -168,11 +177,13 @@ export default function Header() {
     { dependencies: [isMenuOpen], revertOnUpdate: false },
   );
 
-  const activeHref = navigation.find(({ href }) => {
+  const routeHref = navigation.find(({ href }) => {
     if (href === "/") return pathname === "/" && currentHash !== "#contact";
     if (href.startsWith("/#")) return pathname === "/" && currentHash === href.slice(1);
     return pathname?.startsWith(href);
   })?.href;
+  // A click wins until the route it started from changes; then the route decides again.
+  const activeHref = pending && pending.from === pathname ? pending.href : routeHref;
 
   // One indicator that glides to whichever link is active.
   useGSAP(
@@ -189,7 +200,7 @@ export default function Header() {
         x: link.offsetLeft,
         width: link.offsetWidth,
         autoAlpha: 1,
-        duration: reduceMotion || wasHidden ? 0 : 0.42,
+        duration: reduceMotion || wasHidden ? 0 : 0.28,
       });
     },
     { dependencies: [activeHref, reduceMotion], revertOnUpdate: false },
@@ -220,6 +231,7 @@ export default function Header() {
       ref={headerRef}
       className="site-header sticky top-0 z-30 border-b site-rule"
       data-scrolled={isScrolled}
+      data-menu-open={isMenuOpen}
     >
       <div className="header-inner site-shell flex h-full items-center justify-between">
         <Link className="brand-lockup" href="/" aria-label="Javier Raut, home" onClick={handleHomeClick}>
@@ -239,7 +251,10 @@ export default function Header() {
               className={item.href === "/#contact" ? "primary-nav-link primary-nav-contact" : "primary-nav-link"}
               href={item.href}
               key={item.href}
-              onClick={item.href === "/" ? handleHomeClick : undefined}
+              onClick={(event) => {
+                setPending({ href: item.href, from: pathname });
+                if (item.href === "/") handleHomeClick(event);
+              }}
             >
               <span className="primary-nav-label">
                 <span>{item.label}</span>
@@ -253,19 +268,20 @@ export default function Header() {
           </span>
         </nav>
 
-        <div className="flex items-center gap-2 pr-1.5 md:hidden">
+        <div className="header-controls flex md:hidden">
           <span className="header-theme-toggle">
             <ThemeToggle />
           </span>
           <button
             ref={menuButtonRef}
             type="button"
-            className="header-menu-button flex min-h-11 min-w-11 items-center justify-center rounded-[0.75rem] border site-rule px-3 text-xs font-semibold"
+            className="header-menu-button"
             aria-controls="mobile-navigation"
             aria-expanded={isMenuOpen}
             aria-label={isMenuOpen ? "Close navigation" : "Open navigation"}
             onClick={toggleMenu}
           >
+            <span aria-hidden="true">{isMenuOpen ? "Close" : "Menu"}</span>
             <span ref={menuIconRef} className="inline-flex">
               {isMenuOpen ? <FaXmark aria-hidden="true" /> : <FaBars aria-hidden="true" />}
             </span>
@@ -274,29 +290,46 @@ export default function Header() {
       </div>
 
       {isMenuRendered && (
-          <div
-            ref={menuRef}
-            id="mobile-navigation"
-            className="mobile-navigation-panel absolute inset-x-0 top-full overflow-y-auto border-t site-rule bg-[var(--background)] py-6 md:hidden sm:py-10"
-          >
-            <nav aria-label="Mobile navigation" className="site-shell flex flex-col">
-              {navigation.map((item, index) => (
-                <div className="mobile-nav-item" key={item.href}>
-                  <Link
-                    ref={index === 0 ? firstMenuLinkRef : undefined}
-                    aria-current={isActive(item.href) ? "page" : undefined}
-                    className="mobile-nav-link flex min-h-16 items-center justify-between border-b site-rule text-2xl font-medium tracking-tight"
-                    href={item.href}
-                    onClick={item.href === "/" ? handleHomeClick : closeMenu}
-                  >
-                    {item.label}
-                    <FaArrowRight aria-hidden="true" className="text-[var(--accent)]" />
-                  </Link>
-                </div>
-              ))}
+        <div ref={menuRef} id="mobile-navigation" className="mobile-navigation-panel flex md:hidden">
+          {/* The menu is a postcard sheet: numbered stops, Contact as the orange tab, and where I am. */}
+          <div className="mobile-nav-sheet">
+            <nav aria-label="Mobile navigation">
+              {navigation.map((item, index) => {
+                const contact = item.href === "/#contact";
+                return (
+                  <div className="mobile-nav-item" key={item.href}>
+                    <Link
+                      ref={index === 0 ? firstMenuLinkRef : undefined}
+                      aria-current={isActive(item.href) ? "page" : undefined}
+                      className={contact ? "mobile-nav-contact" : "mobile-nav-link"}
+                      href={item.href}
+                      onClick={item.href === "/" ? handleHomeClick : closeMenu}
+                    >
+                      {!contact && <span className="mobile-nav-index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>}
+                      <span className="mobile-nav-text">{item.label}</span>
+                      {contact && <FaArrowRight aria-hidden="true" />}
+                    </Link>
+                  </div>
+                );
+              })}
             </nav>
+            <div className="mobile-nav-item mobile-nav-footer">
+              <p>
+                N 08°29′ E 124°41′
+                <br />
+                Cagayan de Oro
+                <br />
+                <LocalTime />
+              </p>
+              <div className="mobile-nav-social">
+                <a href={siteConfig.github} rel="noreferrer" target="_blank" aria-label="GitHub"><FaGithub aria-hidden="true" /></a>
+                <a href={siteConfig.linkedin} rel="noreferrer" target="_blank" aria-label="LinkedIn"><FaLinkedin aria-hidden="true" /></a>
+                <a href={siteConfig.email} aria-label="Email"><FaEnvelope aria-hidden="true" /></a>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
+      )}
     </header>
   );
 }

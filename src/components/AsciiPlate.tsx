@@ -37,6 +37,9 @@ export function plateText(pattern: number, cols: number, rows: number) {
   return lines.join("\n");
 }
 
+/** Plate inks, one per project in turn: the accent orange, the portrait browns, the rust. */
+export const PLATE_TONES = ["#ff5a24", "#976e63", "#b2350f", "#64504f"];
+
 type AsciiPlateProps = Readonly<{
   pattern: number;
   /** Develop out of noise when this turns true; otherwise show the finished plate. */
