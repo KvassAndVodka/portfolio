@@ -222,7 +222,7 @@ function ProjectShowcaseContent({
         </div>
 
         <label className="search-field">
-          Search
+          <span>Search</span>
           <input
             type="search"
             placeholder="Title, summary, or technology"

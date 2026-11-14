@@ -96,7 +96,8 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
   // if caught, resets the fields. Here a failure leaves everything as typed and says so in a toast.
   const [saving, startSaving] = useTransition();
   const save = async (formData: FormData) => {
-    const saved = () => toast(isEditing ? "Your changes are saved" : `${type === "PROJECT" ? "Project" : "Note"} created`, { label: "Saved" });
+    const created = type === "PROJECT" ? "Project created" : "Note created";
+    const saved = () => toast(isEditing ? "Your changes are saved" : created, { label: "Saved" });
     try {
       await action(formData);
       saved();
@@ -150,13 +151,14 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
         {isEditing ? (
           <p className={`${sheetLabel} site-muted`}>{type === "PROJECT" ? "Project" : "Note"} · {statusOptions.find((o) => o.value === status)?.label}</p>
         ) : (
-          <div className="type-switch" role="group" aria-label="Content type" data-value={type}>
+          <fieldset className="type-switch" data-value={type}>
+            <legend className="sr-only">Content type</legend>
             <button type="button" onClick={() => setType("BLOG")} aria-pressed={type === "BLOG"}>Note</button>
             <button type="button" onClick={() => setType("PROJECT")} aria-pressed={type === "PROJECT"}>Project</button>
             {/* The same labels in the active style, clipped to the active half: the ink slides and each label
                 changes colour exactly as the edge passes it. */}
             <span className="type-switch-active" aria-hidden="true"><span>Note</span><span>Project</span></span>
-          </div>
+          </fieldset>
         )}
         <p className={`${sheetLabel} site-muted ml-auto hidden sm:block`} aria-live="polite">{words} words · {Math.max(1, Math.round(words / 230))} min</p>
         {isEditing && initialData?.slug && <a href={publicPath} target="_blank" className="admin-icon-button max-sm:ml-auto" aria-label="Preview public page"><FaArrowUpRightFromSquare aria-hidden="true" /></a>}

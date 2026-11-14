@@ -92,7 +92,8 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
                 aria-label="Upload an image"
                 className="media-drop"
                 data-dragging={isDragging || undefined}
-                data-state={error ? 'error' : success ? 'done' : undefined}
+                data-error={error ? true : undefined}
+                data-done={success ? true : undefined}
             >
                 <input
                     type="file"

@@ -106,8 +106,11 @@ export default function AdminLayoutShell({ children }: Readonly<{ children: Reac
         {tabs.map(({ label, href, icon: Icon, exact }) => {
           const write = label === "Write";
           const active = !write && isActive(href, exact);
+          let tone = "text-[var(--postcard-muted)]";
+          if (write) tone = "bg-[var(--postcard-orange)] text-[var(--postcard-on-orange)]";
+          else if (active) tone = "";
           return (
-            <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`${tabLabel} admin-tab flex min-h-16 flex-col items-center justify-center gap-1.5 ${write ? "bg-[var(--postcard-orange)] text-[var(--postcard-on-orange)]" : active ? "" : "text-[var(--postcard-muted)]"}`}>
+            <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`${tabLabel} admin-tab flex min-h-16 flex-col items-center justify-center gap-1.5 ${tone}`}>
               <Icon aria-hidden="true" className="text-base" />
               {label}
             </Link>

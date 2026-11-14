@@ -7,7 +7,13 @@ export function monotoneSlopes(values: readonly number[]) {
   const n = values.length;
   if (n < 2) return values.map(() => 0);
   const d = values.slice(1).map((value, i) => value - values[i]);
-  const m = values.map((_, i) => (i === 0 ? d[0] : i === n - 1 ? d[n - 2] : d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2));
+  // The ends take their one neighbouring slope; inside, the average of both sides, or flat at a peak or valley.
+  const slopeAt = (i: number) => {
+    if (i === 0) return d[0];
+    if (i === n - 1) return d[n - 2];
+    return d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
+  };
+  const m = values.map((_, i) => slopeAt(i));
   for (let i = 0; i < n - 1; i++) {
     if (d[i] === 0) {
       m[i] = 0;

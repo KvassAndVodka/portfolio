@@ -5,7 +5,8 @@
  */
 export function switchTheme(setTheme: (theme: string) => void, next: string, origin?: HTMLElement | null) {
   const root = document.documentElement;
-  const resolved = next === "system" ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : next;
+  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  const resolved = next === "system" ? systemTheme : next;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // Nothing changes on screen (e.g. "System" while the system already matches): just store the choice.
@@ -20,9 +21,13 @@ export function switchTheme(setTheme: (theme: string) => void, next: string, ori
   // Far enough to cover the farthest corner of the screen.
   const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
 
+  // The page's own colour transitions would fade a second time inside the circle: hold them for the switch.
+  const hold = document.createElement("style");
+  hold.textContent = "*, *::before, *::after { transition: none !important; }";
+
   const transition = document.startViewTransition(() => {
+    document.head.append(hold);
     // Applied here, synchronously, so the new snapshot has the new theme; next-themes then stores it.
-    root.classList.add("theme-switching");
     root.classList.remove("light", "dark");
     root.classList.add(resolved);
     root.style.colorScheme = resolved;
@@ -39,5 +44,5 @@ export function switchTheme(setTheme: (theme: string) => void, next: string, ori
       ),
     )
     .catch(() => undefined);
-  transition.finished.finally(() => root.classList.remove("theme-switching"));
+  transition.finished.finally(() => hold.remove()).catch(() => undefined);
 }

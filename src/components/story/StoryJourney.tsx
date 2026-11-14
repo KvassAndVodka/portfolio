@@ -232,7 +232,7 @@ function ExpandPlace() {
     const card = ref.current?.closest<HTMLElement>(".story-place");
     if (!card) return;
     const measure = () => {
-      if (card.hasAttribute("data-expanded")) return;
+      if ("expanded" in card.dataset) return;
       const detail = card.querySelector<HTMLElement>(".story-place-detail");
       const name = card.querySelector<HTMLElement>(".story-place-organization > span");
       setCut(Boolean((detail && detail.scrollHeight > detail.clientHeight + 1) || (name && name.scrollWidth > name.clientWidth + 1)));

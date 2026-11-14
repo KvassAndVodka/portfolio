@@ -4,7 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { FaArrowUpRightFromSquare, FaMagnifyingGlass } from "react-icons/fa6";
-import DeleteButton from "@/components/admin/DeleteButton";
+import { MoveToTrashButton } from "@/components/admin/DeleteButton";
 import AdminTabs from "@/components/admin/AdminTabs";
 
 interface NoteItem {
@@ -73,7 +73,7 @@ export default function NotesManager({ notes, initialStatus }: NotesManagerProps
                 <div className="col-start-2 flex items-center gap-1 md:col-start-auto md:self-start">
                   <Link href={editPath} className="admin-button-secondary">Edit</Link>
                   <a href={`/notes/${note.slug}`} target="_blank" className="admin-icon-button" aria-label={`Preview ${note.title} (opens in a new tab)`}><FaArrowUpRightFromSquare aria-hidden="true" /></a>
-                  {note.type === "BLOG" && <DeleteButton id={note.id} />}
+                  {note.type === "BLOG" && <MoveToTrashButton id={note.id} />}
                 </div>
               </li>
             );

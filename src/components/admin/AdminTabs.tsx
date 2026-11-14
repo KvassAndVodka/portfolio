@@ -17,7 +17,7 @@ type AdminTabsProps<T extends string> = Readonly<{
  * on first paint so it doesn't fly in when the page opens.
  */
 export default function AdminTabs<T extends string>({ label, options, value, onChange }: AdminTabsProps<T>) {
-  const groupRef = useRef<HTMLDivElement>(null);
+  const groupRef = useRef<HTMLFieldSetElement>(null);
   const ruleRef = useRef<HTMLSpanElement>(null);
   const [ready, setReady] = useState(false);
 
@@ -43,13 +43,14 @@ export default function AdminTabs<T extends string>({ label, options, value, onC
   }, [value, options]);
 
   return (
-    <div ref={groupRef} role="group" aria-label={label} className="admin-tabs -mb-px flex gap-6 overflow-x-auto">
+    <fieldset ref={groupRef} className="admin-tabs -mb-px flex gap-6 overflow-x-auto">
+      <legend className="sr-only">{label}</legend>
       {options.map((option) => (
         <button key={option.value} type="button" aria-pressed={value === option.value} onClick={() => onChange(option.value)}>
           {option.text}{option.count !== undefined && <> <span className="text-[var(--accent)]">{pad(option.count)}</span></>}
         </button>
       ))}
       <span ref={ruleRef} aria-hidden="true" className="admin-tabs-rule" data-ready={ready || undefined} />
-    </div>
+    </fieldset>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { FaXmark } from 'react-icons/fa6';
 import AdminTabs from './AdminTabs';
 import MediaUploader from './MediaUploader';
@@ -36,14 +36,13 @@ export default function MediaPicker({ onSelect, onClose, initialTab = 'library' 
         }
     };
 
-    // Escape closes the picker, like any modal.
-    useEffect(() => {
-        const closeOnEscape = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') onClose();
-        };
-        window.addEventListener('keydown', closeOnEscape);
-        return () => window.removeEventListener('keydown', closeOnEscape);
-    }, [onClose]);
+    // A real modal <dialog>: the browser keeps focus inside it, puts it above everything, and closes it on Escape.
+    const dialogRef = useRef<HTMLDialogElement>(null);
+    // Before paint: until showModal() runs, the dialog would show unstyled for a frame.
+    useLayoutEffect(() => {
+        const dialog = dialogRef.current;
+        if (dialog && !dialog.open) dialog.showModal();
+    }, []);
 
     useEffect(() => {
         let cancelled = false;
@@ -61,9 +60,48 @@ export default function MediaPicker({ onSelect, onClose, initialTab = 'library' 
         void loadMedia();
     };
 
+    let library: React.ReactNode;
+    if (loading) {
+        library = (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4" aria-busy="true" aria-label="Loading images">
+                {Array.from({ length: 8 }, (_, index) => <div key={index} className="admin-skeleton aspect-square rounded-[2px]" />)}
+            </div>
+        );
+    } else if (mediaItems.length === 0) {
+        library = (
+            <div className="grid min-h-[14rem] place-items-center text-center">
+                <div>
+                    <p className="admin-label site-muted">No images yet</p>
+                    <button type="button" onClick={() => setActiveTab('upload')} className="admin-button-secondary mt-4">Upload the first one</button>
+                </div>
+            </div>
+        );
+    } else {
+        library = (
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-5 md:grid-cols-4">
+                {mediaItems.map((item) => (
+                    <li key={item.id}>
+                        <button type="button" onClick={() => onSelect(item.url, item.filename)} className="media-tile">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={item.url} alt="" loading="lazy" />
+                            <span className="media-tile-name">{item.filename}</span>
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        );
+    }
+
     return (
-        <div className="admin-modal fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4" role="dialog" aria-modal="true" aria-labelledby="media-picker-title">
-            <div className="media-sheet flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden">
+        <dialog
+            ref={dialogRef}
+            className="admin-modal media-sheet flex max-h-[85vh] w-[min(100%-2rem,48rem)] flex-col overflow-hidden"
+            aria-labelledby="media-picker-title"
+            onCancel={(event) => {
+                event.preventDefault();
+                onClose();
+            }}
+        >
                 <header className="flex items-start justify-between gap-4 px-6 pt-6">
                     <div>
                         <p className="admin-label text-[var(--postcard-rust)]">Media</p>
@@ -86,36 +124,8 @@ export default function MediaPicker({ onSelect, onClose, initialTab = 'library' 
                 </div>
 
                 <div className="admin-list-swap min-h-[18rem] flex-1 overflow-y-auto p-6" key={activeTab}>
-                    {activeTab === 'library' ? (
-                        loading ? (
-                            <div className="grid grid-cols-2 gap-4 md:grid-cols-4" aria-busy="true" aria-label="Loading images">
-                                {Array.from({ length: 8 }, (_, index) => <div key={index} className="admin-skeleton aspect-square rounded-[2px]" />)}
-                            </div>
-                        ) : mediaItems.length === 0 ? (
-                            <div className="grid min-h-[14rem] place-items-center text-center">
-                                <div>
-                                    <p className="admin-label site-muted">No images yet</p>
-                                    <button type="button" onClick={() => setActiveTab('upload')} className="admin-button-secondary mt-4">Upload the first one</button>
-                                </div>
-                            </div>
-                        ) : (
-                            <ul className="grid grid-cols-2 gap-x-4 gap-y-5 md:grid-cols-4">
-                                {mediaItems.map((item) => (
-                                    <li key={item.id}>
-                                        <button type="button" onClick={() => onSelect(item.url, item.filename)} className="media-tile">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={item.url} alt="" loading="lazy" />
-                                            <span className="media-tile-name">{item.filename}</span>
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )
-                    ) : (
-                        <MediaUploader onUploadComplete={handleUploadComplete} />
-                    )}
+                    {activeTab === 'library' ? library : <MediaUploader onUploadComplete={handleUploadComplete} />}
                 </div>
-            </div>
-        </div>
+        </dialog>
     );
 }

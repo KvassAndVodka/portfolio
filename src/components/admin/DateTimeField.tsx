@@ -112,7 +112,7 @@ export default function DateTimeField({ id, name, defaultValue = "", className, 
       </button>
 
       {open && (
-        <div role="dialog" aria-label="Choose the publish date and time" className="date-popover">
+        <dialog open aria-label="Choose the publish date and time" className="date-popover">
           <div className="flex items-center justify-between">
             <button type="button" className="date-step" aria-label="Previous month" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}>
               <FaArrowLeft aria-hidden="true" />
@@ -155,7 +155,7 @@ export default function DateTimeField({ id, name, defaultValue = "", className, 
             <TimeStep label="Minute" value={minutes} max={59} step={5} page={15} onChange={(next) => setTime(hours, next)} />
             <button type="button" className="admin-button-primary ml-auto !min-h-10" onClick={() => setOpen(false)}>Done</button>
           </div>
-        </div>
+        </dialog>
       )}
     </div>
   );
@@ -164,8 +164,8 @@ export default function DateTimeField({ id, name, defaultValue = "", className, 
 type TimeStepProps = Readonly<{ label: string; value: number; max: number; step: number; page: number; onChange: (value: number) => void }>;
 
 /**
- * One time segment with up and down buttons, in place of a <select> whose list the browser draws and a page
- * cannot style. A spinbutton for the keyboard: arrows step, Page Up and Page Down jump. Values wrap (23 → 00).
+ * One time segment: a number input between up and down buttons, in place of a <select> whose list the browser
+ * draws and a page cannot style. Type a value, or step: arrows step, Page Up and Page Down jump, values wrap (23 → 00).
  * Minutes step to the next multiple of 5, so an odd saved minute like :07 still steps cleanly.
  */
 function TimeStep({ label, value, max, step, page, onChange }: TimeStepProps) {
@@ -177,23 +177,26 @@ function TimeStep({ label, value, max, step, page, onChange }: TimeStepProps) {
   return (
     <span className="date-step-field">
       <button type="button" tabIndex={-1} aria-hidden="true" onClick={() => move(step)}><FaChevronUp /></button>
-      <span
-        role="spinbutton"
-        tabIndex={0}
+      <input
+        type="number"
+        inputMode="numeric"
         aria-label={label}
-        aria-valuenow={value}
-        aria-valuemin={0}
-        aria-valuemax={max}
-        aria-valuetext={pad(value)}
+        min={0}
+        max={max}
+        step={step}
+        value={pad(value)}
+        onChange={(event) => {
+          const typed = Number.parseInt(event.target.value, 10);
+          if (!Number.isNaN(typed)) onChange(Math.min(max, Math.max(0, typed)));
+        }}
         onKeyDown={(event) => {
+          // Arrows and Page Up/Down step with wrap-around (23 → 00), which the native number input doesn't do.
           const by = { ArrowUp: step, ArrowDown: -step, PageUp: page, PageDown: -page }[event.key];
           if (by === undefined) return;
           event.preventDefault();
           move(by);
         }}
-      >
-        {pad(value)}
-      </span>
+      />
       <button type="button" tabIndex={-1} aria-hidden="true" onClick={() => move(-step)}><FaChevronDown /></button>
     </span>
   );

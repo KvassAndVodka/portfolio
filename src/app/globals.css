@@ -257,16 +257,11 @@ body {
     border-color 160ms ease;
 }
 
-/* A modal: fades in from 97% at the centre (not from a trigger), and the scrim fades with it. */
+/* A modal <dialog>: fades in from 97% at the centre (not from a trigger), with its backdrop fading in too. */
 .admin-modal {
-  transition: opacity 200ms ease;
-
-  @starting-style {
-    opacity: 0;
-  }
-}
-
-.admin-modal > * {
+  margin: auto;
+  padding: 0;
+  border: 0;
   transition:
     opacity 200ms var(--ease-out-expo),
     scale 200ms var(--ease-out-expo);
@@ -277,12 +272,23 @@ body {
   }
 }
 
+.admin-modal::backdrop {
+  background: rgb(0 0 0 / 55%);
+  transition: opacity 200ms ease;
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+
 /* The date picker: a paper sheet that opens from its field (top-left), not from the centre. */
+/* A non-modal <dialog>: undo the browser's centred, bordered dialog defaults so it hangs under its field. */
 .date-popover {
   position: absolute;
   z-index: 30;
-  top: calc(100% + 0.5rem);
-  left: 0;
+  inset: calc(100% + 0.5rem) auto auto 0;
+  margin: 0;
+  border: 0;
   width: min(20.5rem, calc(100vw - 2rem));
   padding: 0.875rem;
   border-radius: 2px;
@@ -409,12 +415,14 @@ body {
   scale: 0.9;
 }
 
-.date-step-field [role="spinbutton"] {
-  display: grid;
-  min-width: 2.75rem;
+.date-step-field input {
+  width: 2.75rem;
   min-height: 2.25rem;
-  place-items: center;
   border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  text-align: center;
+  appearance: textfield;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--postcard-ink) 20%, transparent);
   font-family: var(--font-mono), monospace;
   font-size: 1rem;
@@ -422,7 +430,18 @@ body {
   font-weight: 600;
 }
 
-.date-step-field [role="spinbutton"]:focus-visible {
+/* The ▲ ▼ buttons do the stepping; hide the browser's own spinner arrows. */
+.date-step-field input::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.date-step-field input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.date-step-field input:focus-visible {
   outline: 2px solid var(--postcard-orange);
   outline-offset: 2px;
 }
@@ -435,6 +454,7 @@ body {
 /* Tab rows (note status, project view): one orange rule slides to the chosen tab. */
 .admin-tabs {
   position: relative;
+  min-width: 0;
 }
 
 .admin-tabs button {
@@ -962,6 +982,7 @@ body {
 /* The Note / Project switch. */
 .type-switch {
   position: relative;
+  min-width: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   padding: 3px;
@@ -1102,7 +1123,7 @@ body {
   .admin-shell *::before,
   .admin-shell *::after {
     scroll-behavior: auto !important;
-    transition-property: color, background-color, border-color, opacity, fill, stroke !important;
+    transition-property: color, background-color, border-color, opacity, fill, stroke !important; /* NOSONAR: reduced motion must override every component's transition */
   }
 
   .admin-skeleton {
@@ -1144,9 +1165,9 @@ body {
   background-color: var(--postcard-orange);
 }
 
-/* Firefox has no scrollbar pseudo-elements; it gets the standard thin bar. Chromium would ignore the pseudo-
-   elements above if scrollbar-color applied to it, so this is limited to Firefox. */
-@-moz-document url-prefix() {
+/* Browsers without the scrollbar pseudo-elements (Firefox) get the standard thin bar. Chromium would ignore the
+   pseudo-elements above if scrollbar-color applied to it, so this stays off where they are supported. */
+@supports not selector(::-webkit-scrollbar) {
   html {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--foreground) 28%, transparent) transparent;
@@ -1215,6 +1236,7 @@ button {
 }
 
 .site-header .header-inner {
+  z-index: 1;
   --foreground: var(--postcard-ink);
   --muted: var(--postcard-muted);
   --line: var(--postcard-tear);
@@ -1390,10 +1412,6 @@ button {
 
 /* The open menu: a postcard sheet over the whole screen, header included. The strip turns
    see-through over it, so only the wordmark and its controls float on the paper. */
-.site-header .header-inner {
-  z-index: 1;
-}
-
 /* The strip clears once the opening circle has reached it, so the page never shows through. */
 .site-header[data-menu-open="true"] .header-inner {
   background: transparent;
@@ -2523,7 +2541,7 @@ svg.button-external-icon {
   *::before,
   *::after {
     scroll-behavior: auto !important;
-    transition-property: color, background-color, border-color, opacity, fill, stroke, text-decoration-color !important;
+    transition-property: color, background-color, border-color, opacity, fill, stroke, text-decoration-color !important; /* NOSONAR: reduced motion must override every component's transition and GSAP inline styles */
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
@@ -3959,13 +3977,6 @@ a.story-place-organization:hover {
 }
 
 /* ---------- Theme switch: the new palette grows out of the button (see lib/themeTransition.ts) ---------- */
-/* The page's own colour transitions would fade a second time inside the circle; hold them during the switch. */
-.theme-switching *,
-.theme-switching *::before,
-.theme-switching *::after {
-  transition: none !important;
-}
-
 /* No cross-fade: the new snapshot is revealed by the circle, the old one stays put underneath. */
 ::view-transition-old(root) {
   animation: none;

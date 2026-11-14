@@ -9,7 +9,7 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { FaArrowUpRightFromSquare, FaGripVertical, FaMagnifyingGlass, FaThumbtack } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
-import DeleteButton from "@/components/admin/DeleteButton";
+import { MoveToTrashButton } from "@/components/admin/DeleteButton";
 import { toast } from "@/components/admin/Toaster";
 import { toggleProjectPin, updateProjectOrder } from "@/lib/actions";
 import AdminTabs from "@/components/admin/AdminTabs";
@@ -153,7 +153,7 @@ function ProjectRow({ project, position }: Readonly<{ project: Project; position
         <Link href={`/admin/projects/${project.slug}`} className="admin-button-secondary">Edit</Link>
         <form action={async () => { await toggleProjectPin(project.id); toast(project.isPinned ? `${project.title} is off the home page` : `${project.title} is on the home page`, { label: "Home page" }); }}><button type="submit" aria-pressed={project.isPinned} className={`admin-icon-button ${project.isPinned ? "!text-[var(--accent)]" : ""}`} aria-label={project.isPinned ? `Remove ${project.title} from the home page` : `Feature ${project.title} on the home page`}><FaThumbtack aria-hidden="true" /></button></form>
         <a href={`/projects/${project.slug}`} target="_blank" className="admin-icon-button" aria-label={`Preview ${project.title} (opens in a new tab)`}><FaArrowUpRightFromSquare aria-hidden="true" /></a>
-        <DeleteButton id={project.id} />
+        <MoveToTrashButton id={project.id} />
       </div>
     </li>
   );
