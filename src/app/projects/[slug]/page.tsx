@@ -11,7 +11,7 @@ import { FaArrowLeft, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6
 import { formatProjectCategory } from "@/lib/projectCategory";
 import ProjectTechnologyList from "@/components/ProjectTechnologyList";
 import { getProject, getProjects } from "@/lib/projects";
-import { absoluteUrl, createPageMetadata, defaultSocialImage, serializeJsonLd } from "@/lib/seo";
+import { absoluteUrl, breadcrumbJsonLd, createPageMetadata, defaultSocialImage, serializeJsonLd } from "@/lib/seo";
 
 export const revalidate = 60;
 
@@ -82,6 +82,17 @@ export default async function ProjectPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(projectJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(
+            breadcrumbJsonLd([
+              { name: "Projects", path: "/projects" },
+              { name: project.title, path: `/projects/${project.slug}` },
+            ]),
+          ),
+        }}
       />
       <header className="subpage-hero">
         <div className="site-shell max-w-5xl">

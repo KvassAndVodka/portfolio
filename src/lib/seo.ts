@@ -72,7 +72,8 @@ export function createPageMetadata({
   return {
     title,
     description,
-    alternates: { canonical: path },
+    // Points language models at the Markdown index of the site.
+    alternates: { canonical: path, types: { "text/markdown": "/llms.txt" } },
     openGraph,
     twitter: {
       card: "summary_large_image",
@@ -80,6 +81,20 @@ export function createPageMetadata({
       description,
       images: [socialImage],
     },
+  };
+}
+
+// A schema.org BreadcrumbList from the home page down to `trail`'s last entry.
+export function breadcrumbJsonLd(trail: { name: string; path: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [{ name: "Home", path: "/" }, ...trail].map((crumb, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: crumb.name,
+      item: absoluteUrl(crumb.path),
+    })),
   };
 }
 

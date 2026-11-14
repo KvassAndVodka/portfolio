@@ -6,7 +6,8 @@ import { plateText } from "@/components/AsciiPlate";
 import NotesIndex from "@/components/NotesIndex";
 import ProjectGallery from "@/components/ProjectGallery";
 import ProjectShowcase from "@/components/ProjectShowcase";
-import { createPageMetadata, serializeJsonLd } from "@/lib/seo";
+import { buildLlmsTxt } from "@/lib/llms";
+import { breadcrumbJsonLd, createPageMetadata, serializeJsonLd } from "@/lib/seo";
 import { buildSitemap } from "@/lib/sitemap";
 
 test("page metadata contains a canonical URL and social preview data", () => {
@@ -19,7 +20,10 @@ test("page metadata contains a canonical URL and social preview data", () => {
     modifiedTime: "2026-07-02T00:00:00.000Z",
   });
 
-  assert.deepEqual(metadata.alternates, { canonical: "/projects/data-platform" });
+  assert.deepEqual(metadata.alternates, {
+    canonical: "/projects/data-platform",
+    types: { "text/markdown": "/llms.txt" },
+  });
   assert.equal(Reflect.get(Object(metadata.openGraph), "type"), "article");
   assert.equal(Reflect.get(Object(metadata.twitter), "card"), "summary_large_image");
 });
@@ -112,4 +116,34 @@ test("ascii plates are deterministic and fit their grid", () => {
   assert.equal(rows.length, 12);
   assert.ok(rows.every((row) => row.length === 40));
   assert.ok(/[#%@]/.test(plate), "a plate draws dense glyphs");
+});
+
+test("breadcrumbs start at home and use absolute URLs", () => {
+  const crumbs = breadcrumbJsonLd([{ name: "Notes", path: "/notes" }]).itemListElement;
+
+  assert.deepEqual(
+    crumbs.map((crumb) => [crumb.position, crumb.item]),
+    [
+      [1, "https://portfolio.jmraut.dev/"],
+      [2, "https://portfolio.jmraut.dev/notes"],
+    ],
+  );
+});
+
+test("llms.txt lists content by summary and llms-full.txt inlines the bodies", () => {
+  const projects = [
+    { slug: "data-platform", title: "Data Platform", summary: "A data platform.", content: "PROJECT BODY", techStack: ["Next.js"] },
+  ];
+  const posts = [
+    { slug: "shipping-notes", title: "Shipping Notes", summary: "Lessons.", content: "NOTE BODY", publishedAt: "2026-08-01T00:00:00.000Z" },
+  ];
+  const index = buildLlmsTxt(projects, posts);
+  const full = buildLlmsTxt(projects, posts, true);
+
+  assert.match(index, /^# Javier Raut\n/);
+  assert.match(index, /- \[Data Platform\]\(https:\/\/portfolio\.jmraut\.dev\/projects\/data-platform\): A data platform\./);
+  assert.match(index, /\/llms-full\.txt/);
+  assert.doesNotMatch(index, /PROJECT BODY|NOTE BODY/);
+  assert.match(full, /PROJECT BODY[\s\S]*Built with: Next\.js|Built with: Next\.js[\s\S]*PROJECT BODY/);
+  assert.match(full, /Published: 2026-08-01[\s\S]*NOTE BODY/);
 });

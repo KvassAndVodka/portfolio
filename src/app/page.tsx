@@ -17,7 +17,7 @@ import StoryJourney from "@/components/story/StoryJourney";
 import TechnologyStack from "@/components/TechnologyStack";
 import { contourLevels, heightAt } from "@/lib/contours";
 import { getProjects, toProjectPreview } from "@/lib/projects";
-import { createPageMetadata, siteConfig } from "@/lib/seo";
+import { absoluteUrl, createPageMetadata, serializeJsonLd, siteConfig } from "@/lib/seo";
 
 export const revalidate = 60;
 
@@ -41,6 +41,16 @@ export const metadata: Metadata = {
   title: { absolute: siteConfig.title },
 };
 
+// Marks the home page as the profile of the site's Person (declared in the root layout).
+const profileJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  "@id": absoluteUrl("/#profile"),
+  url: absoluteUrl("/"),
+  mainEntity: { "@id": absoluteUrl("/#person") },
+  isPartOf: { "@id": absoluteUrl("/#website") },
+};
+
 export default async function Home() {
   const projects = (await getProjects()).map(toProjectPreview);
   // Featured on the home page: the pinned projects, or the three latest when none are pinned.
@@ -49,6 +59,7 @@ export default async function Home() {
 
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(profileJsonLd) }} />
       <StoryJourney places={places} />
 
       <CloudField id="work" className="projects-stage">
