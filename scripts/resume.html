@@ -1,0 +1,103 @@
+<!doctype html>
+<!--
+  Source for public/resume.pdf. One column of real text with standard headings, so applicant tracking systems read it;
+  the site's identity shows only in the type and the orange accents.
+  Rebuild: chromium --headless --no-pdf-header-footer --print-to-pdf=public/resume.pdf scripts/resume.html
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Javier Raut — Software Engineer Resume</title>
+<style>
+  @font-face { font-family: "Geist"; src: url("../node_modules/geist/dist/fonts/geist-sans/Geist-Regular.ttf"); font-weight: 400; }
+  @font-face { font-family: "Geist"; src: url("../node_modules/geist/dist/fonts/geist-sans/Geist-SemiBold.ttf"); font-weight: 600; }
+  @font-face { font-family: "Geist"; src: url("../node_modules/geist/dist/fonts/geist-sans/Geist-Bold.ttf"); font-weight: 700; }
+  @font-face { font-family: "Geist Mono"; src: url("../node_modules/geist/dist/fonts/geist-mono/GeistMono-Medium.ttf"); font-weight: 500; }
+  @page { size: A4; margin: 9mm 13mm; }
+  :root { --ink: #161616; --muted: #5f5d57; --rust: #a3300e; --orange: #ff5a24; --line: #dcd3c4; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 400 8.9pt/1.32 "Geist", Arial, sans-serif; color: var(--ink); }
+  a { color: inherit; text-decoration: none; }
+  header { text-align: center; }
+  h1 { margin: 0; font-size: 21pt; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+  h1 span { color: var(--orange); }
+  .role { margin: 5pt 0 0; font-weight: 600; font-size: 11pt; }
+  .contact { margin: 4pt 0 0; color: var(--muted); }
+  .contact a { color: var(--rust); white-space: nowrap; }
+  h2 { margin: 8pt 0 4pt; padding-bottom: 3pt; border-bottom: 0.75pt solid var(--line); font: 500 8pt/1 "Geist Mono", monospace; letter-spacing: 0.12em; text-transform: uppercase; color: var(--rust); }
+  h3 { margin: 5pt 0 1pt; font-size: 10pt; font-weight: 600; }
+  .meta { margin: 0 0 2pt; color: var(--muted); font-weight: 400; }
+  p { margin: 0; }
+  ul { margin: 2pt 0 0; padding-left: 12pt; }
+  li { margin: 0.4pt 0; }
+  li::marker { color: var(--orange); }
+  .skills li { list-style: none; margin-left: -12pt; }
+  b { font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Javier Raut<span>.</span></h1>
+  <p class="role">Software Engineer</p>
+  <p class="contact">Cagayan de Oro, Philippines · javier.raut@gmail.com · <a href="https://portfolio.jmraut.dev">portfolio.jmraut.dev</a> · <a href="https://github.com/KvassAndVodka">github.com/KvassAndVodka</a> · <a href="https://www.linkedin.com/in/raut-javier-m/">linkedin.com/in/raut-javier-m</a></p>
+</header>
+
+<h2>Summary</h2>
+<p>Software engineer who ships full-stack web and map applications to real users: a GIS project-tracking platform for a House of Representatives district office, and my own self-hosted portfolio platform, end to end. BS Computer Science, Magna Cum Laude.</p>
+
+<h2>Experience</h2>
+<h3>Software Developer</h3>
+<p class="meta">2nd Congressional District Office of Misamis Oriental, House of Representatives · Tagoloan · 2026 – Present</p>
+<ul>
+  <li>Took over development of a React 19 + Firebase GIS platform from its original developer that tracks 600+ public works projects; shipped 34 releases and 167 merged pull requests since July 2026.</li>
+  <li>Cut about 1.4 s of blocking network work from every page load by profiling production and removing an unused auth redirect resolver; merged duplicate Firestore listeners into one shared subscription.</li>
+  <li>Migrated the map from Leaflet to MapLibre GL with self-hosted PMTiles vector tiles, an offline basemap and 3D terrain cached by a service worker, so the app works for field staff on weak signal.</li>
+  <li>Rebuilt bulk import as a lock-protected Cloud Functions job queue that processes CSV uploads in bounded, resumable chunks, so concurrent or failed imports cannot corrupt records.</li>
+  <li>Acted on a 12-issue security audit: versioned Firestore and Storage rules, a stored-XSS fix, upload validation and role-based access, guarded by 800+ automated tests including an emulator rules suite.</li>
+  <li>Built geospatial validation that checks every pin against 504 barangay polygons, and a road-graph editor that snaps project lines to the road network.</li>
+  <li>Led a UI/UX overhaul with a shared React Aria component kit and lazy-loaded features.</li>
+</ul>
+<h3>Part-time Faculty</h3>
+<p class="meta">University of Science and Technology of Southern Philippines · 2026 – Present · Teaching Fundamentals of Database Systems</p>
+<h3>ML/AI Intern</h3>
+<p class="meta">meldCX PH · Cagayan de Oro · 2025</p>
+<ul>
+  <li>Built a working real-time license plate recognition pipeline within a 30-day internship.</li>
+  <li>Trained and benchmarked YOLO detection and PaddleOCR models, then optimized inference with OpenVINO and containerized the pipeline with Docker.</li>
+</ul>
+
+<h2>Projects</h2>
+<h3>Portfolio and publishing platform</h3>
+<p class="meta"><a href="https://portfolio.jmraut.dev">portfolio.jmraut.dev</a> · Next.js 16, React 19, TypeScript, Prisma, PostgreSQL, MapLibre GL, GSAP, Docker</p>
+<ul>
+  <li>Scroll-driven 3D map story, a blog, and an admin panel with privacy-preserving analytics (hashed visitor IDs, traffic sources).</li>
+  <li>Runs on a home Proxmox server through Docker Compose, a self-hosted GitHub Actions runner and a Cloudflare Tunnel; slimmed Docker images from 2.21 GB to 127 MB.</li>
+  <li>Fixed a 1.7 s main-thread freeze on the analytics dashboard by replacing 2,600 per-element animations with one clip animation.</li>
+</ul>
+<h3>staRT — live transcription service</h3>
+<p class="meta"><a href="https://github.com/KvassAndVodka/staRT">github.com/KvassAndVodka/staRT</a> · Python, FastAPI, SQLite, FFmpeg, faster-whisper, Next.js</p>
+<ul>
+  <li>Transcribes live audio and video streams with speaker attribution, built around a crash-safe job scheduler with fenced leases and checksummed audio windows.</li>
+  <li>Delivers events over WebSockets with a transactional outbox and bounded replay, so reconnecting clients catch up without gaps.</li>
+  <li>Blocks server-side request forgery with a loopback proxy that rejects non-public addresses on every request and redirect; 90 backend tests and Playwright smoke tests in CI.</li>
+</ul>
+
+<section>
+<h2>Skills</h2>
+<ul class="skills">
+  <li><b>Languages:</b> TypeScript, JavaScript, Python, SQL</li>
+  <li><b>Frontend:</b> React, Next.js, Vite, Tailwind CSS, GSAP, accessible UI (React Aria, WCAG AA)</li>
+  <li><b>Backend and data:</b> Node.js, FastAPI, PostgreSQL, Prisma, Firebase (Firestore, Cloud Functions, Auth), SQLite</li>
+  <li><b>Maps and GIS:</b> MapLibre GL, PMTiles vector tiles, GeoJSON, Turf.js, deck.gl</li>
+  <li><b>DevOps and ML:</b> Docker, GitHub Actions, Cloudflare Tunnel, Proxmox, Linux · YOLO, PaddleOCR, OpenVINO, Whisper</li>
+  <li><b>Practices:</b> security hardening, automated testing (Vitest, Playwright), AI-assisted development (Claude Code, Codex)</li>
+</ul>
+</section>
+
+<section>
+<h2>Education</h2>
+<h3>BS Computer Science, Magna Cum Laude <span class="meta">· USTP · 2022 – 2026</span></h3>
+<p>DOST-SEI JLSS scholar · Alan Turing Award · Founding Vice President, Computer Science Student Society</p>
+</section>
+</body>
+</html>

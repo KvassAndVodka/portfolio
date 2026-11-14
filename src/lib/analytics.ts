@@ -3,15 +3,12 @@ import { prisma } from "@/lib/prisma";
 
 const PAGE_VIEW = "page_view";
 
-function percentageChange(current: number, previous: number) {
-  if (previous === 0) return current === 0 ? 0 : 100;
-  return Math.round(((current - previous) / previous) * 100);
-}
 
 export async function getVisitorStats(days = 30) {
   const rangeStart = startOfDay(subDays(new Date(), days - 1));
   const previousStart = startOfDay(subDays(rangeStart, days));
-  const previousEnd = new Date(rangeStart.getTime() - 1);
+  // Same elapsed time: today is partial, so the previous window stops at this time of day too.
+  const previousEnd = subDays(new Date(), days);
   const pageViewFilter = { event: PAGE_VIEW };
 
   const [views, previousViews, visitors, previousVisitors, contactSubmissions] = await Promise.all([
@@ -33,8 +30,8 @@ export async function getVisitorStats(days = 30) {
     views,
     visitors: visitors.length,
     contactSubmissions,
-    viewsChange: percentageChange(views, previousViews),
-    visitorsChange: percentageChange(visitors.length, previousVisitors.length),
+    previousViews,
+    previousVisitors: previousVisitors.length,
   };
 }
 
@@ -83,6 +80,17 @@ export async function getTopPages(limit = 6, days = 30) {
   });
 
   return pages.map((page) => ({ path: page.path, views: page._count.path }));
+}
+
+/** Visitors per source over the window. Rows stored before sources were captured hold this site's own URL, so anything starting with "http" is skipped. */
+export async function getTrafficSources(limit = 6, days = 30) {
+  const rows = await prisma.visit.groupBy({
+    by: ["referer", "ipHash"],
+    where: { event: PAGE_VIEW, referer: { not: null }, NOT: { referer: { startsWith: "http" } }, createdAt: { gte: startOfDay(subDays(new Date(), days - 1)) } },
+  });
+  const visitors = new Map<string, number>();
+  for (const row of rows) if (row.referer) visitors.set(row.referer, (visitors.get(row.referer) ?? 0) + 1);
+  return [...visitors].map(([source, count]) => ({ source, visitors: count })).sort((a, b) => b.visitors - a.visitors).slice(0, limit);
 }
 
 export async function getVisitorCountries(days = 30) {

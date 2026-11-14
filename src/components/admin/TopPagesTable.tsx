@@ -16,7 +16,7 @@ function pageLabel(path: string) {
 export default function TopPagesTable({ pages }: Readonly<{ pages: PageStat[] }>) {
   return (
     <section aria-labelledby="top-content-heading">
-      <h2 id="top-content-heading" className="admin-section-title pb-4">Most read</h2>
+      <h2 id="top-content-heading" className="admin-section-title flex justify-between pb-4">Most read <span className="site-muted font-mono font-normal normal-case tracking-normal">excl. home</span></h2>
       {pages.length > 0 ? (
         <ol className="border-t border-[var(--line)]">
           {pages.map((page, index) => (
