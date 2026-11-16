@@ -75,60 +75,59 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
         }
     };
 
+    let state = (
+        <>
+            <FaCloudUploadAlt aria-hidden="true" className="text-2xl text-[var(--postcard-muted)]" />
+            <span className="media-drop-title">{isDragging ? 'Drop it here' : 'Drop an image, or choose a file'}</span>
+            <span className="media-drop-label">JPG, PNG or WebP</span>
+        </>
+    );
+    if (isUploading) {
+        state = (
+            <>
+                <FaSpinner aria-hidden="true" className="text-xl text-[var(--postcard-rust)] animate-spin [animation-duration:700ms]" />
+                <span className="media-drop-label">Uploading…</span>
+            </>
+        );
+    } else if (success) {
+        state = (
+            <>
+                <FaCheck aria-hidden="true" className="text-xl text-[var(--admin-success)]" />
+                <span className="media-drop-label">Uploaded</span>
+            </>
+        );
+    }
+
     return (
         <div className="w-full">
-            <div
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => {
+                    if (e.target.files?.[0]) void handleFile(e.target.files[0]);
+                }}
+            />
+            <button
+                type="button"
                 onDragOver={onDragOver}
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
                 onClick={() => fileInputRef.current?.click()}
-                onKeyDown={(e) => {
-                    if (e.key !== 'Enter' && e.key !== ' ') return;
-                    e.preventDefault();
-                    fileInputRef.current?.click();
-                }}
-                role="button"
-                tabIndex={0}
                 aria-label="Upload an image"
-                className="media-drop"
+                className="media-drop w-full"
                 data-dragging={isDragging || undefined}
                 data-error={error ? true : undefined}
                 data-done={success ? true : undefined}
             >
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={(e) => {
-                        if (e.target.files?.[0]) void handleFile(e.target.files[0]);
-                    }}
-                />
-
-                {isUploading ? (
-                    <>
-                        <FaSpinner aria-hidden="true" className="text-xl text-[var(--postcard-rust)] animate-spin [animation-duration:700ms]" />
-                        <p className="media-drop-label">Uploading…</p>
-                    </>
-                ) : success ? (
-                    <>
-                        <FaCheck aria-hidden="true" className="text-xl text-[var(--admin-success)]" />
-                        <p className="media-drop-label">Uploaded</p>
-                    </>
-                ) : (
-                    <>
-                        <FaCloudUploadAlt aria-hidden="true" className="text-2xl text-[var(--postcard-muted)]" />
-                        <p className="media-drop-title">{isDragging ? 'Drop it here' : 'Drop an image, or choose a file'}</p>
-                        <p className="media-drop-label">JPG, PNG or WebP</p>
-                    </>
-                )}
-
-                {error && (
-                    <p role="alert" className="media-drop-label flex items-center gap-2 !text-[var(--admin-danger)]">
-                        <FaTimes aria-hidden="true" /> {error}
-                    </p>
-                )}
-            </div>
+                {state}
+            </button>
+            {error && (
+                <p role="alert" className="media-drop-label mt-3 flex items-center gap-2 !text-[var(--admin-danger)]">
+                    <FaTimes aria-hidden="true" /> {error}
+                </p>
+            )}
         </div>
     );
 }

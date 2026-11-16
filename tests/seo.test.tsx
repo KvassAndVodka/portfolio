@@ -38,9 +38,10 @@ test("sitemap includes only supplied public content with real modification dates
     [{ slug: "shipping-notes", updatedAt: "2026-08-03T00:00:00.000Z" }],
   );
   const urls = sitemap.map((entry) => entry.url);
+  const urlSet = new Set(urls);
 
-  assert.ok(urls.includes("https://portfolio.jmraut.dev/projects/data-platform"));
-  assert.ok(urls.includes("https://portfolio.jmraut.dev/notes/shipping-notes"));
+  assert.ok(urlSet.has("https://portfolio.jmraut.dev/projects/data-platform"));
+  assert.ok(urlSet.has("https://portfolio.jmraut.dev/notes/shipping-notes"));
   assert.equal(urls.some((url) => /\/(?:admin|auth|api)(?:\/|$)/.test(url)), false);
   assert.equal(
     sitemap.find((entry) => entry.url.endsWith("/notes/shipping-notes"))?.lastModified?.toString(),

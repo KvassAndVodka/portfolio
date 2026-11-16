@@ -8,7 +8,12 @@ import { requireAdmin } from '@/lib/require-admin';
 
 // Browsers submit form fields with CRLF line endings; store Markdown with LF so saving never rewrites a post.
 function normalizeNewlines(value: FormDataEntryValue | null) {
-    return String(value ?? '').replace(/\r\n?/g, '\n');
+    return (typeof value === 'string' ? value : '').replace(/\r\n?/g, '\n');
+}
+
+function formText(formData: FormData, name: string) {
+    const value = formData.get(name);
+    return typeof value === 'string' ? value : '';
 }
 
 function revalidatePublicContent() {
@@ -47,7 +52,7 @@ export async function createPost(formData: FormData) {
     const status = Object.values(PostStatus).includes(requestedStatus as PostStatus)
         ? requestedStatus as PostStatus
         : PostStatus.DRAFT;
-    const scheduledFor = String(formData.get('scheduledFor') || '');
+    const scheduledFor = formText(formData, 'scheduledFor');
     const publishedAt = status === PostStatus.SCHEDULED && scheduledFor
         ? new Date(scheduledFor)
         : new Date();
@@ -106,7 +111,7 @@ export async function updatePost(id: string, formData: FormData) {
     const status = Object.values(PostStatus).includes(requestedStatus as PostStatus)
         ? requestedStatus as PostStatus
         : existingPost.status;
-    const scheduledFor = String(formData.get('scheduledFor') || '');
+    const scheduledFor = formText(formData, 'scheduledFor');
     const publishedAt = status === PostStatus.SCHEDULED && scheduledFor
         ? new Date(scheduledFor)
         : existingPost.publishedAt;

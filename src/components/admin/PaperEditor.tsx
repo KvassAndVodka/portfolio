@@ -9,6 +9,8 @@ import { FaCode, FaImage, FaMinus, FaPlus, FaTable } from "react-icons/fa6";
 import MediaPicker from "@/components/admin/MediaPicker";
 import { editorExtensions } from "@/lib/editorExtensions";
 
+// A stable callback ref runs once, when the link field appears after the person picks "Link".
+const focusOnMount = (input: HTMLInputElement | null) => input?.focus();
 const label = "font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.1em]";
 const menu = `${label} flex flex-wrap items-center rounded-[8px] bg-[var(--postcard-ink)] p-1 text-[var(--postcard-paper)] shadow-[0_12px_30px_-12px_rgb(0_0_0/50%)]`;
 const menuButton = "min-h-9 rounded-[6px] px-2.5 hover:bg-[color-mix(in_srgb,var(--postcard-paper)_15%,transparent)] aria-pressed:text-[var(--postcard-orange)]";
@@ -40,12 +42,13 @@ function SelectionMenu({ editor, appendTo }: Readonly<{ editor: Editor; appendTo
           className="flex items-center"
           onSubmit={(event) => {
             event.preventDefault();
-            const href = String(new FormData(event.currentTarget).get("href") || "").trim();
+            const value = new FormData(event.currentTarget).get("href");
+            const href = typeof value === "string" ? value.trim() : "";
             if (href) editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
             setLinking(false);
           }}
         >
-          <input name="href" type="url" required autoFocus aria-label="Link address" placeholder="https://…" className="min-h-9 w-56 bg-transparent px-2 font-sans text-sm normal-case tracking-normal outline-none" onKeyDown={(event) => { if (event.key === "Escape") { setLinking(false); editor.commands.focus(); } }} />
+          <input name="href" type="url" required ref={focusOnMount} aria-label="Link address" placeholder="https://…" className="min-h-9 w-56 bg-transparent px-2 font-sans text-sm normal-case tracking-normal outline-none" onKeyDown={(event) => { if (event.key === "Escape") { setLinking(false); editor.commands.focus(); } }} />
           <button type="submit" className={menuButton}>Add</button>
         </form>
       ) : (

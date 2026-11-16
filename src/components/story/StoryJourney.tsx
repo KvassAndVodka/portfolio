@@ -113,7 +113,7 @@ function mapFacts(places: readonly StoryPlace[]) {
   const pins = pinsFor(places);
   const lng = pins.reduce((sum, pin) => sum + pin.coordinates[0], 0) / pins.length;
   const lat = pins.reduce((sum, pin) => sum + pin.coordinates[1], 0) / pins.length;
-  const years = places.map((place) => Number(place.period.match(/\d{4}/)?.[0])).filter(Boolean);
+  const years = places.map((place) => Number(/\d{4}/.exec(place.period)?.[0])).filter(Boolean);
   return {
     position: `${dms(lat, "N", "S", 2)}  ${dms(lng, "E", "W", 3)}`,
     sites: String(pins.length).padStart(2, "0"),
@@ -128,14 +128,17 @@ function formatCoordinates([lng, lat]: readonly [number, number]) {
 
 /** Detail copy may embed one [label](href) inline link; the text around it stays plain. */
 function detailWithLink(detail: string) {
-  const match = /\[([^\]]+)\]\(([^)]+)\)/.exec(detail);
-  if (!match) return detail;
+  // indexOf, not a regex: a regex here backtracks on copy with many unmatched brackets.
+  const middle = detail.indexOf("](");
+  const open = detail.lastIndexOf("[", middle);
+  const close = detail.indexOf(")", middle + 2);
+  if (middle < 0 || open < 0 || middle === open + 1 || close <= middle + 2) return detail;
   return [
-    detail.slice(0, match.index),
-    <a key="place-detail-link" className="story-place-detail-link" href={match[2]} rel="noreferrer" target="_blank">
-      {match[1]}
+    detail.slice(0, open),
+    <a key="place-detail-link" className="story-place-detail-link" href={detail.slice(middle + 2, close)} rel="noreferrer" target="_blank">
+      {detail.slice(open + 1, middle)}
     </a>,
-    detail.slice(match.index + match[0].length),
+    detail.slice(close + 1),
   ];
 }
 
@@ -1078,7 +1081,7 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
             <div className="story-places-wash" />
           </div>
         </div>
-        <canvas className="story-cloud" ref={cloudRef} aria-hidden="true" />
+        <canvas className="story-cloud" ref={cloudRef} />
 
         <div className="story-overlay">
           <div className="story-frame site-shell">

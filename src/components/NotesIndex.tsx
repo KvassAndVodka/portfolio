@@ -40,14 +40,14 @@ export default function NotesIndex({ initialNotes }: NotesIndexProps) {
 
   if (status === "timeout" || status === "error") {
     return (
-      <div className="empty-state" role="status">
+      <output className="empty-state">
         <h2>{status === "timeout" ? "Notes took too long to load." : "Notes are unavailable right now."}</h2>
         <p>This page could not reach the writing archive. Try the request again in a moment.</p>
         <button className="postcard-button mt-6" type="button" onClick={retry}>
           <FaRotateRight aria-hidden="true" />
           Try again
         </button>
-      </div>
+      </output>
     );
   }
 
@@ -55,12 +55,12 @@ export default function NotesIndex({ initialNotes }: NotesIndexProps) {
 
   if (notes.length === 0) {
     return (
-      <div className="empty-state notes-empty" role="status">
+      <output className="empty-state notes-empty">
         <h2>No notes published yet.</h2>
         <p>
           This space is ready for technical write-ups, project retrospectives, and lessons worth keeping.
         </p>
-      </div>
+      </output>
     );
   }
 

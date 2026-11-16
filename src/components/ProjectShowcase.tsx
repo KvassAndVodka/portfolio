@@ -156,12 +156,12 @@ function ProjectShowcaseContent({
 
   if (status === "loading") {
     return (
-      <div className="project-loading-state" aria-busy="true" role="status">
+      <output className="project-loading-state" aria-busy="true">
         <span>Loading selected work</span>
         <span aria-hidden="true" className="project-loading-track">
           <span />
         </span>
-      </div>
+      </output>
     );
   }
 
@@ -172,29 +172,31 @@ function ProjectShowcaseContent({
         : "Projects are unavailable right now.";
 
     return (
-      <div className="empty-state project-fallback" role="status" ref={rootRef}>
-        <h3>{title}</h3>
-        <p>
-          The case studies could not be retrieved. You can still inspect the source and recent work
-          on GitHub.
-        </p>
-        <div className="empty-state-actions">
-          <button className="postcard-button" type="button" onClick={retry}>
-            <FaRotateRight aria-hidden="true" />
-            Try again
-          </button>
-          <a
-            className="postcard-button postcard-button-primary"
-            href="https://github.com/KvassAndVodka"
-            aria-label="Javier Raut on GitHub (opens in a new tab)"
-            rel="noreferrer"
-            target="_blank"
-          >
-            <FaGithub aria-hidden="true" />
-            Open GitHub
-            <FaArrowUpRightFromSquare aria-hidden="true" className="button-external-icon" />
-          </a>
-        </div>
+      <div ref={rootRef}>
+        <output className="empty-state project-fallback">
+          <h3>{title}</h3>
+          <p>
+            The case studies could not be retrieved. You can still inspect the source and recent work
+            on GitHub.
+          </p>
+          <div className="empty-state-actions">
+            <button className="postcard-button" type="button" onClick={retry}>
+              <FaRotateRight aria-hidden="true" />
+              Try again
+            </button>
+            <a
+              className="postcard-button postcard-button-primary"
+              href="https://github.com/KvassAndVodka"
+              aria-label="Javier Raut on GitHub (opens in a new tab)"
+              rel="noreferrer"
+              target="_blank"
+            >
+              <FaGithub aria-hidden="true" />
+              Open GitHub
+              <FaArrowUpRightFromSquare aria-hidden="true" className="button-external-icon" />
+            </a>
+          </div>
+        </output>
       </div>
     );
   }
@@ -233,7 +235,7 @@ function ProjectShowcaseContent({
       </div>
 
       {filteredProjects.length === 0 ? (
-        <div className="empty-state project-filter-empty" role="status">
+        <output className="empty-state project-filter-empty">
           <p>No projects match those filters.</p>
           <button
             className="postcard-button mt-6"
@@ -245,7 +247,7 @@ function ProjectShowcaseContent({
           >
             Clear filters
           </button>
-        </div>
+        </output>
       ) : (
         <>
           <div className="project-grid" key={shown.page}>

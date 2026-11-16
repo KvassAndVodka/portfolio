@@ -25,15 +25,7 @@ export function buildLlmsTxt(projects: LlmsProject[], posts: LlmsPost[], full = 
 
   for (const project of projects) {
     const url = absoluteUrl(`/projects/${project.slug}`);
-    if (!full) {
-      lines.push(`- [${project.title}](${url}): ${project.summary}`);
-      continue;
-    }
-    lines.push(`### ${project.title}`, "", `URL: ${url}`, project.summary, "");
-    if (project.category) lines.push(`Category: ${formatProjectCategory(project.category)}`);
-    if (project.techStack.length) lines.push(`Built with: ${project.techStack.join(", ")}`);
-    for (const link of [project.projectUrl || project.demoUrl, project.githubUrl]) if (link) lines.push(`Link: ${link}`);
-    lines.push("", project.content.trim(), "");
+    lines.push(...(full ? projectSection(project, url) : [`- [${project.title}](${url}): ${project.summary}`]));
   }
 
   if (posts.length) lines.push("", "## Notes", "");
@@ -48,6 +40,15 @@ export function buildLlmsTxt(projects: LlmsProject[], posts: LlmsPost[], full = 
 
   if (!full) lines.push("", "## Optional", "", `- [Full text of every project and note](${absoluteUrl("/llms-full.txt")})`);
   return `${lines.join("\n").trim()}\n`;
+}
+
+function projectSection(project: LlmsProject, url: string) {
+  const lines = [`### ${project.title}`, "", `URL: ${url}`, project.summary, ""];
+  if (project.category) lines.push(`Category: ${formatProjectCategory(project.category)}`);
+  if (project.techStack.length) lines.push(`Built with: ${project.techStack.join(", ")}`);
+  for (const link of [project.projectUrl || project.demoUrl, project.githubUrl]) if (link) lines.push(`Link: ${link}`);
+  lines.push("", project.content.trim(), "");
+  return lines;
 }
 
 export function llmsTxtResponse(body: string) {

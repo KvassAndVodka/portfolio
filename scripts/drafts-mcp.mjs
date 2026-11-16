@@ -23,7 +23,7 @@ const tools = [
     inputSchema: {
       type: "object",
       properties: {
-        weekId: { type: "string", pattern: "^\\d{4}-W\\d{2}$", description: "ISO week, e.g. 2026-W46. Defaults to the current week." },
+        weekId: { type: "string", pattern: String.raw`^\d{4}-W\d{2}$`, description: "ISO week, e.g. 2026-W46. Defaults to the current week." },
         title: { type: "string", maxLength: 120 },
         summary: { type: "string", maxLength: 300, description: "One or two sentences for the notes list." },
         content: { type: "string", maxLength: 50000, description: "MDX body. No JS expressions." },

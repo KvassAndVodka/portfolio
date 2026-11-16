@@ -1122,7 +1122,7 @@ body {
   .admin-shell *,
   .admin-shell *::before,
   .admin-shell *::after {
-    scroll-behavior: auto !important;
+    scroll-behavior: auto !important; /* NOSONAR: reduced motion must override smooth scrolling everywhere */
     transition-property: color, background-color, border-color, opacity, fill, stroke !important; /* NOSONAR: reduced motion must override every component's transition */
   }
 
@@ -1735,8 +1735,8 @@ svg.button-external-icon {
   background: var(--background);
 }
 
-/* Contact: the back of the hero's postcard. The message is written on ruled lines at left; the
-   address side at right carries the stamp, who it goes to, and the sender's details. */
+/* The contact section is the back of the hero's postcard. The message is written on ruled lines at left,
+   and the address side at right carries the stamp, who it goes to, and the sender's details. */
 .contact-stage {
   padding-block: clamp(6rem, 11vw, 9rem);
   background: var(--background);
@@ -2540,10 +2540,10 @@ svg.button-external-icon {
   *,
   *::before,
   *::after {
-    scroll-behavior: auto !important;
+    scroll-behavior: auto !important; /* NOSONAR: reduced motion must override smooth scrolling everywhere */
     transition-property: color, background-color, border-color, opacity, fill, stroke, text-decoration-color !important; /* NOSONAR: reduced motion must override every component's transition and GSAP inline styles */
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
+    animation-duration: 0.01ms !important; /* NOSONAR: reduced motion must override every component's animation */
+    animation-iteration-count: 1 !important; /* NOSONAR: reduced motion must override every component's animation */
   }
 
   .skeleton-shimmer {
@@ -4366,6 +4366,8 @@ a.story-place-organization:hover {
 .notes-sheet,
 .paper-sheet,
 .empty-state {
+  /* Rendered as <output>, which is inline by default. */
+  display: block;
   --foreground: var(--postcard-ink);
   --muted: var(--postcard-muted);
   --muted-strong: var(--postcard-ink-soft);

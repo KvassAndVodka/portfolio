@@ -84,12 +84,11 @@ function assertDockerDaemon() {
 function printLocalAccess() {
   const contents = readFileSync(localEnvironmentFile, "utf8");
   const email = contents.match(/^ADMIN_EMAIL=(.+)$/m)?.[1];
-  const password = contents.match(/^LOCAL_ADMIN_PASSWORD=(.+)$/m)?.[1];
 
   console.log("\nLocal portfolio: http://localhost:3000");
   console.log("LAN access:       http://<your-device-ip>:3000");
   console.log("Admin dashboard:  http://localhost:3000/admin");
-  console.log(`Admin login:      ${email} / ${password}\n`);
+  console.log(`Admin login:      ${email} (password: LOCAL_ADMIN_PASSWORD in ${localEnvironmentFile})\n`);
 }
 
 function composeArguments(command, composeFile, environmentFile) {
