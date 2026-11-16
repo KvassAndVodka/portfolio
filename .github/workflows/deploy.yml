@@ -59,9 +59,14 @@ jobs:
         run: |
           echo "Pruning Docker build cache (keeping up to 1GB)..."
           docker builder prune -f --keep-storage=1gb
-          echo "Pruning unused Docker images older than 24 hours..."
-          # The age filter keeps an image that a queued deploy still needs.
-          docker image prune -af --filter "until=24h"
+          echo "Removing portfolio images older than 24 hours..."
+          # The age filter keeps an image that a queued deploy still needs. Skip the live image by name:
+          # with the containerd image store, `docker image prune -a` also deletes an image that a running container uses.
+          LIVE_IMAGE="$(docker inspect -f '{{.Config.Image}}' portfolio_web 2>/dev/null || true)"
+          docker images --filter "until=24h" --filter "reference=portfolio*" --format '{{.Repository}}:{{.Tag}}' \
+            | grep -vxF -e "$LIVE_IMAGE" -e portfolio:rollback \
+            | xargs -r docker rmi || echo "::warning::Some old portfolio images could not be removed"
+          docker image prune -f
 
       - name: Build New Image
         run: |
@@ -88,9 +93,13 @@ jobs:
       - name: Tag Running Image as Rollback
         run: |
           RUNNING_IMAGE="$(docker inspect -f '{{.Image}}' portfolio_web 2>/dev/null || true)"
-          if [ -n "$RUNNING_IMAGE" ]; then
+          if [ -n "$RUNNING_IMAGE" ] && docker image inspect "$RUNNING_IMAGE" >/dev/null 2>&1; then
             docker tag "$RUNNING_IMAGE" portfolio:rollback
             echo "Tagged the running image as portfolio:rollback"
+          elif [ -n "$RUNNING_IMAGE" ]; then
+            # The image record is gone but the container still runs: save the container itself.
+            docker commit portfolio_web portfolio:rollback
+            echo "Saved the running container as portfolio:rollback"
           else
             echo "No running portfolio container found, skipping rollback tag"
           fi
