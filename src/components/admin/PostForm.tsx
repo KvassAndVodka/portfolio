@@ -10,6 +10,11 @@ import { toast } from "./Toaster";
 import PaperEditor from "./PaperEditor";
 
 type ContentType = "BLOG" | "PROJECT";
+
+const typeCopy = {
+  PROJECT: { label: "Project", noun: "project", path: "projects", kicker: "Case study", created: "Project created", titlePlaceholder: "Project name", bodyPlaceholder: "Tell the story: the problem, what you built, what changed…", categoryPlaceholder: "Professional, personal…" },
+  BLOG: { label: "Note", noun: "note", path: "notes", kicker: "Note", created: "Note created", titlePlaceholder: "Title", bodyPlaceholder: "Start writing…", categoryPlaceholder: "Tutorial, field note…" },
+} satisfies Record<ContentType, Record<string, string>>;
 type ContentStatus = "DRAFT" | "PUBLISHED" | "SCHEDULED";
 
 const statusOptions: Array<{ value: ContentStatus; label: string; description: string }> = [
@@ -111,13 +116,13 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
   const focusedError = useRef(false);
   const invalid = (name: string) => ({ "aria-invalid": errors[name] ? true : undefined, "aria-errormessage": errors[name] ? `${name}-error` : undefined });
   const isEditing = Boolean(initialData?.id);
+  const copy = typeCopy[type];
   // Saved through onSubmit, not the form's action prop: a failed action prop either shows the error page or,
   // if caught, resets the fields. Here a failure leaves everything as typed and says so in a toast.
   const [saving, startSaving] = useTransition();
-  const created = type === "PROJECT" ? "Project created" : "Note created";
-  const savedMessage = isEditing ? "Your changes are saved" : created;
-  const publicPath = type === "PROJECT" ? `/projects/${initialData?.slug}` : `/notes/${initialData?.slug}`;
-  const listPath = type === "PROJECT" ? "/admin/projects" : "/admin/notes";
+  const savedMessage = isEditing ? "Your changes are saved" : copy.created;
+  const publicPath = `/${copy.path}/${initialData?.slug}`;
+  const listPath = `/admin/${copy.path}`;
   const sheetLabel = "font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.1em]";
 
   return (
@@ -151,9 +156,9 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
 
       {/* A slim bar that stays while writing: way back, length, and save. */}
       <div className="sticky top-0 z-20 -mx-4 flex min-h-14 items-center gap-3 border-b border-[var(--line)] bg-[var(--background)] px-4 sm:mx-0 sm:px-0">
-        <Link href={listPath} className="admin-icon-button" aria-label={`All ${type === "PROJECT" ? "projects" : "notes"}`}><FaArrowLeft aria-hidden="true" /></Link>
+        <Link href={listPath} className="admin-icon-button" aria-label={`All ${copy.path}`}><FaArrowLeft aria-hidden="true" /></Link>
         {isEditing ? (
-          <p className={`${sheetLabel} site-muted`}>{type === "PROJECT" ? "Project" : "Note"} · {statusOptions.find((o) => o.value === status)?.label}</p>
+          <p className={`${sheetLabel} site-muted`}>{copy.label} · {statusOptions.find((o) => o.value === status)?.label}</p>
         ) : (
           <fieldset className="type-switch" data-value={type}>
             <legend className="sr-only">Content type</legend>
@@ -171,29 +176,29 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
 
       {/* The post is written on a sheet of paper laid on the desk: the postcard's cream and 20 px grid, shadow only. */}
       <article className="mx-auto mt-8 max-w-[50rem] bg-[var(--postcard-paper)] bg-[linear-gradient(var(--postcard-grid)_1px,transparent_1px),linear-gradient(90deg,var(--postcard-grid)_1px,transparent_1px)] bg-[size:20px_20px] px-[clamp(1.25rem,7vw,5rem)] pb-[clamp(3rem,8vw,6rem)] pt-[clamp(2.5rem,7vw,5rem)] text-[var(--postcard-ink)] shadow-[var(--postcard-shadow)] md:mt-14">
-        <p className={`${sheetLabel} text-[var(--postcard-rust)]`}>{type === "PROJECT" ? "Case study" : "Note"}</p>
+        <p className={`${sheetLabel} text-[var(--postcard-rust)]`}>{copy.kicker}</p>
         <label htmlFor="post-title" className="sr-only">Title</label>
-        <textarea id="post-title" {...invalid("title")} name="title" rows={1} defaultValue={initialData?.title} maxLength={140} required placeholder={type === "PROJECT" ? "Project name" : "Title"} className="mt-3 w-full resize-none bg-transparent pb-[0.14em] pt-[0.06em] text-[clamp(2.35rem,5vw,3.75rem)] font-[620] leading-[1.06] tracking-[-0.035em] outline-none placeholder:text-[var(--postcard-tear)]" style={{ fieldSizing: "content" } as React.CSSProperties} onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }} />
+        <textarea id="post-title" {...invalid("title")} name="title" rows={1} defaultValue={initialData?.title} maxLength={140} required placeholder={copy.titlePlaceholder} className="mt-3 w-full resize-none bg-transparent pb-[0.14em] pt-[0.06em] text-[clamp(2.35rem,5vw,3.75rem)] font-[620] leading-[1.06] tracking-[-0.035em] outline-none placeholder:text-[var(--postcard-tear)]" style={{ fieldSizing: "content" } as React.CSSProperties} onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }} />
         <FieldError name="title" message={errors.title} />
         <label htmlFor="post-summary" className="sr-only">Summary</label>
         <textarea id="post-summary" {...invalid("summary")} name="summary" rows={1} defaultValue={initialData?.summary} maxLength={320} required placeholder="A one-line summary, shown in lists and link previews" className="mt-5 w-full resize-none bg-transparent text-[1.25rem] leading-[1.6] text-[var(--postcard-muted)] outline-none placeholder:text-[var(--postcard-tear)]" style={{ fieldSizing: "content" } as React.CSSProperties} />
         <FieldError name="summary" message={errors.summary} />
         <div className="mt-12">
-          <PaperEditor name="content" defaultValue={initialData?.content} onWords={setWords} placeholder={type === "PROJECT" ? "Tell the story: the problem, what you built, what changed…" : "Start writing…"} />
+          <PaperEditor name="content" defaultValue={initialData?.content} onWords={setWords} placeholder={copy.bodyPlaceholder} />
         </div>
       </article>
 
       {/* Details, filed like a spec sheet: numbered rows on hairlines, mono labels, underlined fields. */}
       <section aria-labelledby="details-heading" className="mx-auto mt-20 max-w-[50rem]">
         <h2 id="details-heading" className={`${sheetLabel} text-[var(--accent)]`}>Details</h2>
-        <p className="site-muted mt-3 max-w-[32rem] leading-[1.7]">How this {type === "PROJECT" ? "project" : "note"} is filed, linked and published. The sheet above is all readers see.</p>
+        <p className="site-muted mt-3 max-w-[32rem] leading-[1.7]">How this {copy.noun} is filed, linked and published. The sheet above is all readers see.</p>
 
         <DetailRow index={1} title="Address" lead="Where it lives on the site.">
           <div className="grid gap-7 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label htmlFor="post-slug" className={fieldLabel}>Link</label>
               <span className={`${lineBox} flex items-baseline`}>
-                <span className="site-muted shrink-0">/{type === "PROJECT" ? "projects" : "notes"}/</span>
+                <span className="site-muted shrink-0">/{copy.path}/</span>
                 <input id="post-slug" {...invalid("slug")} className="w-full min-w-0 bg-transparent py-2 font-mono text-[0.95rem] outline-none" name="slug" defaultValue={initialData?.slug} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="generated-from-title" aria-describedby="slug-help" />
               </span>
               <FieldError name="slug" message={errors.slug} />
@@ -201,7 +206,7 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
             </div>
             <div>
               <label htmlFor="post-category" className={fieldLabel}>Category</label>
-              <input id="post-category" className={line} name="category" defaultValue={initialData?.category || ""} placeholder={type === "PROJECT" ? "Professional, personal…" : "Tutorial, field note…"} />
+              <input id="post-category" className={line} name="category" defaultValue={initialData?.category || ""} placeholder={copy.categoryPlaceholder} />
             </div>
           </div>
         </DetailRow>
