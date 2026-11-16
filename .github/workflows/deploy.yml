@@ -97,9 +97,16 @@ jobs:
             docker tag "$RUNNING_IMAGE" portfolio:rollback
             echo "Tagged the running image as portfolio:rollback"
           elif [ -n "$RUNNING_IMAGE" ]; then
-            # The image record is gone but the container still runs: save the container itself.
-            docker commit portfolio_web portfolio:rollback
-            echo "Saved the running container as portfolio:rollback"
+            # The image record is gone but the container still runs: save the container itself. If its layers
+            # are gone too, keep an existing portfolio:rollback, and fail only when there is none.
+            if docker commit portfolio_web portfolio:rollback; then
+              echo "Saved the running container as portfolio:rollback"
+            elif docker image inspect portfolio:rollback >/dev/null 2>&1; then
+              echo "::warning::Could not save the running container. Keeping the existing portfolio:rollback."
+            else
+              echo "::error::No rollback image is available. Build one before deploying."
+              exit 1
+            fi
           else
             echo "No running portfolio container found, skipping rollback tag"
           fi
