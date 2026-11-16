@@ -4,6 +4,10 @@ on:
   push:
     branches: ["main"]
 
+# The jobs only check out code and run Docker on the self-hosted runner; the token needs nothing else.
+permissions:
+  contents: read
+
 env:
   # Each run builds and deploys its own image tag, so a newer build cannot change an older deploy.
   IMAGE_TAG: ${{ github.sha }}

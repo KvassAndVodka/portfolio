@@ -33,6 +33,11 @@ interface Project {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+const healthChecks = new Map<string | undefined, (project: Project) => boolean>([
+  ["thumbnail", (project) => !project.thumbnail],
+  ["links", (project) => !project.githubUrl && !project.demoUrl && !project.projectUrl],
+]);
+
 type SortableProjectListProps = Readonly<{
   initialProjects: readonly Project[];
   initialHealth?: string;
@@ -57,7 +62,7 @@ export default function SortableProjectList({ initialProjects, initialHealth }: 
   const filtered = useMemo(() => initialProjects.filter((project) => {
     const matchesQuery = `${project.title} ${project.summary} ${project.techStack.join(" ")}`.toLowerCase().includes(query.toLowerCase());
     const matchesStatus = status === "ALL" || project.status === status;
-    const matchesHealth = initialHealth === "thumbnail" ? !project.thumbnail : initialHealth === "links" ? !project.githubUrl && !project.demoUrl && !project.projectUrl : true;
+    const matchesHealth = healthChecks.get(initialHealth)?.(project) ?? true;
     return matchesQuery && matchesStatus && matchesHealth;
   }), [initialHealth, initialProjects, query, status]);
 
@@ -85,6 +90,10 @@ export default function SortableProjectList({ initialProjects, initialHealth }: 
     }
   }
 
+  const allProjects = filtered.length > 0
+    ? <ol aria-label="Projects" className="admin-list-swap">{filtered.map((project, index) => <ProjectRow key={project.id} project={project} position={index + 1} />)}</ol>
+    : <EmptyProjects message={initialProjects.length ? "No projects match these filters." : "Create your first project to start building the portfolio."} />;
+
   return (
     <>
       <div className="flex flex-col-reverse gap-4 border-b border-[var(--line)] md:flex-row md:items-center md:justify-between">
@@ -109,11 +118,7 @@ export default function SortableProjectList({ initialProjects, initialHealth }: 
           <p className="admin-label site-muted mt-3 min-h-5" aria-live="polite">{message || `${items.length} featured`}</p>
           {items.length > 0 ? <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}><SortableContext items={items.map((item) => item.id)} strategy={verticalListSortingStrategy}><ol className="mt-4 border-t border-[var(--line)]">{items.map((project, index) => <SortableRow key={project.id} project={project} position={index + 1} disabled={isSaving} />)}</ol></SortableContext></DndContext> : <EmptyProjects message="Feature a project from All projects to add it here." />}
         </section>
-      ) : filtered.length > 0 ? (
-        <ol aria-label="Projects" className="admin-list-swap">{filtered.map((project, index) => <ProjectRow key={project.id} project={project} position={index + 1} />)}</ol>
-      ) : (
-        <EmptyProjects message={initialProjects.length ? "No projects match these filters." : "Create your first project to start building the portfolio."} />
-      )}
+      ) : allProjects}
     </>
   );
 }

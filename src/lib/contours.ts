@@ -56,23 +56,30 @@ export function contourLevels(
     }
   }
   const at = (column: number, row: number) => field[row * columns + column];
-  const round = (value: number) => Math.round(value * 10) / 10;
 
   const levels: ContourLevel[] = [];
   for (let elevation = step; elevation < top; elevation += step) {
-    const parts: string[] = [];
-    let label: { x: number; y: number } | undefined;
-    for (let row = 0; row < rows - 1; row++) {
-      for (let column = 0; column < columns - 1; column++) {
-        const corners = [at(column, row), at(column + 1, row), at(column + 1, row + 1), at(column, row + 1)];
-        for (const [ax, ay, bx, by] of cellSegments(corners, elevation, column * cell, row * cell, cell)) {
-          parts.push(`M${round(ax)} ${round(ay)}L${round(bx)} ${round(by)}`);
-          label ??= { x: round((ax + bx) / 2), y: round((ay + by) / 2) };
-        }
-      }
-    }
+    const { d, label } = traceLevel(at, elevation, columns, rows, cell);
     const index = Math.round(elevation / step) % 5 === 0;
-    if (parts.length) levels.push({ elevation, index, d: parts.join(""), label: index ? label : undefined });
+    if (d) levels.push({ elevation, index, d, label: index ? label : undefined });
   }
   return levels;
+}
+
+const round = (value: number) => Math.round(value * 10) / 10;
+
+/** One elevation's path over the sampled grid, plus the midpoint of its first segment for a label. */
+function traceLevel(at: (column: number, row: number) => number, elevation: number, columns: number, rows: number, cell: number) {
+  const parts: string[] = [];
+  let label: { x: number; y: number } | undefined;
+  for (let row = 0; row < rows - 1; row++) {
+    for (let column = 0; column < columns - 1; column++) {
+      const corners = [at(column, row), at(column + 1, row), at(column + 1, row + 1), at(column, row + 1)];
+      for (const [ax, ay, bx, by] of cellSegments(corners, elevation, column * cell, row * cell, cell)) {
+        parts.push(`M${round(ax)} ${round(ay)}L${round(bx)} ${round(by)}`);
+        label ??= { x: round((ax + bx) / 2), y: round((ay + by) / 2) };
+      }
+    }
+  }
+  return { d: parts.join(""), label };
 }

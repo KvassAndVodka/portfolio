@@ -82,6 +82,25 @@ function DetailRow({ index, title, lead, last, children }: Readonly<{ index: num
   );
 }
 
+// Creating ends in a redirect, which Next signals by throwing: that's the success, and Next follows it.
+function isRedirect(error: unknown) {
+  return typeof error === "object" && error !== null && "digest" in error && String(error.digest).startsWith("NEXT_REDIRECT");
+}
+
+async function saveForm(action: PostFormProps["action"], formData: FormData, savedMessage: string) {
+  try {
+    await action(formData);
+  } catch (error) {
+    if (!isRedirect(error)) {
+      toast("Couldn't save. Your text is still here.", { tone: "error" });
+      return;
+    }
+    toast(savedMessage, { label: "Saved" });
+    throw error;
+  }
+  toast(savedMessage, { label: "Saved" });
+}
+
 export default function PostForm({ initialData, action, submitLabel }: PostFormProps) {
   const [type, setType] = useState<ContentType>(initialData?.type || "BLOG");
   const [status, setStatus] = useState<ContentStatus>(initialData?.status || "DRAFT");
@@ -95,23 +114,8 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
   // Saved through onSubmit, not the form's action prop: a failed action prop either shows the error page or,
   // if caught, resets the fields. Here a failure leaves everything as typed and says so in a toast.
   const [saving, startSaving] = useTransition();
-  const save = async (formData: FormData) => {
-    const created = type === "PROJECT" ? "Project created" : "Note created";
-    const saved = () => toast(isEditing ? "Your changes are saved" : created, { label: "Saved" });
-    try {
-      await action(formData);
-      saved();
-    } catch (error) {
-      // Creating ends in a redirect, which Next signals by throwing: that's the success, and Next follows it.
-      const redirected = typeof error === "object" && error !== null && "digest" in error && String(error.digest).startsWith("NEXT_REDIRECT");
-      if (!redirected) {
-        toast("Couldn't save. Your text is still here.", { tone: "error" });
-        return;
-      }
-      saved();
-      throw error;
-    }
-  };
+  const created = type === "PROJECT" ? "Project created" : "Note created";
+  const savedMessage = isEditing ? "Your changes are saved" : created;
   const publicPath = type === "PROJECT" ? `/projects/${initialData?.slug}` : `/notes/${initialData?.slug}`;
   const listPath = type === "PROJECT" ? "/admin/projects" : "/admin/notes";
   const sheetLabel = "font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.1em]";
@@ -122,7 +126,7 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
         event.preventDefault();
         if (saving) return;
         const formData = new FormData(event.currentTarget);
-        startSaving(() => save(formData));
+        startSaving(() => saveForm(action, formData, savedMessage));
       }}
       className="post-form pb-24"
       // Replace the browser's validation bubble with a message under each field, and bring the first problem into view.
@@ -246,8 +250,8 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
           )}
           {type === "PROJECT" && (
             <ul className="mt-7 border-t border-[var(--line)]">
-              <li className="border-b border-[var(--line)]"><label className="flex min-h-14 cursor-pointer items-center gap-4 py-3"><input className="size-4 shrink-0 accent-[var(--postcard-orange)]" name="isPinned" type="checkbox" defaultChecked={initialData?.isPinned} /><span><span className="block font-semibold">Feature on the homepage</span><span className="site-muted text-sm">Adds it to the project gallery.</span></span></label></li>
-              <li className="border-b border-[var(--line)]"><label className="flex min-h-14 cursor-pointer items-center gap-4 py-3"><input className="size-4 shrink-0 accent-[var(--postcard-orange)]" name="showAsBlog" type="checkbox" defaultChecked={initialData?.showAsBlog} /><span><span className="block font-semibold">List it under Notes too</span><span className="site-muted text-sm">The case study also appears in the notes index.</span></span></label></li>
+              <li className="border-b border-[var(--line)]"><label className="grid min-h-14 cursor-pointer grid-cols-[auto_1fr] items-center gap-x-4 py-3"><input className="row-span-2 size-4 accent-[var(--postcard-orange)]" name="isPinned" type="checkbox" defaultChecked={initialData?.isPinned} /><span className="font-semibold">Feature on the homepage</span><span className="site-muted text-sm">Adds it to the project gallery.</span></label></li>
+              <li className="border-b border-[var(--line)]"><label className="grid min-h-14 cursor-pointer grid-cols-[auto_1fr] items-center gap-x-4 py-3"><input className="row-span-2 size-4 accent-[var(--postcard-orange)]" name="showAsBlog" type="checkbox" defaultChecked={initialData?.showAsBlog} /><span className="font-semibold">List it under Notes too</span><span className="site-muted text-sm">The case study also appears in the notes index.</span></label></li>
             </ul>
           )}
         </DetailRow>

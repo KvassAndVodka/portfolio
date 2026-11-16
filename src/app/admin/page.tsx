@@ -16,7 +16,9 @@ const editPath = (post: { type: string; slug: string }) => `/admin/${post.type =
 function today() {
   const now = new Date();
   const hour = Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: "Asia/Manila" }).format(now));
-  const part = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
+  let part = "evening";
+  if (hour < 12) part = "morning";
+  else if (hour < 18) part = "afternoon";
   const date = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Manila" }).format(now);
   return { greeting: `Good ${part}`, date };
 }

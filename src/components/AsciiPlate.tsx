@@ -64,23 +64,25 @@ export default function AsciiPlate({ pattern, run = false, cols = 76, rows = 38,
     if (!pre || !run || prefersReducedMotion()) return;
     const target = finished.split("");
     const thresholds = target.map(() => Math.random());
-    const noise = () => GLYPHS[(Math.random() * GLYPHS.length) | 0];
+    const noise = () => GLYPHS[Math.trunc(Math.random() * GLYPHS.length)];
     const state = { progress: 0 };
+    const frame = (char: string, i: number) => {
+      if (char === "\n" || thresholds[i] < state.progress) return char;
+      return char === " " && Math.random() > 0.15 ? " " : noise();
+    };
     const develop = gsap.to(state, {
       progress: 1,
       duration: 1.1,
       ease: "power2.out",
       onUpdate: () => {
-        pre.textContent = target
-          .map((char, i) => (char === "\n" || thresholds[i] < state.progress ? char : char === " " && Math.random() > 0.15 ? " " : noise()))
-          .join("");
+        pre.textContent = target.map((char, i) => frame(char, i)).join("");
       },
     });
     const shimmer = window.setInterval(() => {
       if (develop.isActive()) return;
       const chars = target.slice();
       for (let n = 0; n < 40; n++) {
-        const i = (Math.random() * chars.length) | 0;
+        const i = Math.trunc(Math.random() * chars.length);
         const g = GLYPHS.indexOf(chars[i]);
         if (g >= 0) chars[i] = GLYPHS[Math.min(g + 1, GLYPHS.length - 1)];
       }
