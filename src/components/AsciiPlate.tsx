@@ -75,7 +75,7 @@ export default function AsciiPlate({ pattern, run = false, cols = 76, rows = 38,
       duration: 1.1,
       ease: "power2.out",
       onUpdate: () => {
-        pre.textContent = target.map(frame).join("");
+        pre.textContent = target.map((char, i) => frame(char, i)).join("");
       },
     });
     const shimmer = window.setInterval(() => {
