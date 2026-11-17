@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { mediaUrl } from '@/lib/media';
 import { format } from 'date-fns';
 import AdminPageHead from '@/components/admin/AdminPageHead';
 import { revalidatePath } from 'next/cache';
@@ -31,7 +32,7 @@ export default async function AdminMedia() {
 
     return (
         <>
-            <AdminPageHead kicker="Library" title="Media" lead="Images used across notes and projects.">
+            <AdminPageHead kicker="Library" title="Media" lead="Images and clips used across notes and projects.">
                 <UploadMediaButton />
             </AdminPageHead>
 
@@ -40,8 +41,12 @@ export default async function AdminMedia() {
                     {mediaItems.map((item, index) => (
                         <li key={item.id} data-reveal className="admin-panel group overflow-hidden">
                             <div className="admin-subtle relative aspect-[4/3] overflow-hidden">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={`/api/media/${item.id}`} alt={item.filename} className="size-full object-cover" loading="lazy" />
+                                {item.mimeType.startsWith('video/') ? (
+                                    <video src={mediaUrl(item.id, item.mimeType)} aria-label={item.filename} className="size-full object-cover" muted playsInline preload="metadata" />
+                                ) : (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={mediaUrl(item.id, item.mimeType)} alt={item.filename} className="size-full object-cover" loading="lazy" />
+                                )}
                             </div>
                             <div className="border-t border-[var(--line)] p-3">
                                 <p className="admin-index">{String(index + 1).padStart(2, "0")}</p>
@@ -49,7 +54,7 @@ export default async function AdminMedia() {
                                 <div className="mt-1 flex flex-wrap items-center justify-between gap-x-2">
                                     <p className="site-muted font-mono text-[0.75rem]">{item.mimeType.split('/')[1]} · {format(new Date(item.createdAt), 'd MMM')}</p>
                                     <div className="-mr-2 ml-auto flex shrink-0">
-                                        <CopyUrlButton url={`/api/media/${item.id}`} />
+                                        <CopyUrlButton url={mediaUrl(item.id, item.mimeType)} />
                                         <DeleteMediaButton id={item.id} filename={item.filename} action={deleteMedia} />
                                     </div>
                                 </div>
@@ -60,7 +65,7 @@ export default async function AdminMedia() {
             ) : (
                 <div className="py-14">
                     <p className="font-semibold">No media yet</p>
-                    <p className="site-muted mt-1">Upload an image here, or from the editor.</p>
+                    <p className="site-muted mt-1">Upload an image or a clip here, or from the editor.</p>
                 </div>
             )}
         </>

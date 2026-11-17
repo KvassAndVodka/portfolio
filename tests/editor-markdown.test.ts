@@ -28,6 +28,8 @@ const answer = 42;
 
 ![Map of the district](https://example.com/map.png)
 
+![The camera flies to the first stop.](/api/media/abc.mp4 "The 3D tier · one scroll")
+
 | Area | Before | After |
 | --- | --- | --- |
 | Lookups | 3 days | 5 minutes |
@@ -45,7 +47,7 @@ test("the editor schema keeps every block and mark of a post through a Markdown 
   assert.equal(roundTrip(once), once);
   // The parsed documents match, so nothing was dropped or changed in meaning.
   assert.deepEqual(markdown.parse(once), markdown.parse(sample));
-  for (const piece of ["## Why it exists", "**one searchable record**", "*scattered*", "[the repo](https://github.com/example/repo)", "`npm run build`", "Nested detail", "2. Second step", "> A quote from the field.", "```ts\nconst answer = 42;\n```", "![Map of the district](https://example.com/map.png)", "| Lookups", "5 minutes", "~~struck~~"]) {
+  for (const piece of ["## Why it exists", "**one searchable record**", "*scattered*", "[the repo](https://github.com/example/repo)", "`npm run build`", "Nested detail", "2. Second step", "> A quote from the field.", "```ts\nconst answer = 42;\n```", "![Map of the district](https://example.com/map.png)", '![The camera flies to the first stop.](/api/media/abc.mp4 "The 3D tier · one scroll")', "| Lookups", "5 minutes", "~~struck~~"]) {
     assert.ok(once.includes(piece), `lost: ${piece}\n---\n${once}`);
   }
 });

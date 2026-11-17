@@ -555,7 +555,7 @@ body {
   transition: scale 140ms var(--ease-out-expo);
 }
 
-.media-tile img {
+.media-tile :where(img, video) {
   width: 100%;
   aspect-ratio: 1;
   border-radius: 2px;
@@ -564,8 +564,8 @@ body {
   transition: box-shadow 160ms ease;
 }
 
-.media-tile:hover img,
-.media-tile:focus-visible img {
+.media-tile:hover :where(img, video),
+.media-tile:focus-visible :where(img, video) {
   box-shadow: 0 0 0 2px var(--postcard-orange);
 }
 
@@ -2489,7 +2489,7 @@ svg.button-external-icon {
   pointer-events: none;
 }
 
-.paper-editor img.ProseMirror-selectednode {
+.paper-editor :where(img, video).ProseMirror-selectednode {
   outline: 2px solid var(--postcard-orange);
 }
 

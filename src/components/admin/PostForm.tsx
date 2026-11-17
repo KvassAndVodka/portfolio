@@ -271,7 +271,7 @@ export default function PostForm({ initialData, action, submitLabel }: PostFormP
         </DetailRow>
       </section>
 
-      {showThumbnailPicker && <MediaPicker onSelect={(url) => { setThumbnail(url); setShowThumbnailPicker(false); }} onClose={() => setShowThumbnailPicker(false)} />}
+      {showThumbnailPicker && <MediaPicker imagesOnly onSelect={(url) => { setThumbnail(url); setShowThumbnailPicker(false); }} onClose={() => setShowThumbnailPicker(false)} />}
     </form>
   );
 }
