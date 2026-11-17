@@ -11,7 +11,7 @@ const CELL = 10;
 const SPLIT_DOTS = 50;
 const label = "font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.1em]";
 const number = (n: number) => n.toLocaleString("en-US");
-const dayFormat = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const dayFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 
 /** Day `index` of the year as a grid cell: one column per week, Sunday on top, like GitHub's own calendar. */
 export function cellOf(index: number, firstWeekday: number) {
@@ -72,11 +72,12 @@ export default function GitActivityBand() {
     setPointed(index >= 0 && index < counts.length ? index : null);
   };
 
-  const figures: { value: number; text: string; note?: string }[] = [
-    { value: total, text: "contributions, last 12 months" },
-    { value: mergedPrs, text: "pull requests merged", note: `${number(privatePrs)} in private repos` },
-    { value: repos, text: "repositories, last 12 months" },
-    { value: Math.round(total / (counts.length / 7)), text: "contributions a week, on average" },
+  // Two short label lines each, so the four cells line up on a phone; `accent` marks the private share.
+  const figures = [
+    { value: total, text: "Contributions", sub: "Last 12 months" },
+    { value: mergedPrs, text: "PRs merged", sub: `${number(privatePrs)} private`, accent: true },
+    { value: repos, text: "Repositories", sub: "Last 12 months" },
+    { value: Math.round(total / (counts.length / 7)), text: "Per week", sub: "On average" },
   ];
 
   return (
@@ -137,9 +138,9 @@ export default function GitActivityBand() {
           <p className={`${label} mt-4 flex flex-wrap justify-between gap-x-6 gap-y-1 text-[var(--postcard-muted)]`}>
             <span>
               {pointed === null ? "Busiest day · " : ""}
-              {dateOf(shown)} · <span className="text-[var(--postcard-ink)]">{counts[shown]}</span> contributions
+              {dateOf(shown)} · <span className="text-[var(--postcard-ink)]">{counts[shown]}</span>
             </span>
-            <span>{activeDays} active days · as of {dayFormat.format(new Date(`${asOf}T00:00:00Z`)).replace(/^\w+, /, "")}</span>
+            <span>{activeDays} active days · as of {dayFormat.format(new Date(`${asOf}T00:00:00Z`))}</span>
           </p>
 
           <div className="mt-7 border-t border-[var(--line)] pt-5">
@@ -167,10 +168,10 @@ export default function GitActivityBand() {
 
         <dl className="grid grid-cols-2 gap-px border-t border-[var(--line)] bg-[var(--line)] lg:border-t-0">
           {figures.map((figure) => (
-            <div className="flex flex-col-reverse justify-center gap-1 bg-[var(--postcard-paper)] px-5 py-5" data-tool key={figure.text}>
-              <dt className={`${label} text-[var(--postcard-muted)]`}>
+            <div className="flex flex-col-reverse justify-center gap-2 bg-[var(--postcard-paper)] px-5 py-5" data-tool key={figure.text}>
+              <dt className={label}>
                 {figure.text}
-                {figure.note && <span className="mt-1 block text-[var(--postcard-rust)]">{figure.note}</span>}
+                <span className={`mt-0.5 block ${figure.accent ? "text-[var(--postcard-rust)]" : "text-[var(--postcard-muted)]"}`}>{figure.sub}</span>
               </dt>
               <dd className="text-[clamp(1.75rem,3vw,2.25rem)] font-semibold leading-none tracking-[-0.03em] tabular-nums" data-count={figure.value}>
                 {number(figure.value)}
