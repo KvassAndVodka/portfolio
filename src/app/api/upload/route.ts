@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
-import { prisma } from '@/lib/prisma';
-import sharp from 'sharp';
 import { requireAdmin } from "@/lib/require-admin";
-import { mediaUrl, sniffVideo } from "@/lib/media";
+import { mediaUrl } from "@/lib/media";
+import { storeMedia } from "@/lib/media-store";
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
@@ -28,26 +27,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "File too large (max 10 MB)." }, { status: 413 });
         }
 
-        const buffer = Buffer.from(await file.arrayBuffer());
-
-        // A clip is stored as uploaded: re-encoding video here would be slow and lossy.
-        const video = sniffVideo(buffer);
-        const mimeType = video ?? 'image/webp';
-        // Images: resize to max width of 1920px (prevent huge files), convert to WebP for performance.
-        // animated: keep every frame of a GIF or animated WebP instead of flattening to the first.
-        const data = video ? buffer : await sharp(buffer, { animated: true, limitInputPixels: 40_000_000 })
-            .resize({ width: 1920, withoutEnlargement: true })
-            .webp({ quality: 80 })
-            .toBuffer();
-
-        // Save to Database
-        const media = await prisma.media.create({
-            data: {
-                filename: file.name,
-                mimeType,
-                data: Uint8Array.from(data)
-            }
-        });
+        const media = await storeMedia(file.name, Buffer.from(await file.arrayBuffer()));
 
         revalidatePath('/admin/media');
 

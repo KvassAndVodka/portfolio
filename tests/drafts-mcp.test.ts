@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { createInterface } from "node:readline";
@@ -14,12 +17,15 @@ test("ISO week ids follow the Thursday rule", () => {
 });
 
 test("MCP server lists tools and forwards create_draft with the bearer token", async () => {
-  const seen: { auth?: string; body?: Record<string, unknown> } = {};
+  const seen: { auth?: string; body?: Record<string, unknown>; url?: string; raw?: string } = {};
   const api = createServer((req, res) => {
     let raw = "";
     req.on("data", (chunk) => (raw += chunk));
     req.on("end", () => {
       seen.auth = req.headers.authorization;
+      seen.url = req.url;
+      seen.raw = raw;
+      if (req.url === "/api/drafts/media") return res.writeHead(201, { "content-type": "application/json" }).end('{"success":true,"url":"/api/media/abc.mp4"}');
       seen.body = JSON.parse(raw);
       res.writeHead(201, { "content-type": "application/json" }).end('{"success":true,"slug":"week-2026-w46"}');
     });
@@ -27,8 +33,14 @@ test("MCP server lists tools and forwards create_draft with the bearer token", a
   await new Promise<void>((resolve) => api.listen(0, "127.0.0.1", resolve));
   const { port } = api.address() as AddressInfo;
 
+  const root = mkdtempSync(path.join(tmpdir(), "mcp-uploads-"));
+  const outside = mkdtempSync(path.join(tmpdir(), "mcp-outside-"));
+  writeFileSync(path.join(root, "clip.mp4"), "fake clip bytes");
+  writeFileSync(path.join(outside, "secret.txt"), "do not send");
+  symlinkSync(path.join(outside, "secret.txt"), path.join(root, "link.txt"));
+
   const child = spawn(process.execPath, ["scripts/drafts-mcp.mjs"], {
-    env: { NODE_ENV: "test", PATH: process.env.PATH, PORTFOLIO_URL: `http://127.0.0.1:${port}`, DRAFTS_API_TOKEN: "test-token" },
+    env: { NODE_ENV: "test", PATH: process.env.PATH, PORTFOLIO_URL: `http://127.0.0.1:${port}`, DRAFTS_API_TOKEN: "test-token", UPLOAD_ROOTS: root },
   });
   const lines = createInterface({ input: child.stdout })[Symbol.asyncIterator]();
   const rpc = async (id: number, method: string, params?: unknown) => {
@@ -42,7 +54,7 @@ test("MCP server lists tools and forwards create_draft with the bearer token", a
     child.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
 
     const list = await rpc(2, "tools/list");
-    assert.deepEqual(list.result.tools.map((t: { name: string }) => t.name), ["create_draft", "create_project_draft", "list_recent_posts"]);
+    assert.deepEqual(list.result.tools.map((t: { name: string }) => t.name), ["create_draft", "create_project_draft", "upload_media", "list_recent_posts"]);
 
     const call = await rpc(3, "tools/call", {
       name: "create_draft",
@@ -60,6 +72,20 @@ test("MCP server lists tools and forwards create_draft with the bearer token", a
     assert.equal(project.result.isError, undefined);
     assert.equal(seen.body?.type, "PROJECT");
     assert.deepEqual(seen.body?.techStack, ["Next.js"]);
+
+    const upload = await rpc(6, "tools/call", { name: "upload_media", arguments: { path: path.join(root, "clip.mp4") } });
+    assert.equal(upload.result.isError, undefined);
+    assert.match(upload.result.content[0].text, /api\/media\/abc\.mp4/);
+    assert.equal(seen.url, "/api/drafts/media");
+    assert.ok(seen.raw?.includes('filename="clip.mp4"') && seen.raw.includes("fake clip bytes"));
+
+    // Outside the allowed folders, directly or through a symlink or "..", nothing is sent.
+    for (const [id, file] of [[7, path.join(outside, "secret.txt")], [8, path.join(root, "link.txt")], [9, path.join(root, "..", path.basename(outside), "secret.txt")]] as const) {
+      seen.raw = undefined;
+      const refused = await rpc(id, "tools/call", { name: "upload_media", arguments: { path: file } });
+      assert.equal(refused.result.isError, true);
+      assert.equal(seen.raw, undefined);
+    }
 
     const unknown = await rpc(5, "nope");
     assert.equal(unknown.error.code, -32601);
