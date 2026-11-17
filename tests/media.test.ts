@@ -4,11 +4,14 @@ import test from "node:test";
 import { isVideoSrc, mediaUrl, parseRange, sniffVideo } from "@/lib/media";
 
 test("a clip's URL carries its extension, an image's does not", () => {
-  assert.equal(mediaUrl("abc", "video/mp4"), "/api/media/abc.mp4");
-  assert.equal(mediaUrl("abc", "video/webm"), "/api/media/abc.webm");
+  assert.equal(mediaUrl("abc", "video/mp4"), "/api/media/abc?clip=mp4");
+  assert.equal(mediaUrl("abc", "video/webm"), "/api/media/abc?clip=webm");
   assert.equal(mediaUrl("abc", "image/webp"), "/api/media/abc");
-  assert.ok(isVideoSrc("/api/media/abc.mp4"));
+  assert.ok(isVideoSrc("/api/media/abc?clip=mp4"));
+  assert.ok(isVideoSrc("/case-studies/x/clip.mp4"), "static clips keep their extension");
+  assert.ok(isVideoSrc("/api/media/abc.mp4"), "clip URLs from before the change still play");
   assert.ok(!isVideoSrc("/api/media/abc"));
+  assert.ok(!isVideoSrc("/api/media/abc?clip=png"));
 });
 
 test("the video type comes from the file's bytes", () => {
