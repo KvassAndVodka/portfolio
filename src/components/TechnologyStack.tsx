@@ -2,24 +2,21 @@
 
 import type { IconType } from "react-icons";
 import {
+  SiCloudflare,
   SiDocker,
   SiFastapi,
   SiFfmpeg,
   SiFirebase,
-  SiGreensock,
   SiIntel,
-  SiLaravel,
   SiLinux,
   SiMaplibre,
   SiNextdotjs,
-  SiNginx,
   SiOpenstreetmap,
   SiPostgresql,
-  SiPytest,
   SiPython,
   SiReact,
+  SiSonarqubecloud,
   SiTypescript,
-  SiVitest,
   SiWebgl,
 } from "react-icons/si";
 
@@ -27,6 +24,7 @@ import { useRef } from "react";
 
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
+import GitActivityBand from "./GitActivityBand";
 import { LobeAntigravity, LobeCodex, SiClaudecode, SiOpencode } from "./aiIcons";
 
 interface Capability {
@@ -40,7 +38,7 @@ interface PracticeArea {
   name: string;
 }
 
-// Grounded in active repositories since late 2025: an internal mapping platform, this portfolio, staRT, RT Transcript, Comspace.
+// Grounded in active repositories since late 2025: an internal mapping platform, this portfolio, staRT, RT Transcript.
 const practiceAreas: PracticeArea[] = [
   {
     name: "Maps and spatial data",
@@ -56,14 +54,12 @@ const practiceAreas: PracticeArea[] = [
   {
     name: "Product systems",
     description:
-      "I shape interfaces, APIs, and data models together, from React field tools and this Next.js publishing system to a Laravel booking platform built to handle concurrent bookings safely.",
+      "I shape interfaces, APIs, and data models together, from React field tools to this Next.js publishing system.",
     capabilities: [
       { name: "TypeScript", icon: SiTypescript },
       { name: "React", icon: SiReact },
       { name: "Next.js", icon: SiNextdotjs },
       { name: "PostgreSQL", icon: SiPostgresql },
-      { name: "Laravel", icon: SiLaravel },
-      { name: "GSAP", icon: SiGreensock },
     ],
   },
   {
@@ -80,7 +76,7 @@ const practiceAreas: PracticeArea[] = [
   {
     name: "AI-assisted workflow",
     description:
-      "I build with AI-powered workflows day to day, pairing with Claude Code and OpenCode on real codebases, and I have worked with Codex and Antigravity.",
+      "I build with AI-powered workflows day to day, pairing with Claude Code and OpenCode on real codebases. Before that I used Codex at work, and I built the first version of this site with Antigravity.",
     capabilities: [
       { name: "Claude Code", icon: SiClaudecode },
       { name: "OpenCode", icon: SiOpencode },
@@ -91,32 +87,31 @@ const practiceAreas: PracticeArea[] = [
   {
     name: "Delivery and assurance",
     description:
-      "I self-host what I ship in containers behind Nginx, and I keep it honest with tests at every layer, from pytest and Vitest to browser checks.",
+      "I self-host what I ship in containers on my own Linux servers, published through Cloudflare Tunnel, and every pull request runs through SonarCloud and CodeQL.",
     capabilities: [
       { name: "Docker", icon: SiDocker },
       { name: "Linux", icon: SiLinux },
-      { name: "Nginx", icon: SiNginx },
-      { name: "pytest", icon: SiPytest },
-      { name: "Vitest", icon: SiVitest },
+      { name: "Cloudflare", icon: SiCloudflare },
+      { name: "SonarCloud", icon: SiSonarqubecloud },
     ],
   },
 ];
 
 
-// Everything with evidence in my repositories (an internal mapping platform, this portfolio, staRT, RT Transcript, Comspace,
+// Everything with evidence in my repositories (an internal mapping platform, this portfolio, staRT, RT Transcript,
 // the plate-recognition pipeline from meldCX, BEMMRA, ML coursework), listed as plain text.
 const toolkit: readonly Readonly<{ name: string; tools: readonly string[] }>[] = [
   {
     name: "Languages",
     tools: [
-      "TypeScript", "JavaScript", "Python", "PHP", "C#", "Java", "C++", "C", "SQL", "Bash", "HTML", "CSS",
-      "Assembly",
+      "TypeScript", "JavaScript", "Python", "C#", "Java", "C++", "C", "SQL", "Bash", "HTML", "CSS",
+      "MIPS Assembly",
     ],
   },
   {
     name: "Frontend",
     tools: [
-      "React", "Next.js", "Vite", "Tailwind CSS", "GSAP", "Framer Motion", "TanStack Query", "Zustand",
+      "React", "Next.js", "Vite", "Tailwind CSS", "GSAP", "Framer Motion", "TanStack Query",
       "Mantine", "React Aria", "Recharts",
     ],
   },
@@ -129,14 +124,14 @@ const toolkit: readonly Readonly<{ name: string; tools: readonly string[] }>[] =
   {
     name: "Backend and APIs",
     tools: [
-      "Node.js", "FastAPI", "Laravel", "Prisma", "SQLAlchemy", "Alembic", "Auth.js", "Firebase", "Stripe",
+      "Node.js", "FastAPI", "Prisma", "SQLAlchemy", "Alembic", "Auth.js", "Firebase", "Stripe",
       "WebSockets", "MQTT", ".NET Framework (WinForms)",
     ],
   },
   {
     name: "Data",
     tools: [
-      "PostgreSQL", "SQLite", "Redis", "Firestore", "pandas", "NumPy", "Jupyter", "Kaggle",
+      "PostgreSQL", "SQLite", "Firestore", "pandas", "NumPy", "Jupyter", "Kaggle",
     ],
   },
   {
@@ -155,14 +150,14 @@ const toolkit: readonly Readonly<{ name: string; tools: readonly string[] }>[] =
   {
     name: "Infrastructure",
     tools: [
-      "Docker", "Docker Compose", "Linux", "Nginx", "GitHub Actions", "Cloudflare Tunnel", "Tailscale",
+      "Docker", "Docker Compose", "Linux", "GitHub Actions", "Cloudflare Tunnel", "Tailscale",
       "Git", "uv",
     ],
   },
   {
     name: "Testing and quality",
     tools: [
-      "Vitest", "Playwright", "pytest", "Pest", "PHPUnit", "ESLint", "Prettier", "mypy", "axe-core",
+      "Vitest", "Playwright", "pytest", "ESLint", "Prettier", "mypy", "axe-core",
       "SonarQube",
     ],
   },
@@ -220,12 +215,12 @@ export default function TechnologyStack() {
           </p>
         </div>
 
-        {/* The two widest practice areas lead; the other three share the second row. */}
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-6">
+        {/* Two areas a row; the odd one out spans the row with its tools in one line, so every tile is the same size. */}
+        <div className="mt-12 grid gap-5 sm:grid-cols-2">
           {practiceAreas.map((area, index) => (
             <article
               aria-labelledby={`area-${index}`}
-              className={`${index < 2 ? "lg:col-span-3" : "lg:col-span-2"} flex flex-col rounded-[2px] bg-[var(--postcard-paper)] text-[var(--postcard-ink)] shadow-[var(--postcard-shadow)]`}
+              className={`${index === practiceAreas.length - 1 ? "sm:col-span-2" : ""} flex flex-col rounded-[2px] bg-[var(--postcard-paper)] text-[var(--postcard-ink)] shadow-[var(--postcard-shadow)]`}
               data-area
               key={area.name}
             >
@@ -240,14 +235,7 @@ export default function TechnologyStack() {
                   {pad(area.capabilities.length)} tools
                 </span>
               </header>
-              {/* Columns chosen so rows come out even; a lone last tool spans the row instead of leaving a gap. */}
-              <ul
-                className={`grid gap-px bg-[var(--line)] [&>li:last-child:nth-child(odd)]:col-span-2 ${
-                  area.capabilities.length === 6
-                    ? "grid-cols-2 sm:grid-cols-3 sm:[&>li:last-child:nth-child(odd)]:col-span-1"
-                    : "grid-cols-2"
-                }`}
-              >
+              <ul className={`grid grid-cols-2 gap-px bg-[var(--line)] ${index === practiceAreas.length - 1 ? "sm:grid-cols-4" : ""}`}>
                 {area.capabilities.map(({ icon: Icon, name }) => (
                   <li className="group flex items-center gap-3 bg-[var(--postcard-paper)] px-5 py-4" data-tool key={name}>
                     {Icon && (
@@ -260,12 +248,14 @@ export default function TechnologyStack() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-auto border-t border-[var(--line)] px-5 py-4 text-sm leading-[1.55] text-[var(--postcard-muted)]">
+              <p className="border-t border-[var(--line)] px-5 py-4 text-sm leading-[1.55] text-[var(--postcard-muted)]">
                 {area.description}
               </p>
             </article>
           ))}
         </div>
+
+        <GitActivityBand />
 
         {/* Everything, in plain text: easy to scan, and findable with Ctrl+F. */}
         <div className="mt-16" data-ledger>
