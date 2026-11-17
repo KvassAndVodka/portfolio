@@ -8,19 +8,22 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const id = params.id.replace(/\.(mp4|webm)$/i, '');
 
     try {
-        const media = await prisma.media.findUnique({
-            where: { id }
-        });
+        // Size and type first, so a range request reads only the bytes it asks for.
+        const [meta] = await prisma.$queryRaw<{ mimeType: string; size: number }[]>`
+            SELECT "mimeType", octet_length(data)::int AS size FROM "Media" WHERE id = ${id}`;
 
-        if (!media) {
+        if (!meta) {
             return new NextResponse("Not Found", { status: 404 });
         }
 
-        const size = media.data.length;
+        const { mimeType, size } = meta;
         const headers = new Headers();
-        headers.set('Content-Type', media.mimeType);
+        headers.set('Content-Type', mimeType);
         headers.set('Cache-Control', 'public, max-age=31536000, immutable');
         headers.set('Accept-Ranges', 'bytes');
+        // Next strips Content-Length from route responses, and Cloudflare cannot cut byte ranges from
+        // a cached body without one. Clips skip Cloudflare's cache so ranges reach this route.
+        if (mimeType.startsWith('video/')) headers.set('Cloudflare-CDN-Cache-Control', 'no-store');
 
         // Safari and iOS only play a video they can fetch in byte ranges.
         const range = parseRange(req.headers.get('range'), size);
@@ -29,15 +32,14 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
             return new NextResponse(null, { status: 416, headers });
         }
         if (range) {
+            const [slice] = await prisma.$queryRaw<{ chunk: Uint8Array }[]>`
+                SELECT substring(data FROM ${range.start + 1}::int FOR ${range.end - range.start + 1}::int) AS chunk FROM "Media" WHERE id = ${id}`;
             headers.set('Content-Range', `bytes ${range.start}-${range.end}/${size}`);
-            headers.set('Content-Length', String(range.end - range.start + 1));
-            return new NextResponse(media.data.subarray(range.start, range.end + 1), { status: 206, headers });
+            return new NextResponse(Uint8Array.from(slice.chunk), { status: 206, headers });
         }
 
-        headers.set('Content-Length', String(size));
-        return new NextResponse(media.data, {
-            headers
-        });
+        const media = await prisma.media.findUnique({ where: { id }, select: { data: true } });
+        return new NextResponse(media?.data ?? null, { headers });
 
     } catch (error) {
         console.error("Media Error:", error);
