@@ -32,11 +32,15 @@ jobs:
           echo "Production deployment target verified."
 
       - name: Create .env from Secret
+        env:
+          CONTENT_OWNER_TOKEN: ${{ secrets.CONTENT_OWNER_TOKEN }}
         run: |
           # The quotes around 'EOF' are mandatory to stop $ expansion
           cat << 'EOF' > .env
           ${{ secrets.PORTFOLIO_ENV }}
           EOF
+          # The owner token is its own secret, so it can be set or rotated without rewriting PORTFOLIO_ENV.
+          if [ -n "$CONTENT_OWNER_TOKEN" ]; then printf 'CONTENT_OWNER_TOKEN=%s\n' "$CONTENT_OWNER_TOKEN" >> .env; fi
 
       - name: Verify Cloudflare Production Configuration
         run: |
@@ -84,11 +88,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create .env from Secret
+        env:
+          CONTENT_OWNER_TOKEN: ${{ secrets.CONTENT_OWNER_TOKEN }}
         run: |
           # The quotes around 'EOF' are mandatory to stop $ expansion
           cat << 'EOF' > .env
           ${{ secrets.PORTFOLIO_ENV }}
           EOF
+          # The owner token is its own secret, so it can be set or rotated without rewriting PORTFOLIO_ENV.
+          if [ -n "$CONTENT_OWNER_TOKEN" ]; then printf 'CONTENT_OWNER_TOKEN=%s\n' "$CONTENT_OWNER_TOKEN" >> .env; fi
 
       - name: Tag Running Image as Rollback
         run: |
