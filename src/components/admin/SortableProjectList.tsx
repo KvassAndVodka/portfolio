@@ -29,6 +29,7 @@ interface Project {
   githubUrl: string | null;
   demoUrl: string | null;
   projectUrl: string | null;
+  revisionOfId?: string | null;
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -149,6 +150,7 @@ function ProjectRow({ project, position }: Readonly<{ project: Project; position
         {project.summary && <p className="site-muted mt-2 line-clamp-2 max-w-[65ch] leading-[1.7]">{project.summary}</p>}
         <p className="admin-label site-muted mt-3 flex flex-wrap gap-x-3 gap-y-1">
           <span className={`admin-status admin-status-${project.status.toLowerCase()}`}>{project.status.toLowerCase()}</span>
+          {project.revisionOfId && <span className="text-[var(--postcard-rust)]">Staged edit</span>}
           {project.isPinned && <span className="text-[var(--accent)]">Featured</span>}
           <span>{project.category || "Uncategorized"}</span>
           <span>edited {formatDistanceToNow(new Date(project.updatedAt), { addSuffix: true })}</span>

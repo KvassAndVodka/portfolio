@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { createServer } from "node:http";
@@ -92,5 +92,75 @@ test("MCP server lists tools and forwards create_draft with the bearer token", a
   } finally {
     child.kill();
     api.close();
+  }
+});
+
+test("an owner run sees the owner tools, a capped run stops at its limit, and every call is audited", async () => {
+  const calls: { url?: string; auth?: string; body: Record<string, unknown> }[] = [];
+  const api = createServer((req, res) => {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      calls.push({ url: req.url, auth: req.headers.authorization, body: raw ? JSON.parse(raw) : {} });
+      res.writeHead(200, { "content-type": "application/json" }).end('{"success":true}');
+    });
+  });
+  await new Promise<void>((resolve) => api.listen(0, "127.0.0.1", resolve));
+  const { port } = api.address() as AddressInfo;
+  const auditLog = path.join(mkdtempSync(path.join(tmpdir(), "mcp-audit-")), "audit.jsonl");
+
+  const child = spawn(process.execPath, ["scripts/drafts-mcp.mjs"], {
+    env: { NODE_ENV: "test", PATH: process.env.PATH, PORTFOLIO_URL: `http://127.0.0.1:${port}`, CONTENT_OWNER_TOKEN: "owner-token", MCP_MAX_DRAFTS: "1", MCP_AUDIT_LOG: auditLog },
+  });
+  const lines = createInterface({ input: child.stdout })[Symbol.asyncIterator]();
+  const rpc = async (id: number, method: string, params?: unknown) => {
+    child.stdin.write(JSON.stringify({ jsonrpc: "2.0", id, method, params }) + "\n");
+    return JSON.parse((await lines.next()).value);
+  };
+
+  try {
+    const list = await rpc(1, "tools/list");
+    const names = list.result.tools.map((t: { name: string }) => t.name);
+    for (const name of ["publish_post", "unpublish_post", "stage_edit", "trash_post"]) assert.ok(names.includes(name), name);
+
+    const staged = await rpc(2, "tools/call", { name: "stage_edit", arguments: { slug: "live-post", content: "New body" } });
+    assert.equal(staged.result.isError, undefined);
+    assert.equal(calls.at(-1)?.url, "/api/drafts/owner");
+    assert.equal(calls.at(-1)?.auth, "Bearer owner-token");
+    assert.deepEqual(calls.at(-1)?.body, { slug: "live-post", content: "New body", action: "stage_edit" });
+
+    const publish = await rpc(3, "tools/call", { name: "publish_post", arguments: { slug: "live-post--edit-1" } });
+    assert.equal(publish.result.isError, undefined);
+    assert.equal(calls.at(-1)?.body.action, "publish");
+
+    // MCP_MAX_DRAFTS=1: the second draft never reaches the portfolio.
+    const first = await rpc(4, "tools/call", { name: "create_draft", arguments: { title: "a", summary: "b", content: "c" } });
+    assert.equal(first.result.isError, undefined);
+    const sent = calls.length;
+    const second = await rpc(5, "tools/call", { name: "create_draft", arguments: { title: "a", summary: "b", content: "c" } });
+    assert.equal(second.result.isError, true);
+    assert.equal(calls.length, sent);
+
+    const audit = readFileSync(auditLog, "utf8").trim().split("\n").map((line) => JSON.parse(line));
+    assert.deepEqual(audit.map((entry) => [entry.tool, entry.ok]), [["stage_edit", true], ["publish_post", true], ["create_draft", true], ["create_draft", false]]);
+    assert.ok(audit.every((entry) => entry.content === undefined), "the audit log leaves content out");
+  } finally {
+    child.kill();
+    api.close();
+  }
+});
+
+test("a drafts-token run cannot call an owner tool, even by name", async () => {
+  const child = spawn(process.execPath, ["scripts/drafts-mcp.mjs"], {
+    env: { NODE_ENV: "test", PATH: process.env.PATH, PORTFOLIO_URL: "http://127.0.0.1:9", DRAFTS_API_TOKEN: "drafts-token" },
+  });
+  const lines = createInterface({ input: child.stdout })[Symbol.asyncIterator]();
+  try {
+    child.stdin.write(JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "publish_post", arguments: { slug: "x" } } }) + "\n");
+    const reply = JSON.parse((await lines.next()).value);
+    assert.equal(reply.result.isError, true);
+    assert.match(reply.result.content[0].text, /Unknown tool/);
+  } finally {
+    child.kill();
   }
 });

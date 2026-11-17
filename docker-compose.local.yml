@@ -41,6 +41,7 @@ services:
       CONTACT_TO_EMAIL: ${CONTACT_TO_EMAIL}
       CONTACT_FROM_EMAIL: ${CONTACT_FROM_EMAIL}
       DRAFTS_API_TOKEN: ${DRAFTS_API_TOKEN:-}
+      CONTENT_OWNER_TOKEN: ${CONTENT_OWNER_TOKEN:-}
     ports:
       - "3000:3000"
     depends_on:

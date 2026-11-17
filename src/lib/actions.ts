@@ -6,6 +6,7 @@ import { PostStatus, PostType } from '@prisma/client';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/lib/require-admin';
+import { applyRevision, revalidateContent, trashPost } from '@/lib/post-ops';
 
 // Browsers submit form fields with CRLF line endings; store Markdown with LF so saving never rewrites a post.
 function normalizeNewlines(value: FormDataEntryValue | null) {
@@ -105,13 +106,18 @@ export async function updatePost(id: string, formData: FormData) {
     await requireAdmin();
     const existingPost = await prisma.post.findUniqueOrThrow({ where: { id } });
     const title = formData.get('title') as string;
-    const slug = formData.get('slug') as string;
+    const slug = existingPost.revisionOfId ? existingPost.slug : formData.get('slug') as string;
     const summary = formData.get('summary') as string;
     const content = normalizeNewlines(formData.get('content'));
     const requestedStatus = formData.get('status');
-    const status = Object.values(PostStatus).includes(requestedStatus as PostStatus)
-        ? requestedStatus as PostStatus
-        : existingPost.status;
+    // A staged edit stays a draft under its own slug; choosing Published applies it to the live post below.
+    const isRevision = existingPost.revisionOfId !== null;
+    const publishRevision = isRevision && requestedStatus === PostStatus.PUBLISHED;
+    const status = isRevision
+        ? PostStatus.DRAFT
+        : Object.values(PostStatus).includes(requestedStatus as PostStatus)
+            ? requestedStatus as PostStatus
+            : existingPost.status;
     const scheduledFor = formText(formData, 'scheduledFor');
     const publishedAt = status === PostStatus.SCHEDULED && scheduledFor
         ? new Date(scheduledFor)
@@ -174,6 +180,12 @@ export async function updatePost(id: string, formData: FormData) {
     revalidatePath(`/admin/${existingPost.type === PostType.PROJECT ? 'projects' : 'notes'}`);
     revalidatePath(`/admin/${existingPost.type === PostType.PROJECT ? 'projects' : 'notes'}/${slug}`);
     revalidatePublicContent();
+
+    if (publishRevision) {
+        const live = await applyRevision(await prisma.post.findUniqueOrThrow({ where: { id } }));
+        revalidateContent(live.slug);
+        redirect(`/admin/${live.type === PostType.PROJECT ? 'projects' : 'notes'}/${live.slug}`);
+    }
 }
 
 export async function deletePost(id: string) {
@@ -181,30 +193,8 @@ export async function deletePost(id: string) {
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post) return;
 
-    // Soft delete: just set deletedAt
-    await prisma.post.update({
-        where: { id },
-        data: { deletedAt: new Date() }
-    });
-
-    // If pinned, we might want to unpin it so it doesn't leave a gap or stay in the pinned list?
-    // Let's unpin it to be safe and clean up order.
-    if (post.isPinned && post.pinnedOrder) {
-        await prisma.post.updateMany({
-            where: {
-                isPinned: true,
-                pinnedOrder: { gt: post.pinnedOrder }
-            },
-            data: {
-                pinnedOrder: { decrement: 1 }
-            }
-        });
-        // Also update the post itself to not be pinned anymore in the background
-        await prisma.post.update({
-            where: { id },
-            data: { isPinned: false, pinnedOrder: null }
-        });
-    }
+    // Soft delete, unpinned so it leaves no gap in the home page order.
+    await trashPost(post);
 
     revalidatePath('/admin/projects');
     revalidatePath('/admin/archives');
