@@ -5,7 +5,7 @@ import type { Project } from "@/lib/projects";
 import { absoluteUrl } from "@/lib/seo";
 
 type SitemapProject = Pick<Project, "slug" | "updatedAt">;
-type SitemapPost = Pick<Post, "slug" | "updatedAt">;
+type SitemapPost = Pick<Post, "slug" | "updatedAt" | "isProject">;
 
 function newestDate(dates: Date[]) {
   if (dates.length === 0) return undefined;
@@ -47,7 +47,8 @@ export function buildSitemap(
       changeFrequency: "weekly",
       priority: 0.8,
     },
-    ...posts.map((post) => ({
+    // A case study shown as a note is already listed under /projects; its note page points there.
+    ...posts.filter((post) => !post.isProject).map((post) => ({
       url: absoluteUrl(`/notes/${post.slug}`),
       lastModified: new Date(post.updatedAt),
       changeFrequency: "monthly" as const,

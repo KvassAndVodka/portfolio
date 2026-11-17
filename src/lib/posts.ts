@@ -12,7 +12,13 @@ export interface Post {
   content: string;
   readTime: string;
   category?: string | null;
+  /** A project case study also listed as a note. Its page under /projects is the original. */
+  isProject: boolean;
 }
+
+/** The URL search engines should treat as the original: a case study's project page, otherwise the note. */
+export const canonicalPostPath = (post: Pick<Post, "slug" | "isProject">) =>
+  post.isProject ? `/projects/${post.slug}` : `/notes/${post.slug}`;
 
 export type PostPreview = Omit<Post, "content">;
 
@@ -25,6 +31,7 @@ export function toPostPreview(post: Post): PostPreview {
     summary: post.summary,
     readTime: post.readTime,
     category: post.category,
+    isProject: post.isProject,
   };
 }
 
@@ -62,7 +69,8 @@ const getCachedPosts = unstable_cache(
             summary: post.summary,
             content: post.content,
             readTime: calculateReadTime(post.content),
-            category: post.category
+            category: post.category,
+            isProject: post.type === PostType.PROJECT
         }));
     },
     ["notes-list"],
@@ -98,6 +106,7 @@ export async function getPost(slug: string): Promise<Post | null> {
         summary: post.summary,
         content: post.content,
         readTime: calculateReadTime(post.content),
-        category: post.category
+        category: post.category,
+        isProject: post.type === PostType.PROJECT
     };
 }
