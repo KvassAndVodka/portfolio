@@ -2440,9 +2440,10 @@ svg.button-external-icon {
   border-right: 1px solid var(--line);
 }
 
-.article-prose .article-figure img {
+.article-prose .article-figure :where(img, video) {
   display: block;
   width: auto;
+  height: auto;
   margin: 0 auto;
 }
 

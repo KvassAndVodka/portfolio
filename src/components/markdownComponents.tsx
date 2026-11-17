@@ -1,6 +1,8 @@
 import type { ComponentPropsWithoutRef } from "react";
 import type { ExtraProps } from "react-markdown";
 
+import FigureVideo from "@/components/FigureVideo";
+
 // The page header owns the only h1, so a top-level heading in body content
 // renders as h2 to keep one h1 per page and an unbroken heading outline.
 export const markdownComponents = {
@@ -11,14 +13,19 @@ export const markdownComponents = {
     const only = node?.children.length === 1 ? node.children[0] : null;
     if (only?.type !== "element" || only.tagName !== "img") return <p {...props}>{children}</p>;
     const { src, alt, title } = only.properties;
+    const label = alt ? String(alt) : "";
     return (
       <figure className="article-figure">
         <figcaption className="article-figure-strip">
           <span className="article-figure-number" aria-hidden="true" />
           {title ? <span className="article-figure-caption">{String(title)}</span> : null}
         </figcaption>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={String(src)} alt={alt ? String(alt) : ""} loading="lazy" decoding="async" />
+        {/\.(mp4|webm)$/i.test(String(src)) ? (
+          <FigureVideo src={String(src)} label={label} />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={String(src)} alt={label} loading="lazy" decoding="async" />
+        )}
       </figure>
     );
   },
