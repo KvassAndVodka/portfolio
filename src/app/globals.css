@@ -2440,9 +2440,10 @@ svg.button-external-icon {
   border-right: 1px solid var(--line);
 }
 
-.article-prose .article-figure img {
+.article-prose .article-figure :where(img, video) {
   display: block;
   width: auto;
+  height: auto;
   margin: 0 auto;
 }
 
@@ -3498,6 +3499,95 @@ a.story-place-organization:hover {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* Without the map, the chapters are one grid-paper sheet under the postcard: a ticket strip, then a 2×2 ledger. */
+.story[data-mode="static"] .story-places {
+  width: min(100%, 65.25rem);
+  margin-inline: auto;
+  border-radius: 2px;
+  background-color: var(--postcard-paper);
+  background-image:
+    linear-gradient(var(--postcard-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--postcard-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+  box-shadow: var(--postcard-shadow);
+  color: var(--postcard-ink);
+  --foreground: var(--postcard-ink);
+  --muted: var(--postcard-muted);
+  --muted-strong: var(--postcard-muted);
+  --accent: var(--postcard-rust);
+  --line: color-mix(in srgb, var(--postcard-ink) 12%, transparent);
+}
+
+.story[data-mode="static"] .story-places-heading {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  padding-inline: 1.5rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--accent);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+}
+
+.story[data-mode="static"] .story-places ol {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+}
+
+.story[data-mode="static"] .story-place {
+  max-width: none;
+  border-top: 0;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.story[data-mode="static"] .story-place:nth-child(n + 3) {
+  border-top: 1px solid var(--line);
+}
+
+.story[data-mode="static"] .story-place:nth-child(even) {
+  border-left: 1px solid var(--line);
+}
+
+.story[data-mode="static"] .story-place-role {
+  margin-bottom: 1rem;
+  font-size: clamp(1.75rem, 2.8vw, 2.6rem);
+}
+
+/* Inline, so a wrapped organization name keeps its link icon beside the last word. */
+.story[data-mode="static"] .story-place-organization {
+  display: inline;
+}
+
+.story[data-mode="static"] .story-place-organization svg {
+  display: inline;
+  margin-left: 0.45rem;
+  vertical-align: baseline;
+}
+
+/* The cells are too narrow for one meta line, so it stacks as on phones instead of wrapping onto a "/". */
+.story[data-mode="static"] .story-place-meta {
+  flex-direction: column;
+}
+
+.story[data-mode="static"] .story-place-meta > * + *::before {
+  content: none;
+}
+
+@media (max-width: 767px) {
+  .story[data-mode="static"] .story-places ol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .story[data-mode="static"] .story-place:nth-child(n + 2) {
+    border-top: 1px solid var(--line);
+  }
+
+  .story[data-mode="static"] .story-place:nth-child(even) {
+    border-left: 0;
+  }
 }
 
 /* All cards share one grid cell, so the column is as tall as the tallest and the heading never jumps. */
