@@ -1,12 +1,15 @@
-// Clips are stored as uploaded. Their URL carries the extension, so Markdown, the editor and
-// the public figure can tell a clip from an image by its source alone.
+// Clips are stored as uploaded. Their URL says they are clips, so Markdown, the editor and the
+// public figure can tell a clip from an image by its source alone. The marker is a query, not a
+// file extension: Cloudflare treats a path ending in .mp4 as a cacheable file and then answers
+// byte-range requests with the whole file, which Safari and iOS will not play.
 const VIDEO_EXTENSIONS: Record<string, string> = { "video/mp4": "mp4", "video/webm": "webm" };
 
-export const isVideoSrc = (src: string) => /\.(mp4|webm)$/i.test(src);
+// Static clips under public/ keep their extension; library clips use ?clip=mp4.
+export const isVideoSrc = (src: string) => /\.(mp4|webm)$|[?&]clip=(mp4|webm)$/i.test(src);
 
 export function mediaUrl(id: string, mimeType: string) {
   const extension = VIDEO_EXTENSIONS[mimeType];
-  return `/api/media/${id}${extension ? `.${extension}` : ""}`;
+  return `/api/media/${id}${extension ? `?clip=${extension}` : ""}`;
 }
 
 /** The video type from the file's own bytes, never from the name or the browser's claim. */
