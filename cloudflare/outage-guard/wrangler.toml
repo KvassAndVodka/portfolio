@@ -1,0 +1,7 @@
+# Outage guard for the self-hosted site. Deploy from this folder: npx wrangler@4.164.0 deploy
+name = "portfolio-outage-guard"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+workers_dev = false
+
+routes = [{ pattern = "portfolio.jmraut.dev/*", zone_name = "jmraut.dev" }]
