@@ -31,7 +31,8 @@ export async function POST(req: NextRequest) {
         
         // Process image with Sharp
         // Resize to max width of 1920px (prevent huge files), convert to WebP for performance
-        const processedBuffer = await sharp(buffer, { limitInputPixels: 40_000_000 })
+        // animated: keep every frame of a GIF or animated WebP instead of flattening to the first.
+        const processedBuffer = await sharp(buffer, { animated: true, limitInputPixels: 40_000_000 })
             .resize({ width: 1920, withoutEnlargement: true })
             .webp({ quality: 80 })
             .toBuffer();
