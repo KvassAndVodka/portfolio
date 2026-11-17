@@ -5,11 +5,14 @@ import { FaXmark } from 'react-icons/fa6';
 import AdminTabs from './AdminTabs';
 import MediaUploader from './MediaUploader';
 import { getRecentMedia } from '@/lib/actions';
+import { isVideoSrc } from '@/lib/media';
 
 type MediaPickerProps = Readonly<{
     onSelect: (url: string, alt: string) => void;
     onClose: () => void;
     initialTab?: 'library' | 'upload';
+    /** Hide clips, for places that only show an image (the project thumbnail). */
+    imagesOnly?: boolean;
 }>;
 
 interface MediaItem {
@@ -19,7 +22,7 @@ interface MediaItem {
     mimeType: string;
 }
 
-export default function MediaPicker({ onSelect, onClose, initialTab = 'library' }: MediaPickerProps) {
+export default function MediaPicker({ onSelect, onClose, initialTab = 'library', imagesOnly = false }: MediaPickerProps) {
     const [activeTab, setActiveTab] = useState<'library' | 'upload'>(initialTab);
     const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -60,6 +63,7 @@ export default function MediaPicker({ onSelect, onClose, initialTab = 'library' 
         void loadMedia();
     };
 
+    const items = imagesOnly ? mediaItems.filter((item) => !isVideoSrc(item.url)) : mediaItems;
     let library: React.ReactNode;
     if (loading) {
         library = (
@@ -67,7 +71,7 @@ export default function MediaPicker({ onSelect, onClose, initialTab = 'library' 
                 {Array.from({ length: 8 }, (_, index) => <div key={index} className="admin-skeleton aspect-square rounded-[2px]" />)}
             </div>
         );
-    } else if (mediaItems.length === 0) {
+    } else if (items.length === 0) {
         library = (
             <div className="grid min-h-[14rem] place-items-center text-center">
                 <div>
@@ -79,11 +83,15 @@ export default function MediaPicker({ onSelect, onClose, initialTab = 'library' 
     } else {
         library = (
             <ul className="grid grid-cols-2 gap-x-4 gap-y-5 md:grid-cols-4">
-                {mediaItems.map((item) => (
+                {items.map((item) => (
                     <li key={item.id}>
                         <button type="button" onClick={() => onSelect(item.url, item.filename)} className="media-tile">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={item.url} alt="" loading="lazy" />
+                            {isVideoSrc(item.url) ? (
+                                <video src={item.url} aria-hidden="true" muted playsInline preload="metadata" />
+                            ) : (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={item.url} alt="" loading="lazy" />
+                            )}
                             <span className="media-tile-name">{item.filename}</span>
                         </button>
                     </li>

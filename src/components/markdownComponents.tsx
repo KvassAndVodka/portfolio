@@ -2,6 +2,7 @@ import type { ComponentPropsWithoutRef } from "react";
 import type { ExtraProps } from "react-markdown";
 
 import FigureVideo from "@/components/FigureVideo";
+import { isVideoSrc } from "@/lib/media";
 
 // The page header owns the only h1, so a top-level heading in body content
 // renders as h2 to keep one h1 per page and an unbroken heading outline.
@@ -20,7 +21,7 @@ export const markdownComponents = {
           <span className="article-figure-number" aria-hidden="true" />
           {title ? <span className="article-figure-caption">{String(title)}</span> : null}
         </figcaption>
-        {/\.(mp4|webm)$/i.test(String(src)) ? (
+        {isVideoSrc(String(src)) ? (
           <FigureVideo src={String(src)} label={label} />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element

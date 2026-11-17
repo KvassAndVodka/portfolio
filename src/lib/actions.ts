@@ -1,5 +1,6 @@
 'use server'
 
+import { mediaUrl } from "@/lib/media";
 import { prisma } from '@/lib/prisma';
 import { PostStatus, PostType } from '@prisma/client';
 import { revalidatePath, revalidateTag } from 'next/cache';
@@ -367,7 +368,7 @@ export async function getRecentMedia() {
     // Serialize dates for client components
     return media.map(m => ({
         ...m,
-        url: `/api/media/${m.id}`,
+        url: mediaUrl(m.id, m.mimeType),
         createdAt: m.createdAt.toISOString()
     }));
 }

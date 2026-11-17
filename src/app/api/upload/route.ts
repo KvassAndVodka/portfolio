@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import sharp from 'sharp';
 import { requireAdmin } from "@/lib/require-admin";
+import { mediaUrl, sniffVideo } from "@/lib/media";
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
@@ -28,11 +29,13 @@ export async function POST(req: NextRequest) {
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
-        
-        // Process image with Sharp
-        // Resize to max width of 1920px (prevent huge files), convert to WebP for performance
+
+        // A clip is stored as uploaded: re-encoding video here would be slow and lossy.
+        const video = sniffVideo(buffer);
+        const mimeType = video ?? 'image/webp';
+        // Images: resize to max width of 1920px (prevent huge files), convert to WebP for performance.
         // animated: keep every frame of a GIF or animated WebP instead of flattening to the first.
-        const processedBuffer = await sharp(buffer, { animated: true, limitInputPixels: 40_000_000 })
+        const data = video ? buffer : await sharp(buffer, { animated: true, limitInputPixels: 40_000_000 })
             .resize({ width: 1920, withoutEnlargement: true })
             .webp({ quality: 80 })
             .toBuffer();
@@ -41,8 +44,8 @@ export async function POST(req: NextRequest) {
         const media = await prisma.media.create({
             data: {
                 filename: file.name,
-                mimeType: 'image/webp',
-                data: Uint8Array.from(processedBuffer)
+                mimeType,
+                data: Uint8Array.from(data)
             }
         });
 
@@ -50,7 +53,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ 
             success: true, 
-            url: `/api/media/${media.id}` 
+            url: mediaUrl(media.id, media.mimeType) 
         });
 
     } catch (error) {

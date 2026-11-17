@@ -16,8 +16,8 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFile = async (file: File) => {
-        if (!file.type.startsWith('image/')) {
-            setError('Only image files are allowed.');
+        if (!file.type.startsWith('image/') && !['video/mp4', 'video/webm'].includes(file.type)) {
+            setError('Only images and MP4 or WebM clips are allowed.');
             return;
         }
 
@@ -78,8 +78,8 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
     let state = (
         <>
             <FaCloudUploadAlt aria-hidden="true" className="text-2xl text-[var(--postcard-muted)]" />
-            <span className="media-drop-title">{isDragging ? 'Drop it here' : 'Drop an image, or choose a file'}</span>
-            <span className="media-drop-label">JPG, PNG or WebP</span>
+            <span className="media-drop-title">{isDragging ? 'Drop it here' : 'Drop an image or clip, or choose a file'}</span>
+            <span className="media-drop-label">JPG, PNG, WebP, GIF, MP4 or WebM · up to 10 MB</span>
         </>
     );
     if (isUploading) {
@@ -104,7 +104,7 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
-                accept="image/*"
+                accept="image/*,video/mp4,video/webm"
                 onChange={(e) => {
                     if (e.target.files?.[0]) void handleFile(e.target.files[0]);
                 }}
@@ -115,7 +115,7 @@ export default function MediaUploader({ onUploadComplete }: MediaUploaderProps) 
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
                 onClick={() => fileInputRef.current?.click()}
-                aria-label="Upload an image"
+                aria-label="Upload an image or clip"
                 className="media-drop w-full"
                 data-dragging={isDragging || undefined}
                 data-error={error ? true : undefined}
