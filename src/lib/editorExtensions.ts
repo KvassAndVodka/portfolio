@@ -14,8 +14,19 @@ const ImageOrClip = Image.extend({
   },
   renderHTML({ HTMLAttributes }) {
     const tag = isVideoSrc(String(HTMLAttributes.src ?? "")) ? "video" : "img";
-    const clip = tag === "video" ? { controls: "", muted: "", playsinline: "", preload: "metadata" } : {};
+    const clip = tag === "video" ? { autoplay: "", muted: "", loop: "", playsinline: "" } : {};
     return [tag, mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, clip)];
+  },
+  // On the sheet a clip plays like it does on the page. Chrome only autoplays when the muted
+  // property is set, and an attribute added by script does not set it.
+  addNodeView() {
+    return ({ HTMLAttributes }) => {
+      const attributes = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes);
+      const dom = document.createElement(isVideoSrc(String(attributes.src ?? "")) ? "video" : "img");
+      for (const [name, value] of Object.entries(attributes)) if (value != null) dom.setAttribute(name, String(value));
+      if (dom instanceof HTMLVideoElement) Object.assign(dom, { muted: true, loop: true, playsInline: true, autoplay: true });
+      return { dom };
+    };
   },
 });
 

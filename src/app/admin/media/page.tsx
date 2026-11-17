@@ -42,7 +42,7 @@ export default async function AdminMedia() {
                         <li key={item.id} data-reveal className="admin-panel group overflow-hidden">
                             <div className="admin-subtle relative aspect-[4/3] overflow-hidden">
                                 {item.mimeType.startsWith('video/') ? (
-                                    <video src={mediaUrl(item.id, item.mimeType)} aria-label={item.filename} className="size-full object-cover" muted playsInline preload="metadata" />
+                                    <video src={mediaUrl(item.id, item.mimeType)} aria-label={item.filename} className="size-full object-cover" autoPlay muted loop playsInline />
                                 ) : (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img src={mediaUrl(item.id, item.mimeType)} alt={item.filename} className="size-full object-cover" loading="lazy" />
