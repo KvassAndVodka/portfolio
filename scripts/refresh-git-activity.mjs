@@ -16,7 +16,7 @@ const query = `query {
   }
 }`;
 
-const { data } = JSON.parse(execFileSync("gh", ["api", "graphql", "-f", `query=${query}`], { encoding: "utf8" }));
+const { data } = JSON.parse(execFileSync("gh", ["api", "graphql", "-f", `query=${query}`], { encoding: "utf8" })); // NOSONAR: a local script that runs the owner's own gh, wherever it is installed
 const collection = data.viewer.contributionsCollection;
 const days = collection.contributionCalendar.weeks.flatMap((week) => week.contributionDays);
 const snapshot = {
