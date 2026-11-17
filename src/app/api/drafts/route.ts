@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { PostStatus, PostType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { MAX_DRAFT_BODY_BYTES, draftSlug, isValidDraftToken, parseDraftInput } from "@/lib/drafts";
+import { MAX_DRAFT_BODY_BYTES, draftSlug, isValidDraftToken, parseDraftInput, projectSlug } from "@/lib/drafts";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const unauthorized = () => NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-// Machine-only door for the weekly content job: it can create or update DRAFT notes, never publish.
+// Machine-only door for the content job: it can create or update DRAFT notes and case studies,
+// never publish. The owner keeps the publish step.
 export async function POST(request: NextRequest) {
   if (!isValidDraftToken(request.headers.get("authorization"), process.env.DRAFTS_API_TOKEN)) return unauthorized();
 
@@ -26,28 +27,61 @@ export async function POST(request: NextRequest) {
   const input = parseDraftInput(payload);
   if (!input) {
     return NextResponse.json(
-      { error: "Expected weekId (YYYY-Www), title (≤120), summary (≤300), content (≤50000)." },
+      {
+        error:
+          "Expected title (≤120), summary (≤300), content (≤50000). Notes also need weekId (YYYY-Www). Projects accept slug, category, techStack, outcome and https links.",
+      },
       { status: 400 },
     );
   }
 
-  const slug = draftSlug(input.weekId);
-  const existing = await prisma.post.findUnique({ where: { slug }, select: { status: true, deletedAt: true } });
-  // Once you publish, schedule, or trash the week's note, the job must not touch it again.
-  if (existing && (existing.status !== PostStatus.DRAFT || existing.deletedAt)) {
-    return NextResponse.json({ error: "This week's post is no longer a draft." }, { status: 409 });
+  const isProject = input.type === "PROJECT";
+  const slug = isProject ? input.slug ?? projectSlug(input.title) : draftSlug(input.weekId ?? "");
+  if (!slug) {
+    return NextResponse.json({ error: "Could not derive a slug. Send one explicitly." }, { status: 400 });
   }
 
-  const data = { title: input.title, summary: input.summary, content: input.content };
+  const existing = await prisma.post.findUnique({ where: { slug }, select: { status: true, type: true, deletedAt: true } });
+  // Once the owner publishes, schedules, or trashes a post, the job must not touch it again.
+  if (existing && (existing.status !== PostStatus.DRAFT || existing.deletedAt)) {
+    return NextResponse.json({ error: "This draft is no longer editable." }, { status: 409 });
+  }
+  if (existing && existing.type !== (isProject ? PostType.PROJECT : PostType.BLOG)) {
+    return NextResponse.json({ error: "That slug belongs to a different content type." }, { status: 409 });
+  }
+
+  const data = {
+    title: input.title,
+    summary: input.summary,
+    content: input.content,
+    ...(isProject
+      ? {
+          category: input.category ?? null,
+          techStack: input.techStack ?? [],
+          githubUrl: input.githubUrl ?? null,
+          demoUrl: input.demoUrl ?? null,
+          projectUrl: input.projectUrl ?? null,
+          outcome: input.outcome ?? null,
+        }
+      : {}),
+  };
+
   const post = await prisma.post.upsert({
     where: { slug },
-    create: { ...data, slug, type: PostType.BLOG, status: PostStatus.DRAFT, category: "Weekly" },
+    create: {
+      ...data,
+      slug,
+      type: isProject ? PostType.PROJECT : PostType.BLOG,
+      status: PostStatus.DRAFT,
+      category: isProject ? input.category ?? null : "Weekly",
+    },
     update: data,
-    select: { id: true, slug: true },
+    select: { id: true, slug: true, type: true },
   });
 
   revalidatePath("/admin");
-  revalidatePath("/admin/notes");
+  revalidatePath(isProject ? "/admin/projects" : "/admin/notes");
+  if (isProject) revalidatePath("/projects");
   return NextResponse.json({ success: true, created: !existing, ...post }, { status: existing ? 200 : 201 });
 }
 

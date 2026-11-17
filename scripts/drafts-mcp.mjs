@@ -32,6 +32,27 @@ const tools = [
     },
   },
   {
+    name: "create_project_draft",
+    description:
+      "Create or update a PROJECT draft (a case study) on the portfolio. It never publishes; the owner reviews it in /admin. Send only evidence you can support from the supplied notes: no invented metrics, no invented results.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: { type: "string", maxLength: 120 },
+        summary: { type: "string", maxLength: 300, description: "One or two sentences for lists and link previews." },
+        content: { type: "string", maxLength: 50000, description: "MDX body: the problem, the decisions, the tradeoffs, the outcome." },
+        slug: { type: "string", pattern: String.raw`^[a-z0-9]+(?:-[a-z0-9]+)*$`, description: "Optional. Derived from the title when omitted." },
+        category: { type: "string", maxLength: 60, description: "e.g. Web Platform" },
+        techStack: { type: "array", maxItems: 24, items: { type: "string", maxLength: 40 } },
+        outcome: { type: "string", maxLength: 200, description: "One line for the project card: what changed. Qualitative is fine." },
+        githubUrl: { type: "string", maxLength: 500, description: "https:// only" },
+        projectUrl: { type: "string", maxLength: 500, description: "https:// only" },
+        demoUrl: { type: "string", maxLength: 500, description: "https:// only" },
+      },
+      required: ["title", "summary", "content"],
+    },
+  },
+  {
     name: "list_recent_posts",
     description: "List the 12 most recent notes (title, slug, status, date) so new drafts don't repeat topics.",
     inputSchema: { type: "object", properties: {} },
@@ -53,6 +74,7 @@ async function callPortfolio(method, body) {
 
 async function callTool(name, args = {}) {
   if (name === "create_draft") return callPortfolio("POST", { ...args, weekId: args.weekId || isoWeekId() });
+  if (name === "create_project_draft") return callPortfolio("POST", { ...args, type: "PROJECT" });
   if (name === "list_recent_posts") return callPortfolio("GET");
   throw new Error(`Unknown tool: ${name}`);
 }

@@ -2,11 +2,21 @@ import crypto from "node:crypto";
 
 export const MAX_DRAFT_BODY_BYTES = 100_000;
 
+export type DraftType = "BLOG" | "PROJECT";
+
 export interface DraftInput {
-  weekId: string;
+  type: DraftType;
+  weekId?: string;
+  slug?: string;
   title: string;
   summary: string;
   content: string;
+  category?: string;
+  techStack?: string[];
+  githubUrl?: string;
+  demoUrl?: string;
+  projectUrl?: string;
+  outcome?: string;
 }
 
 // The length check reveals only the token length, which is public for a random hex token.
@@ -21,16 +31,93 @@ function text(value: unknown, max: number) {
   return typeof value === "string" && value.trim().length > 0 && value.length <= max ? value.trim() : null;
 }
 
+// Optional fields return undefined when absent, a string when valid, and null when the value is wrong.
+function bounded(value: unknown, max: number) {
+  if (value === undefined || value === null || value === "") return undefined;
+  return text(value, max);
+}
+
+function href(value: unknown) {
+  if (value === undefined || value === null || value === "") return undefined;
+  if (typeof value !== "string" || value.length > 500) return null;
+  try {
+    return new URL(value).protocol === "https:" ? value.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+function technologies(value: unknown) {
+  if (value === undefined || value === null) return undefined;
+  if (!Array.isArray(value) || value.length > 24) return null;
+  const items = value.map((entry) => text(entry, 40));
+  return items.every(Boolean) ? (items as string[]) : null;
+}
+
+function slugText(value: unknown) {
+  if (value === undefined || value === null || value === "") return undefined;
+  return typeof value === "string" && value.length <= 80 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) ? value : null;
+}
+
 export function parseDraftInput(payload: unknown): DraftInput | null {
   if (!payload || typeof payload !== "object") return null;
   const fields = payload as Record<string, unknown>;
-  const weekId = typeof fields.weekId === "string" && /^\d{4}-W\d{2}$/.test(fields.weekId) ? fields.weekId : null;
+  const type =
+    fields.type === undefined || fields.type === "BLOG"
+      ? "BLOG"
+      : fields.type === "PROJECT"
+        ? "PROJECT"
+        : null;
+  if (!type) return null;
+
   const title = text(fields.title, 120);
   const summary = text(fields.summary, 300);
   const content = text(fields.content, 50_000);
-  return weekId && title && summary && content ? { weekId, title, summary, content } : null;
+  if (!title || !summary || !content) return null;
+
+  if (type === "BLOG") {
+    const weekId = typeof fields.weekId === "string" && /^\d{4}-W\d{2}$/.test(fields.weekId) ? fields.weekId : null;
+    return weekId ? { type, weekId, title, summary, content } : null;
+  }
+
+  // A project draft carries the evidence the case-study page shows: card line, stack and links.
+  const slug = slugText(fields.slug);
+  const category = bounded(fields.category, 60);
+  const outcome = bounded(fields.outcome, 200);
+  const githubUrl = href(fields.githubUrl);
+  const demoUrl = href(fields.demoUrl);
+  const projectUrl = href(fields.projectUrl);
+  const techStack = technologies(fields.techStack);
+  if ([slug, category, outcome, githubUrl, demoUrl, projectUrl, techStack].some((value) => value === null)) {
+    return null;
+  }
+
+  return {
+    type,
+    title,
+    summary,
+    content,
+    ...(slug ? { slug } : {}),
+    ...(category ? { category } : {}),
+    ...(outcome ? { outcome } : {}),
+    ...(githubUrl ? { githubUrl } : {}),
+    ...(demoUrl ? { demoUrl } : {}),
+    ...(projectUrl ? { projectUrl } : {}),
+    ...(techStack ? { techStack } : {}),
+  };
 }
 
 export function draftSlug(weekId: string) {
   return `week-${weekId.toLowerCase()}`;
+}
+
+export function projectSlug(title: string) {
+  return title
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80)
+    .replace(/-+$/g, "");
 }

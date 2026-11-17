@@ -42,7 +42,7 @@ test("MCP server lists tools and forwards create_draft with the bearer token", a
     child.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
 
     const list = await rpc(2, "tools/list");
-    assert.deepEqual(list.result.tools.map((t: { name: string }) => t.name), ["create_draft", "list_recent_posts"]);
+    assert.deepEqual(list.result.tools.map((t: { name: string }) => t.name), ["create_draft", "create_project_draft", "list_recent_posts"]);
 
     const call = await rpc(3, "tools/call", {
       name: "create_draft",
@@ -51,8 +51,17 @@ test("MCP server lists tools and forwards create_draft with the bearer token", a
     assert.equal(call.result.isError, undefined);
     assert.equal(seen.auth, "Bearer test-token");
     assert.equal(seen.body?.weekId, "2026-W46");
+    assert.equal(seen.body?.type, undefined);
 
-    const unknown = await rpc(4, "nope");
+    const project = await rpc(4, "tools/call", {
+      name: "create_project_draft",
+      arguments: { title: "Postcard from the Map", summary: "A map.", content: "Body", techStack: ["Next.js"] },
+    });
+    assert.equal(project.result.isError, undefined);
+    assert.equal(seen.body?.type, "PROJECT");
+    assert.deepEqual(seen.body?.techStack, ["Next.js"]);
+
+    const unknown = await rpc(5, "nope");
     assert.equal(unknown.error.code, -32601);
   } finally {
     child.kill();
