@@ -4,7 +4,7 @@ import type { Project } from "@/lib/projects";
 import { absoluteUrl, siteConfig } from "@/lib/seo";
 
 type LlmsProject = Pick<Project, "slug" | "title" | "summary" | "content" | "techStack" | "category" | "githubUrl" | "projectUrl" | "demoUrl">;
-type LlmsPost = Pick<Post, "slug" | "title" | "summary" | "content" | "publishedAt">;
+type LlmsPost = Pick<Post, "slug" | "title" | "summary" | "content" | "publishedAt" | "isProject">;
 
 // The llms.txt convention (llmstxt.org): a Markdown index of the site for language models.
 // `full` inlines every project and note body, for /llms-full.txt.
@@ -28,8 +28,10 @@ export function buildLlmsTxt(projects: LlmsProject[], posts: LlmsPost[], full = 
     lines.push(...(full ? projectSection(project, url) : [`- [${project.title}](${url}): ${project.summary}`]));
   }
 
-  if (posts.length) lines.push("", "## Notes", "");
-  for (const post of posts) {
+  // Case studies shown as notes are already listed under Projects.
+  const notes = posts.filter((post) => !post.isProject);
+  if (notes.length) lines.push("", "## Notes", "");
+  for (const post of notes) {
     const url = absoluteUrl(`/notes/${post.slug}`);
     if (!full) {
       lines.push(`- [${post.title}](${url}): ${post.summary}`);

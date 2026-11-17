@@ -1,3 +1,4 @@
+import { canonicalPostPath } from "@/lib/posts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -35,13 +36,18 @@ test("JSON-LD serialization escapes markup-capable characters", () => {
 test("sitemap includes only supplied public content with real modification dates", () => {
   const sitemap = buildSitemap(
     [{ slug: "data-platform", updatedAt: "2026-07-02T00:00:00.000Z" }],
-    [{ slug: "shipping-notes", updatedAt: "2026-08-03T00:00:00.000Z" }],
+    [
+      { slug: "shipping-notes", updatedAt: "2026-08-03T00:00:00.000Z", isProject: false },
+      // A case study shown as a note: listed once, under /projects.
+      { slug: "data-platform", updatedAt: "2026-07-02T00:00:00.000Z", isProject: true },
+    ],
   );
   const urls = sitemap.map((entry) => entry.url);
   const urlSet = new Set(urls);
 
   assert.ok(urlSet.has("https://portfolio.jmraut.dev/projects/data-platform"));
   assert.ok(urlSet.has("https://portfolio.jmraut.dev/notes/shipping-notes"));
+  assert.ok(!urlSet.has("https://portfolio.jmraut.dev/notes/data-platform"), "a case study shown as a note is not listed twice");
   assert.equal(urls.some((url) => /\/(?:admin|auth|api)(?:\/|$)/.test(url)), false);
   assert.equal(
     sitemap.find((entry) => entry.url.endsWith("/notes/shipping-notes"))?.lastModified?.toString(),
@@ -74,6 +80,7 @@ test("project and note links are present in server-rendered HTML", () => {
           publishedAt: "2026-08-01T00:00:00.000Z",
           updatedAt: "2026-08-03T00:00:00.000Z",
           readTime: "4 min read",
+          isProject: false,
         },
       ]}
     />,
@@ -136,7 +143,8 @@ test("llms.txt lists content by summary and llms-full.txt inlines the bodies", (
     { slug: "data-platform", title: "Data Platform", summary: "A data platform.", content: "PROJECT BODY", techStack: ["Next.js"] },
   ];
   const posts = [
-    { slug: "shipping-notes", title: "Shipping Notes", summary: "Lessons.", content: "NOTE BODY", publishedAt: "2026-08-01T00:00:00.000Z" },
+    { slug: "shipping-notes", title: "Shipping Notes", summary: "Lessons.", content: "NOTE BODY", publishedAt: "2026-08-01T00:00:00.000Z", isProject: false },
+    { slug: "data-platform", title: "Data Platform", summary: "A data platform.", content: "PROJECT BODY", publishedAt: "2026-07-01T00:00:00.000Z", isProject: true },
   ];
   const index = buildLlmsTxt(projects, posts);
   const full = buildLlmsTxt(projects, posts, true);
@@ -147,4 +155,11 @@ test("llms.txt lists content by summary and llms-full.txt inlines the bodies", (
   assert.doesNotMatch(index, /PROJECT BODY|NOTE BODY/);
   assert.match(full, /PROJECT BODY[\s\S]*Built with: Next\.js|Built with: Next\.js[\s\S]*PROJECT BODY/);
   assert.match(full, /Published: 2026-08-01[\s\S]*NOTE BODY/);
+  assert.doesNotMatch(index, /\/notes\/data-platform/, "a case study shown as a note is listed once, under Projects");
+  assert.equal(full.split("PROJECT BODY").length - 1, 1, "its body is inlined once");
+});
+
+test("a case study shown as a note points its canonical URL at the project page", () => {
+  assert.equal(canonicalPostPath({ slug: "data-platform", isProject: true }), "/projects/data-platform");
+  assert.equal(canonicalPostPath({ slug: "shipping-notes", isProject: false }), "/notes/shipping-notes");
 });

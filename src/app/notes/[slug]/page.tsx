@@ -9,7 +9,7 @@ import { FaArrowLeft } from "react-icons/fa6";
 
 import { markdownComponents } from "@/components/markdownComponents";
 import SiteFooter from "@/components/SiteFooter";
-import { getPost, getPosts } from "@/lib/posts";
+import { canonicalPostPath, getPost, getPosts } from "@/lib/posts";
 import { absoluteUrl, breadcrumbJsonLd, createPageMetadata, defaultSocialImage, serializeJsonLd } from "@/lib/seo";
 
 type Params = Promise<{ slug: string }>;
@@ -35,7 +35,8 @@ export async function generateMetadata({ params }: Readonly<{ params: Params }>)
   return createPageMetadata({
     title: post.title,
     description: post.summary,
-    path: `/notes/${post.slug}`,
+    // A case study shown as a note points search engines at its project page, so the two never compete.
+    path: canonicalPostPath(post),
     type: "article",
     publishedTime: post.publishedAt,
     modifiedTime: post.updatedAt,
@@ -52,7 +53,7 @@ export default async function NotePage({ params }: Readonly<{ params: Params }>)
   // The same number the note has in the log: counted from the first note, newest last.
   const number = posts.length - posts.findIndex((entry) => entry.slug === post.slug);
 
-  const noteUrl = absoluteUrl(`/notes/${post.slug}`);
+  const noteUrl = absoluteUrl(canonicalPostPath(post));
   const noteJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
