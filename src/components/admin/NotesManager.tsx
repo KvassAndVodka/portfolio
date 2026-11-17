@@ -17,6 +17,7 @@ interface NoteItem {
   type: "BLOG" | "PROJECT";
   status: "DRAFT" | "PUBLISHED" | "SCHEDULED";
   updatedAt: Date | string;
+  revisionOfId?: string | null;
 }
 
 type NotesManagerProps = Readonly<{
@@ -64,6 +65,7 @@ export default function NotesManager({ notes, initialStatus }: NotesManagerProps
                   {note.summary && <p className="site-muted mt-2 line-clamp-2 max-w-[65ch] leading-[1.7]">{note.summary}</p>}
                   <p className="admin-label site-muted mt-3 flex flex-wrap gap-x-3 gap-y-1">
                     <span className={`admin-status admin-status-${note.status.toLowerCase()}`}>{note.status.toLowerCase()}</span>
+                    {note.revisionOfId && <span className="text-[var(--postcard-rust)]">Staged edit</span>}
                     {note.type === "PROJECT" && <span className="text-[var(--accent)]">From project</span>}
                     <span>{note.category || "Uncategorized"}</span>
                     <span>{Math.max(1, Math.ceil(words / 200))} min</span>

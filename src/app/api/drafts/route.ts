@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { PostStatus, PostType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { MAX_DRAFT_BODY_BYTES, draftSlug, isValidDraftToken, parseDraftInput, projectSlug } from "@/lib/drafts";
+import { MAX_DRAFT_BODY_BYTES, draftSlug, parseDraftInput, projectSlug, tokenRole } from "@/lib/drafts";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -12,7 +12,8 @@ const unauthorized = () => NextResponse.json({ error: "Unauthorized" }, { status
 // Machine-only door for the content job: it can create or update DRAFT notes and case studies,
 // never publish. The owner keeps the publish step.
 export async function POST(request: NextRequest) {
-  if (!isValidDraftToken(request.headers.get("authorization"), process.env.DRAFTS_API_TOKEN)) return unauthorized();
+  const role = tokenRole(request.headers.get("authorization"));
+  if (!role) return unauthorized();
 
   const raw = await request.text();
   if (Buffer.byteLength(raw) > MAX_DRAFT_BODY_BYTES) {
@@ -41,10 +42,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Could not derive a slug. Send one explicitly." }, { status: 400 });
   }
 
-  const existing = await prisma.post.findUnique({ where: { slug }, select: { status: true, type: true, deletedAt: true } });
+  const existing = await prisma.post.findUnique({ where: { slug }, select: { status: true, type: true, deletedAt: true, revisionOfId: true } });
   // Once the owner publishes, schedules, or trashes a post, the job must not touch it again.
   if (existing && (existing.status !== PostStatus.DRAFT || existing.deletedAt)) {
     return NextResponse.json({ error: "This draft is no longer editable." }, { status: 409 });
+  }
+  // A staged edit changes only through the owner door, so the weekly job cannot rewrite a pending edit.
+  if (existing?.revisionOfId) {
+    return NextResponse.json({ error: "That slug is a staged edit of a live post." }, { status: 409 });
   }
   if (existing && existing.type !== (isProject ? PostType.PROJECT : PostType.BLOG)) {
     return NextResponse.json({ error: "That slug belongs to a different content type." }, { status: 409 });
@@ -82,12 +87,13 @@ export async function POST(request: NextRequest) {
   revalidatePath("/admin");
   revalidatePath(isProject ? "/admin/projects" : "/admin/notes");
   if (isProject) revalidatePath("/projects");
+  console.info(JSON.stringify({ event: "content-api", role, action: "draft", slug: post.slug, status: existing ? 200 : 201 }));
   return NextResponse.json({ success: true, created: !existing, ...post }, { status: existing ? 200 : 201 });
 }
 
 // Recent note titles so the job can avoid repeating topics.
 export async function GET(request: NextRequest) {
-  if (!isValidDraftToken(request.headers.get("authorization"), process.env.DRAFTS_API_TOKEN)) return unauthorized();
+  if (!tokenRole(request.headers.get("authorization"))) return unauthorized();
 
   const posts = await prisma.post.findMany({
     where: { type: PostType.BLOG, deletedAt: null },

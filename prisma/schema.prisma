@@ -30,6 +30,11 @@ model Post {
   projectUrl String?
   thumbnail  String?
   outcome    String? // One line on what changed, shown on the home page gallery card
+
+  // A staged edit of a published post: a draft that replaces the post's content when it is published.
+  revisionOfId String? @unique
+  revisionOf   Post?   @relation("PostRevision", fields: [revisionOfId], references: [id], onDelete: SetNull)
+  revision     Post?   @relation("PostRevision")
 }
 
 enum PostType {

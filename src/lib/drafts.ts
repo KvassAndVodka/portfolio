@@ -27,6 +27,18 @@ export function isValidDraftToken(header: string | null, expected: string | unde
   return given.length === wanted.length && crypto.timingSafeEqual(given, wanted);
 }
 
+export type TokenRole = "owner" | "drafts";
+
+/**
+ * Which machine role a request carries. The drafts token (the weekly job) writes drafts and adds media;
+ * the owner token also publishes, stages edits of live posts, and trashes posts.
+ */
+export function tokenRole(header: string | null): TokenRole | null {
+  if (isValidDraftToken(header, process.env.CONTENT_OWNER_TOKEN)) return "owner";
+  if (isValidDraftToken(header, process.env.DRAFTS_API_TOKEN)) return "drafts";
+  return null;
+}
+
 function text(value: unknown, max: number) {
   return typeof value === "string" && value.trim().length > 0 && value.length <= max ? value.trim() : null;
 }
@@ -120,4 +132,33 @@ export function projectSlug(title: string) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 80)
     .replace(/-+$/g, "");
+}
+
+/** A media library path, or an https link: the forms a thumbnail can take. */
+function picture(value: unknown) {
+  if (value === undefined || value === null || value === "") return undefined;
+  if (typeof value === "string" && /^\/api\/media\/[a-z0-9]+(\.(mp4|webm))?$/.test(value)) return value;
+  return href(value);
+}
+
+/**
+ * The fields of a staged edit. Every field is optional; null means a field is present but wrong.
+ * Content keeps the same limits as a new draft.
+ */
+export function parseEditFields(fields: Record<string, unknown>) {
+  const edit = {
+    title: bounded(fields.title, 120),
+    summary: bounded(fields.summary, 300),
+    content: bounded(fields.content, 50_000),
+    category: bounded(fields.category, 60),
+    outcome: bounded(fields.outcome, 200),
+    githubUrl: href(fields.githubUrl),
+    demoUrl: href(fields.demoUrl),
+    projectUrl: href(fields.projectUrl),
+    thumbnail: picture(fields.thumbnail),
+    techStack: technologies(fields.techStack),
+  };
+  if (Object.values(edit).some((value) => value === null)) return null;
+  const present = Object.fromEntries(Object.entries(edit).filter(([, value]) => value !== undefined));
+  return Object.keys(present).length > 0 ? (present as { [K in keyof typeof edit]?: NonNullable<(typeof edit)[K]> }) : null;
 }
