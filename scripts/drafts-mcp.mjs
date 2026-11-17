@@ -1,11 +1,15 @@
 #!/usr/bin/env node
-// MCP stdio server for the weekly content job: exposes /api/drafts as two tools.
-// Env: PORTFOLIO_URL (e.g. https://portfolio.jmraut.dev), DRAFTS_API_TOKEN.
+// MCP stdio server for the weekly content job: exposes /api/drafts and /api/drafts/media as tools.
+// Env: PORTFOLIO_URL (e.g. https://portfolio.jmraut.dev), DRAFTS_API_TOKEN,
+// UPLOAD_ROOTS (colon-separated folders upload_media may read; defaults to the vault and /root/larping/uploads).
 // shortcut: hand-rolled JSON-RPC over stdio (tools only, no SDK); switch to @modelcontextprotocol/sdk if we need resources or prompts.
+import { readFile, realpath } from "node:fs/promises";
+import path from "node:path";
 import { createInterface } from "node:readline";
 
 const baseUrl = (process.env.PORTFOLIO_URL || "").replace(/\/$/, "");
 const token = process.env.DRAFTS_API_TOKEN || "";
+const uploadRoots = (process.env.UPLOAD_ROOTS || "/root/vault:/root/larping/uploads").split(":").filter(Boolean);
 
 export function isoWeekId(date = new Date()) {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -45,11 +49,21 @@ const tools = [
         category: { type: "string", maxLength: 60, description: "e.g. Web Platform" },
         techStack: { type: "array", maxItems: 24, items: { type: "string", maxLength: 40 } },
         outcome: { type: "string", maxLength: 200, description: "One line for the project card: what changed. Qualitative is fine." },
-        githubUrl: { type: "string", maxLength: 500, description: "https:// only" },
-        projectUrl: { type: "string", maxLength: 500, description: "https:// only" },
-        demoUrl: { type: "string", maxLength: 500, description: "https:// only" },
+        githubUrl: { type: "string", maxLength: 500, description: "Source repository (admin: Source). https:// only." },
+        projectUrl: { type: "string", maxLength: 500, description: "Any other link, such as docs or a write-up (admin: Other link). Not the live site. https:// only." },
+        demoUrl: { type: "string", maxLength: 500, description: "The live site or demo (admin: Live demo). https:// only." },
       },
       required: ["title", "summary", "content"],
+    },
+  },
+  {
+    name: "upload_media",
+    description:
+      'Add one image or clip (PNG, JPG, WebP, GIF, MP4 or WebM, up to 10 MB) to the portfolio media library and return its URL. Use the URL in a draft as ![alt](url "caption"). It never deletes or replaces a file.',
+    inputSchema: {
+      type: "object",
+      properties: { path: { type: "string", description: "The file on this machine, inside the vault or /root/larping/uploads." } },
+      required: ["path"],
     },
   },
   {
@@ -72,10 +86,31 @@ async function callPortfolio(method, body) {
   return text;
 }
 
+async function uploadMedia(file) {
+  if (!baseUrl || !token) throw new Error("PORTFOLIO_URL and DRAFTS_API_TOKEN must be set.");
+  // realpath first, so a symlink or "../" cannot reach outside the allowed folders.
+  const real = await realpath(String(file ?? ""));
+  if (!uploadRoots.some((root) => real.startsWith(path.resolve(root) + path.sep))) {
+    throw new Error(`Only files under ${uploadRoots.join(" or ")} can be uploaded.`);
+  }
+  const form = new FormData();
+  form.append("file", new Blob([await readFile(real)]), path.basename(real));
+  const res = await fetch(`${baseUrl}/api/drafts/media`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}` },
+    body: form,
+    signal: AbortSignal.timeout(120_000),
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Portfolio returned ${res.status}: ${text.slice(0, 300)}`);
+  return text;
+}
+
 async function callTool(name, args = {}) {
   if (name === "create_draft") return callPortfolio("POST", { ...args, weekId: args.weekId || isoWeekId() });
   if (name === "create_project_draft") return callPortfolio("POST", { ...args, type: "PROJECT" });
   if (name === "list_recent_posts") return callPortfolio("GET");
+  if (name === "upload_media") return uploadMedia(args.path);
   throw new Error(`Unknown tool: ${name}`);
 }
 
