@@ -108,10 +108,11 @@ export default function ProjectGallery({ projects }: Readonly<{ projects: Projec
     else window.scrollTo(0, y);
   };
 
-  const slide = "w-full shrink-0 lg:h-[calc(100svh-10.5rem)] lg:w-[min(80vw,66rem)]";
+  // Cards hug their content up to the pinned height, so tall screens do not stretch them into empty bands.
+  const slide = "w-full shrink-0 lg:max-h-[calc(100svh-10.5rem)] lg:w-[min(80vw,66rem)]";
   return (
     <div ref={ref} className="relative overflow-x-clip py-[clamp(6rem,11vw,9rem)] lg:h-svh lg:overflow-hidden lg:py-0 lg:pt-[6.5rem]">
-      <div data-track onFocus={handleFocus} className="flex flex-col gap-8 px-4 lg:flex-row lg:gap-10 lg:pl-[max(1rem,calc((100vw-82rem)/2))] lg:pr-[max(1rem,calc((100vw-82rem)/2))]">
+      <div data-track onFocus={handleFocus} className="flex flex-col gap-8 px-4 lg:h-full lg:flex-row lg:items-center lg:gap-10 lg:pb-16 lg:pl-[max(1rem,calc((100vw-82rem)/2))] lg:pr-[max(1rem,calc((100vw-82rem)/2))]">
         <div data-slide="0" className={`${slide} flex flex-col justify-center`}>
           {/* The scrim sits above the cloud canvas (z -1) and below the text, so glyphs fade behind the words. */}
           <div className="relative">
@@ -147,8 +148,8 @@ export default function ProjectGallery({ projects }: Readonly<{ projects: Projec
 type GalleryCardProps = Readonly<{ project: ProjectPreview; index: number; total: number; active: boolean; className: string }>;
 
 /**
- * One project as an atlas page: the picture on the left (screenshot, or the ASCII plate when there is none),
- * the explanation on the right in reading order, then the actions.
+ * One project as an atlas page: on desktop the 16:9 picture (screenshot, or the ASCII plate when there is none)
+ * with what changed and the stack under it, the title and summary on the right, then the actions.
  */
 function GalleryCard({ project, index, total, active, className }: GalleryCardProps) {
   const liveUrl = project.projectUrl || project.demoUrl;
@@ -162,8 +163,9 @@ function GalleryCard({ project, index, total, active, className }: GalleryCardPr
         {project.year && <span className="ml-auto flex items-center px-5 text-[var(--postcard-muted)]">{project.year}</span>}
       </header>
 
-      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <Link href={`/projects/${project.slug}`} tabIndex={-1} aria-hidden="true" className="relative grid min-h-64 place-items-center overflow-hidden border-b border-dashed border-[var(--postcard-tear)] bg-[var(--background)] lg:min-h-0 lg:border-b-0 lg:border-r-2">
+      {/* Desktop: the 16:9 picture with the spec under it on the left, the title, summary and actions on the right. */}
+      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr_auto]">
+        <Link href={`/projects/${project.slug}`} tabIndex={-1} aria-hidden="true" className="relative grid aspect-video place-items-center overflow-hidden border-b border-dashed border-[var(--postcard-tear)] bg-[var(--background)] lg:col-start-1 lg:row-start-1 lg:border-r-2">
           {project.thumbnail ? (
             <Image src={project.thumbnail} alt="" fill unoptimized sizes="(max-width: 1023px) calc(100vw - 2rem), 36rem" className="object-cover" />
           ) : (
@@ -171,33 +173,33 @@ function GalleryCard({ project, index, total, active, className }: GalleryCardPr
           )}
         </Link>
 
-        <div className="flex min-h-0 flex-col px-6 py-6 lg:px-7">
+        <div className="px-6 pt-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:px-7">
           <h3 id={`project-${project.slug}`} className="text-[clamp(1.8rem,2.8vw,2.7rem)] font-[620] leading-[0.95] tracking-[-0.035em]">
             <Link href={`/projects/${project.slug}`} className="hover:text-[var(--postcard-rust)]">{project.title}<span className="text-[var(--postcard-orange)]">.</span></Link>
           </h3>
           <p className="mt-3 text-[1.0625rem] leading-[1.55] text-[var(--postcard-muted)]">{project.summary}</p>
+        </div>
 
-          <dl className="mt-5 grid gap-4 border-t border-[var(--line)] pt-5 text-[0.9375rem] leading-[1.55]">
-            {project.outcome && (
-              <div><dt className={note}>What changed</dt><dd className="mt-1.5 font-semibold text-[var(--postcard-rust)]">{project.outcome}</dd></div>
-            )}
-            {project.techStack.length > 0 && (
-              <div>
-                <dt className={note}>Built with</dt>
-                <dd className="mt-2"><ul className="grid grid-cols-2 gap-x-6 font-mono text-[0.8125rem]">{project.techStack.slice(0, 8).map((tool) => <li key={tool} className="border-b border-dashed border-[var(--line)] py-1">{tool}</li>)}</ul></dd>
-              </div>
-            )}
-          </dl>
+        <dl className="mx-6 mt-5 grid content-start gap-4 border-t border-[var(--line)] pt-5 text-[0.9375rem] leading-[1.55] lg:col-start-1 lg:row-span-2 lg:row-start-2 lg:m-0 lg:border-t-0 lg:border-r-2 lg:border-dashed lg:border-[var(--postcard-tear)] lg:px-7 lg:py-5">
+          {project.outcome && (
+            <div><dt className={note}>What changed</dt><dd className="mt-1.5 font-semibold text-[var(--postcard-rust)]">{project.outcome}</dd></div>
+          )}
+          {project.techStack.length > 0 && (
+            <div>
+              <dt className={note}>Built with</dt>
+              <dd className="mt-2"><ul className="grid grid-cols-2 gap-x-6 font-mono text-[0.8125rem]">{project.techStack.slice(0, 8).map((tool) => <li key={tool} className="border-b border-dashed border-[var(--line)] py-1">{tool}</li>)}</ul></dd>
+            </div>
+          )}
+        </dl>
 
-          <div className="mt-auto flex flex-wrap gap-2 pt-5">
-            <Link href={`/projects/${project.slug}`} className={`${action} bg-[var(--postcard-ink)] text-[var(--postcard-paper)]`}>Read the case study<FaArrowRight aria-hidden="true" className="text-[0.75em]" /></Link>
-            {liveUrl && (
-              <a href={liveUrl} rel="noreferrer" target="_blank" aria-label={`${project.title} live project (opens in a new tab)`} className={`${action} border border-[var(--postcard-ink)]`}>Live<FaArrowUpRightFromSquare aria-hidden="true" className="text-[0.7em]" /></a>
-            )}
-            {project.githubUrl && (
-              <a href={project.githubUrl} rel="noreferrer" target="_blank" aria-label={`${project.title} code on GitHub (opens in a new tab)`} className={`${action} border border-[var(--postcard-ink)]`}><FaGithub aria-hidden="true" />Code</a>
-            )}
-          </div>
+        <div className="flex flex-wrap items-end gap-2 px-6 pb-6 pt-5 lg:col-start-2 lg:row-start-3 lg:px-7">
+          <Link href={`/projects/${project.slug}`} className={`${action} bg-[var(--postcard-ink)] text-[var(--postcard-paper)]`}>Read the case study<FaArrowRight aria-hidden="true" className="text-[0.75em]" /></Link>
+          {liveUrl && (
+            <a href={liveUrl} rel="noreferrer" target="_blank" aria-label={`${project.title} live project (opens in a new tab)`} className={`${action} border border-[var(--postcard-ink)]`}>Live<FaArrowUpRightFromSquare aria-hidden="true" className="text-[0.7em]" /></a>
+          )}
+          {project.githubUrl && (
+            <a href={project.githubUrl} rel="noreferrer" target="_blank" aria-label={`${project.title} code on GitHub (opens in a new tab)`} className={`${action} border border-[var(--postcard-ink)]`}><FaGithub aria-hidden="true" />Code</a>
+          )}
         </div>
       </div>
     </article>
