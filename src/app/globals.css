@@ -2389,6 +2389,63 @@ svg.button-external-icon {
   max-width: 100%;
 }
 
+/* Body figures are atlas plates like the project cards: paper, the postcard shadow, a numbered mono strip. */
+.article-prose {
+  counter-reset: article-figure;
+}
+
+.article-prose .article-figure {
+  width: fit-content;
+  max-width: 100%;
+  margin: 2.5rem auto;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--postcard-paper);
+  box-shadow: var(--postcard-shadow);
+  counter-increment: article-figure;
+  --line: color-mix(in srgb, var(--postcard-ink) 12%, transparent);
+}
+
+.article-prose .article-figure-strip {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: stretch;
+  margin: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--postcard-muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.article-prose .article-figure-strip > span {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1.25rem;
+}
+
+.article-prose .article-figure-number {
+  flex: none;
+  color: var(--postcard-rust);
+}
+
+.article-prose .article-figure-number::before {
+  content: "Fig. " counter(article-figure, decimal-leading-zero);
+}
+
+.article-prose .article-figure-number:not(:last-child) {
+  border-right: 1px solid var(--line);
+}
+
+.article-prose .article-figure img {
+  display: block;
+  width: auto;
+  margin: 0 auto;
+}
+
 /* The paper editor: the caret shows focus on the sheet, so the body needs no focus ring. */
 .paper-editor .ProseMirror:focus-visible {
   outline: none;
