@@ -53,7 +53,7 @@ const tools = [
         title: { type: "string", maxLength: 120 },
         summary: { type: "string", maxLength: 300, description: "One or two sentences for lists and link previews." },
         content: { type: "string", maxLength: 50000, description: "MDX body: the problem, the decisions, the tradeoffs, the outcome." },
-        slug: { type: "string", pattern: String.raw`^[a-z0-9]+(?:-[a-z0-9]+)*$`, description: "Optional. Derived from the title when omitted." },
+        slug: { type: "string", pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$", description: "Optional. Derived from the title when omitted." },
         category: { type: "string", maxLength: 60, description: "e.g. Web Platform" },
         techStack: { type: "array", maxItems: 24, items: { type: "string", maxLength: 40 } },
         outcome: { type: "string", maxLength: 200, description: "One line for the project card: what changed. Qualitative is fine." },

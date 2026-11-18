@@ -9,13 +9,14 @@ export const isVideoSrc = (src: string) => /\.(mp4|webm)$|[?&]clip=(mp4|webm)$/i
 
 export function mediaUrl(id: string, mimeType: string) {
   const extension = VIDEO_EXTENSIONS[mimeType];
-  return `/api/media/${id}${extension ? `?clip=${extension}` : ""}`;
+  const query = extension ? `?clip=${extension}` : "";
+  return `/api/media/${id}${query}`;
 }
 
 /** The video type from the file's own bytes, never from the name or the browser's claim. */
 export function sniffVideo(bytes: Uint8Array): "video/mp4" | "video/webm" | null {
   // MP4 and the other ISO media files: a box size, then "ftyp".
-  if (bytes.length >= 12 && String.fromCharCode(...bytes.subarray(4, 8)) === "ftyp") return "video/mp4";
+  if (bytes.length >= 12 && String.fromCodePoint(...bytes.subarray(4, 8)) === "ftyp") return "video/mp4";
   // WebM: the EBML header.
   if (bytes.length >= 4 && bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) return "video/webm";
   return null;

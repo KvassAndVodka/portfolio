@@ -9,6 +9,19 @@ export const runtime = "nodejs";
 
 const unauthorized = () => NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+// Why the job may not write over an existing post with this slug, or null when it may.
+function blockedReason(
+  existing: { status: PostStatus; type: PostType; deletedAt: Date | null; revisionOfId: string | null },
+  type: PostType,
+) {
+  // Once the owner publishes, schedules, or trashes a post, the job must not touch it again.
+  if (existing.status !== PostStatus.DRAFT || existing.deletedAt) return "This draft is no longer editable.";
+  // A staged edit changes only through the owner door, so the weekly job cannot rewrite a pending edit.
+  if (existing.revisionOfId) return "That slug is a staged edit of a live post.";
+  if (existing.type !== type) return "That slug belongs to a different content type.";
+  return null;
+}
+
 // Machine-only door for the content job: it can create or update DRAFT notes and case studies,
 // never publish. The owner keeps the publish step.
 export async function POST(request: NextRequest) {
@@ -43,17 +56,8 @@ export async function POST(request: NextRequest) {
   }
 
   const existing = await prisma.post.findUnique({ where: { slug }, select: { status: true, type: true, deletedAt: true, revisionOfId: true } });
-  // Once the owner publishes, schedules, or trashes a post, the job must not touch it again.
-  if (existing && (existing.status !== PostStatus.DRAFT || existing.deletedAt)) {
-    return NextResponse.json({ error: "This draft is no longer editable." }, { status: 409 });
-  }
-  // A staged edit changes only through the owner door, so the weekly job cannot rewrite a pending edit.
-  if (existing?.revisionOfId) {
-    return NextResponse.json({ error: "That slug is a staged edit of a live post." }, { status: 409 });
-  }
-  if (existing && existing.type !== (isProject ? PostType.PROJECT : PostType.BLOG)) {
-    return NextResponse.json({ error: "That slug belongs to a different content type." }, { status: 409 });
-  }
+  const blocked = existing && blockedReason(existing, isProject ? PostType.PROJECT : PostType.BLOG);
+  if (blocked) return NextResponse.json({ error: blocked }, { status: 409 });
 
   const data = {
     title: input.title,
