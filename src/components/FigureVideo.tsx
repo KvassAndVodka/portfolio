@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import useReducedMotion from "@/hooks/useReducedMotion";
 
 /** A silent looping clip that plays only while on screen. Under reduced motion it waits for the reader's controls. */
-export default function FigureVideo({ src, label }: { src: string; label: string }) {
+export default function FigureVideo({ src, label }: Readonly<{ src: string; label: string }>) {
   const ref = useRef<HTMLVideoElement>(null);
   const reduced = useReducedMotion();
 

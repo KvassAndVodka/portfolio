@@ -71,15 +71,30 @@ function slugText(value: unknown) {
   return typeof value === "string" && value.length <= 80 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) ? value : null;
 }
 
+function draftType(value: unknown): DraftType | null {
+  if (value === undefined || value === "BLOG") return "BLOG";
+  return value === "PROJECT" ? "PROJECT" : null;
+}
+
+// A project draft carries the evidence the case-study page shows: card line, stack and links.
+function projectFields(fields: Record<string, unknown>) {
+  const values = {
+    slug: slugText(fields.slug),
+    category: bounded(fields.category, 60),
+    outcome: bounded(fields.outcome, 200),
+    githubUrl: href(fields.githubUrl),
+    demoUrl: href(fields.demoUrl),
+    projectUrl: href(fields.projectUrl),
+    techStack: technologies(fields.techStack),
+  };
+  if (Object.values(values).includes(null)) return null;
+  return Object.fromEntries(Object.entries(values).filter(([, value]) => value)) as Partial<DraftInput>;
+}
+
 export function parseDraftInput(payload: unknown): DraftInput | null {
   if (!payload || typeof payload !== "object") return null;
   const fields = payload as Record<string, unknown>;
-  const type =
-    fields.type === undefined || fields.type === "BLOG"
-      ? "BLOG"
-      : fields.type === "PROJECT"
-        ? "PROJECT"
-        : null;
+  const type = draftType(fields.type);
   if (!type) return null;
 
   const title = text(fields.title, 120);
@@ -92,31 +107,8 @@ export function parseDraftInput(payload: unknown): DraftInput | null {
     return weekId ? { type, weekId, title, summary, content } : null;
   }
 
-  // A project draft carries the evidence the case-study page shows: card line, stack and links.
-  const slug = slugText(fields.slug);
-  const category = bounded(fields.category, 60);
-  const outcome = bounded(fields.outcome, 200);
-  const githubUrl = href(fields.githubUrl);
-  const demoUrl = href(fields.demoUrl);
-  const projectUrl = href(fields.projectUrl);
-  const techStack = technologies(fields.techStack);
-  if ([slug, category, outcome, githubUrl, demoUrl, projectUrl, techStack].some((value) => value === null)) {
-    return null;
-  }
-
-  return {
-    type,
-    title,
-    summary,
-    content,
-    ...(slug ? { slug } : {}),
-    ...(category ? { category } : {}),
-    ...(outcome ? { outcome } : {}),
-    ...(githubUrl ? { githubUrl } : {}),
-    ...(demoUrl ? { demoUrl } : {}),
-    ...(projectUrl ? { projectUrl } : {}),
-    ...(techStack ? { techStack } : {}),
-  };
+  const project = projectFields(fields);
+  return project ? { type, title, summary, content, ...project } : null;
 }
 
 export function draftSlug(weekId: string) {
@@ -129,9 +121,9 @@ export function projectSlug(title: string) {
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
+    .replace(/^-|-$/g, "")
     .slice(0, 80)
-    .replace(/-+$/g, "");
+    .replace(/-$/, "");
 }
 
 /** A media library path, or an https link: the forms a thumbnail can take. */
@@ -158,7 +150,7 @@ export function parseEditFields(fields: Record<string, unknown>) {
     thumbnail: picture(fields.thumbnail),
     techStack: technologies(fields.techStack),
   };
-  if (Object.values(edit).some((value) => value === null)) return null;
+  if (Object.values(edit).includes(null)) return null;
   const present = Object.fromEntries(Object.entries(edit).filter(([, value]) => value !== undefined));
   return Object.keys(present).length > 0 ? (present as { [K in keyof typeof edit]?: NonNullable<(typeof edit)[K]> }) : null;
 }

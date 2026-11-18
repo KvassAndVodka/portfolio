@@ -87,7 +87,7 @@ export default function MediaPicker({ onSelect, onClose, initialTab = 'library',
                     <li key={item.id}>
                         <button type="button" onClick={() => onSelect(item.url, item.filename)} className="media-tile">
                             {isVideoSrc(item.url) ? (
-                                <video src={item.url} aria-hidden="true" autoPlay muted loop playsInline />
+                                <video src={item.url} aria-hidden="true" tabIndex={-1} autoPlay muted loop playsInline />
                             ) : (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={item.url} alt="" loading="lazy" />

@@ -102,6 +102,10 @@ export async function createPost(formData: FormData) {
     redirect(type === 'PROJECT' ? '/admin/projects' : '/admin/notes');
 }
 
+function chosenStatus(requested: FormDataEntryValue | null, current: PostStatus) {
+    return Object.values(PostStatus).includes(requested as PostStatus) ? requested as PostStatus : current;
+}
+
 export async function updatePost(id: string, formData: FormData) {
     await requireAdmin();
     const existingPost = await prisma.post.findUniqueOrThrow({ where: { id } });
@@ -113,11 +117,7 @@ export async function updatePost(id: string, formData: FormData) {
     // A staged edit stays a draft under its own slug; choosing Published applies it to the live post below.
     const isRevision = existingPost.revisionOfId !== null;
     const publishRevision = isRevision && requestedStatus === PostStatus.PUBLISHED;
-    const status = isRevision
-        ? PostStatus.DRAFT
-        : Object.values(PostStatus).includes(requestedStatus as PostStatus)
-            ? requestedStatus as PostStatus
-            : existingPost.status;
+    const status = isRevision ? PostStatus.DRAFT : chosenStatus(requestedStatus, existingPost.status);
     const scheduledFor = formText(formData, 'scheduledFor');
     const publishedAt = status === PostStatus.SCHEDULED && scheduledFor
         ? new Date(scheduledFor)

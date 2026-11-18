@@ -23,7 +23,7 @@ const ImageOrClip = Image.extend({
     return ({ HTMLAttributes }) => {
       const attributes = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes);
       const dom = document.createElement(isVideoSrc(String(attributes.src ?? "")) ? "video" : "img");
-      for (const [name, value] of Object.entries(attributes)) if (value != null) dom.setAttribute(name, String(value));
+      for (const [name, value] of Object.entries(attributes)) if (value != null && typeof value !== "object") dom.setAttribute(name, String(value));
       if (dom instanceof HTMLVideoElement) Object.assign(dom, { muted: true, loop: true, playsInline: true, autoplay: true });
       return { dom };
     };
