@@ -148,8 +148,9 @@ export default function ProjectGallery({ projects }: Readonly<{ projects: Projec
 type GalleryCardProps = Readonly<{ project: ProjectPreview; index: number; total: number; active: boolean; className: string }>;
 
 /**
- * One project as an atlas page: on desktop the 16:9 picture (screenshot, or the ASCII plate when there is none)
- * with what changed and the stack under it, the title and summary on the right, then the actions.
+ * One project as an atlas page. Desktop: the 16:9 picture with "what changed" as its caption on the left; the
+ * title, summary, stack and actions on the right, so both columns end near the same height. Phones stack it all,
+ * title before the notes.
  */
 function GalleryCard({ project, index, total, active, className }: GalleryCardProps) {
   const liveUrl = project.projectUrl || project.demoUrl;
@@ -158,48 +159,52 @@ function GalleryCard({ project, index, total, active, className }: GalleryCardPr
   return (
     <article data-slide={index + 1} aria-labelledby={`project-${project.slug}`} className={`${className} flex flex-col overflow-hidden rounded-[2px] bg-[var(--postcard-paper)] text-[var(--postcard-ink)] shadow-[var(--postcard-shadow)]`}>
       <header className={`${label} flex h-11 shrink-0 items-stretch border-b border-[var(--line)]`}>
-        <span className="flex items-center border-r-2 border-dashed border-[var(--postcard-tear)] px-5 text-[var(--postcard-rust)]">Fig. {pad(index + 1)} / {pad(total)}</span>
+        <span className="flex items-center border-r border-[var(--line)] px-5 text-[var(--postcard-rust)]">Fig. {pad(index + 1)} / {pad(total)}</span>
         <span className="flex min-w-0 items-center truncate px-5 text-[var(--postcard-muted)]">{formatProjectCategory(project.category)}</span>
         {project.year && <span className="ml-auto flex items-center px-5 text-[var(--postcard-muted)]">{project.year}</span>}
       </header>
 
-      {/* Desktop: the 16:9 picture with the spec under it on the left, the title, summary and actions on the right. */}
-      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr_auto]">
-        <Link href={`/projects/${project.slug}`} tabIndex={-1} aria-hidden="true" className="relative grid aspect-video place-items-center overflow-hidden border-b border-dashed border-[var(--postcard-tear)] bg-[var(--background)] lg:col-start-1 lg:row-start-1 lg:border-r-2">
-          {project.thumbnail ? (
-            <Image src={project.thumbnail} alt="" fill unoptimized sizes="(max-width: 1023px) calc(100vw - 2rem), 36rem" className="object-cover" />
-          ) : (
-            <AsciiPlate pattern={index} run={active} color={PLATE_TONES[index % PLATE_TONES.length]} className="text-[clamp(4px,min(1.02vh,0.56vw),11px)] max-lg:text-[clamp(4px,1.1vw,7px)]" />
+      {/* The column wrappers are `contents` on phones, so `order` can put the title right under the picture. */}
+      <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+        <div className="contents lg:flex lg:flex-col lg:border-r lg:border-[var(--line)]">
+          <Link href={`/projects/${project.slug}`} tabIndex={-1} aria-hidden="true" className="relative order-1 grid aspect-video lg:order-none shrink-0 place-items-center overflow-hidden border-b border-[var(--line)] bg-[var(--background)]">
+            {project.thumbnail ? (
+              <Image src={project.thumbnail} alt="" fill unoptimized sizes="(max-width: 1023px) calc(100vw - 2rem), 38rem" className="object-cover" />
+            ) : (
+              <AsciiPlate pattern={index} run={active} color={PLATE_TONES[index % PLATE_TONES.length]} className="text-[clamp(4px,min(1.02vh,0.56vw),11px)] max-lg:text-[clamp(4px,1.1vw,7px)]" />
+            )}
+          </Link>
+          {project.outcome && (
+            <dl className="order-3 mx-6 mt-5 border-t border-[var(--line)] pt-5 text-[0.9375rem] leading-[1.55] lg:order-none lg:m-0 lg:border-t-0 lg:px-7 lg:pb-6">
+              <dt className={note}>What changed</dt><dd className="mt-1.5 font-semibold text-[var(--postcard-rust)]">{project.outcome}</dd>
+            </dl>
           )}
-        </Link>
-
-        <div className="px-6 pt-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:px-7">
-          <h3 id={`project-${project.slug}`} className="text-[clamp(1.8rem,2.8vw,2.7rem)] font-[620] leading-[0.95] tracking-[-0.035em]">
-            <Link href={`/projects/${project.slug}`} className="hover:text-[var(--postcard-rust)]">{project.title}<span className="text-[var(--postcard-orange)]">.</span></Link>
-          </h3>
-          <p className="mt-3 text-[1.0625rem] leading-[1.55] text-[var(--postcard-muted)]">{project.summary}</p>
         </div>
 
-        <dl className="mx-6 mt-5 grid content-start gap-4 border-t border-[var(--line)] pt-5 text-[0.9375rem] leading-[1.55] lg:col-start-1 lg:row-span-2 lg:row-start-2 lg:m-0 lg:border-t-0 lg:border-r-2 lg:border-dashed lg:border-[var(--postcard-tear)] lg:px-7 lg:py-5">
-          {project.outcome && (
-            <div><dt className={note}>What changed</dt><dd className="mt-1.5 font-semibold text-[var(--postcard-rust)]">{project.outcome}</dd></div>
-          )}
-          {project.techStack.length > 0 && (
-            <div>
-              <dt className={note}>Built with</dt>
-              <dd className="mt-2"><ul className="grid grid-cols-2 gap-x-6 font-mono text-[0.8125rem]">{project.techStack.slice(0, 8).map((tool) => <li key={tool} className="border-b border-dashed border-[var(--line)] py-1">{tool}</li>)}</ul></dd>
-            </div>
-          )}
-        </dl>
+        <div className="contents lg:flex lg:flex-col lg:gap-5 lg:p-7">
+          <div className="order-2 px-6 pt-6 lg:order-none lg:p-0">
+            <h3 id={`project-${project.slug}`} className="text-[clamp(1.8rem,2.8vw,2.7rem)] font-[620] leading-[0.95] tracking-[-0.035em]">
+              <Link href={`/projects/${project.slug}`} className="hover:text-[var(--postcard-rust)]">{project.title}<span className="text-[var(--postcard-orange)]">.</span></Link>
+            </h3>
+            <p className="mt-3 text-[1.0625rem] leading-[1.55] text-[var(--postcard-muted)]">{project.summary}</p>
+          </div>
 
-        <div className="flex flex-wrap items-end gap-2 px-6 pb-6 pt-5 lg:col-start-2 lg:row-start-3 lg:px-7">
-          <Link href={`/projects/${project.slug}`} className={`${action} bg-[var(--postcard-ink)] text-[var(--postcard-paper)]`}>Read the case study<FaArrowRight aria-hidden="true" className="text-[0.75em]" /></Link>
-          {liveUrl && (
-            <a href={liveUrl} rel="noreferrer" target="_blank" aria-label={`${project.title} live project (opens in a new tab)`} className={`${action} border border-[var(--postcard-ink)]`}>Live<FaArrowUpRightFromSquare aria-hidden="true" className="text-[0.7em]" /></a>
+          {project.techStack.length > 0 && (
+            <dl className="order-4 mx-6 mt-5 text-[0.9375rem] leading-[1.55] lg:order-none lg:m-0 lg:border-t lg:border-[var(--line)] lg:pt-5">
+              <dt className={note}>Built with</dt>
+              <dd className="mt-2"><ul className="grid grid-cols-2 gap-x-6 font-mono text-[0.8125rem]">{project.techStack.slice(0, 8).map((tool) => <li key={tool} className="border-b border-[var(--line)] py-1">{tool}</li>)}</ul></dd>
+            </dl>
           )}
-          {project.githubUrl && (
-            <a href={project.githubUrl} rel="noreferrer" target="_blank" aria-label={`${project.title} code on GitHub (opens in a new tab)`} className={`${action} border border-[var(--postcard-ink)]`}><FaGithub aria-hidden="true" />Code</a>
-          )}
+
+          <div className="order-5 flex flex-wrap items-end gap-2 px-6 pb-6 pt-5 lg:order-none lg:mt-auto lg:p-0">
+            <Link href={`/projects/${project.slug}`} className={`${action} bg-[var(--postcard-ink)] text-[var(--postcard-paper)]`}>Read the case study<FaArrowRight aria-hidden="true" className="text-[0.75em]" /></Link>
+            {liveUrl && (
+              <a href={liveUrl} rel="noreferrer" target="_blank" aria-label={`${project.title} live project (opens in a new tab)`} className={`${action} border border-[var(--postcard-ink)]`}>Live<FaArrowUpRightFromSquare aria-hidden="true" className="text-[0.7em]" /></a>
+            )}
+            {project.githubUrl && (
+              <a href={project.githubUrl} rel="noreferrer" target="_blank" aria-label={`${project.title} code on GitHub (opens in a new tab)`} className={`${action} border border-[var(--postcard-ink)]`}><FaGithub aria-hidden="true" />Code</a>
+            )}
+          </div>
         </div>
       </div>
     </article>
