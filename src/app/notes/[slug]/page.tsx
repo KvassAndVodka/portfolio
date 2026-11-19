@@ -83,10 +83,18 @@ export default async function NotePage({ params }: Readonly<{ params: Params }>)
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: serializeJsonLd(
-              breadcrumbJsonLd([
-                { name: "Notes", path: "/notes" },
-                { name: post.title, path: `/notes/${post.slug}` },
-              ]),
+              // Same trail as the canonical page, so a case study's breadcrumbs agree with its canonical URL.
+              breadcrumbJsonLd(
+                post.isProject
+                  ? [
+                      { name: "Projects", path: "/projects" },
+                      { name: post.title, path: canonicalPostPath(post) },
+                    ]
+                  : [
+                      { name: "Notes", path: "/notes" },
+                      { name: post.title, path: canonicalPostPath(post) },
+                    ],
+              ),
             ),
           }}
         />
