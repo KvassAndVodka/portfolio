@@ -1,3 +1,4 @@
+import { PostType } from "@prisma/client";
 import { canonicalPostPath } from "@/lib/posts";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -7,6 +8,13 @@ import { plateText } from "@/components/AsciiPlate";
 import NotesIndex from "@/components/NotesIndex";
 import ProjectGallery from "@/components/ProjectGallery";
 import ProjectShowcase from "@/components/ProjectShowcase";
+import {
+  buildIndexNowPayload,
+  INDEXNOW_ENDPOINT,
+  isValidIndexNowKey,
+  submitIndexNow,
+  urlsForPost,
+} from "@/lib/indexnow";
 import { buildLlmsTxt } from "@/lib/llms";
 import { breadcrumbJsonLd, createPageMetadata, serializeJsonLd } from "@/lib/seo";
 import { buildSitemap } from "@/lib/sitemap";
@@ -162,4 +170,84 @@ test("llms.txt lists content by summary and llms-full.txt inlines the bodies", (
 test("a case study shown as a note points its canonical URL at the project page", () => {
   assert.equal(canonicalPostPath({ slug: "data-platform", isProject: true }), "/projects/data-platform");
   assert.equal(canonicalPostPath({ slug: "shipping-notes", isProject: false }), "/notes/shipping-notes");
+});
+
+test("IndexNow key validation and payload building enforce host and key rules", () => {
+  assert.equal(isValidIndexNowKey("short"), false);
+  assert.equal(isValidIndexNowKey("bad key!"), false);
+  assert.equal(isValidIndexNowKey("a1b2c3d4e5f6a7b8"), true);
+
+  const payload = buildIndexNowPayload(
+    [
+      "/",
+      "/notes/shipping-notes",
+      "https://portfolio.jmraut.dev/notes/shipping-notes",
+      "https://evil.example.com/phishing",
+    ],
+    {
+      key: "a1b2c3d4e5f6a7b8",
+      origin: new URL("https://portfolio.jmraut.dev"),
+    },
+  );
+
+  assert.deepEqual(payload, {
+    host: "portfolio.jmraut.dev",
+    key: "a1b2c3d4e5f6a7b8",
+    keyLocation: "https://portfolio.jmraut.dev/indexnow-key.txt",
+    urlList: [
+      "https://portfolio.jmraut.dev/",
+      "https://portfolio.jmraut.dev/notes/shipping-notes",
+    ],
+  });
+});
+
+test("IndexNow submission handles accepted responses, missing keys, and localhost", async () => {
+  const skippedNoKey = await submitIndexNow(["/"], { key: "" });
+  assert.equal(skippedNoKey.ok, false);
+  assert.equal(skippedNoKey.skipped, true);
+
+  const skippedLocalhost = await submitIndexNow(["/"], {
+    key: "a1b2c3d4e5f6a7b8",
+    origin: new URL("http://localhost:3000"),
+  });
+  assert.equal(skippedLocalhost.ok, false);
+  assert.equal(skippedLocalhost.skipped, true);
+
+  let capturedUrl = "";
+  let capturedBody = "";
+  const mockFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    capturedUrl = String(input);
+    capturedBody = String(init?.body ?? "");
+    return new Response(null, { status: 202 });
+  }) as typeof fetch;
+
+  const accepted = await submitIndexNow(["/", "/projects/data-platform"], {
+    key: "a1b2c3d4e5f6a7b8",
+    origin: new URL("https://portfolio.jmraut.dev"),
+    fetchImpl: mockFetch,
+  });
+
+  assert.equal(capturedUrl, INDEXNOW_ENDPOINT);
+  assert.equal(accepted.ok, true);
+  if (accepted.ok) {
+    assert.equal(accepted.status, 202);
+    assert.equal(accepted.submitted, 2);
+  }
+  const parsed = JSON.parse(capturedBody);
+  assert.equal(parsed.keyLocation, "https://portfolio.jmraut.dev/indexnow-key.txt");
+  assert.deepEqual(parsed.urlList, [
+    "https://portfolio.jmraut.dev/",
+    "https://portfolio.jmraut.dev/projects/data-platform",
+  ]);
+});
+
+test("urlsForPost covers canonical paths, index pages, and renamed slugs", () => {
+  assert.deepEqual(
+    urlsForPost({ slug: "data-platform", type: PostType.PROJECT, showAsBlog: true }, "old-slug"),
+    ["/", "/projects", "/projects/data-platform", "/notes", "/projects/old-slug"],
+  );
+  assert.deepEqual(
+    urlsForPost({ slug: "shipping-notes", type: PostType.BLOG }),
+    ["/", "/notes", "/notes/shipping-notes"],
+  );
 });
