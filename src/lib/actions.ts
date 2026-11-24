@@ -7,6 +7,10 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/lib/require-admin';
 import { applyRevision, revalidateContent, trashPost } from '@/lib/post-ops';
+import { scheduleIndexNow, submitIndexNow, urlsForPost } from '@/lib/indexnow';
+import { getPosts } from '@/lib/posts';
+import { getProjects } from '@/lib/projects';
+import { buildSitemap } from '@/lib/sitemap';
 
 // Browsers submit form fields with CRLF line endings; store Markdown with LF so saving never rewrites a post.
 function normalizeNewlines(value: FormDataEntryValue | null) {
@@ -99,6 +103,9 @@ export async function createPost(formData: FormData) {
     revalidatePath('/admin/projects');
     revalidatePath('/admin/notes');
     revalidatePublicContent();
+    if (status === PostStatus.PUBLISHED) {
+        scheduleIndexNow(urlsForPost({ slug, type, showAsBlog }));
+    }
     redirect(type === 'PROJECT' ? '/admin/projects' : '/admin/notes');
 }
 
@@ -184,7 +191,17 @@ export async function updatePost(id: string, formData: FormData) {
     if (publishRevision) {
         const live = await applyRevision(await prisma.post.findUniqueOrThrow({ where: { id } }));
         revalidateContent(live.slug);
+        scheduleIndexNow(urlsForPost(live));
         redirect(`/admin/${live.type === PostType.PROJECT ? 'projects' : 'notes'}/${live.slug}`);
+    }
+
+    if (status === PostStatus.PUBLISHED || existingPost.status === PostStatus.PUBLISHED) {
+        scheduleIndexNow(
+            urlsForPost(
+                { slug, type: existingPost.type, showAsBlog: showAsBlog || existingPost.showAsBlog },
+                existingPost.slug,
+            ),
+        );
     }
 }
 
@@ -201,11 +218,14 @@ export async function deletePost(id: string) {
     revalidatePath('/admin/notes');
     revalidatePath('/admin/trash');
     revalidatePublicContent();
+    if (post.status === PostStatus.PUBLISHED) {
+        scheduleIndexNow(urlsForPost(post));
+    }
 }
 
 export async function restorePost(id: string) {
     await requireAdmin();
-    await prisma.post.update({
+    const restored = await prisma.post.update({
         where: { id },
         data: { deletedAt: null }
     });
@@ -215,6 +235,9 @@ export async function restorePost(id: string) {
     revalidatePath('/admin/notes');
     revalidatePath('/admin/trash');
     revalidatePublicContent();
+    if (restored.status === PostStatus.PUBLISHED) {
+        scheduleIndexNow(urlsForPost(restored));
+    }
 }
 
 export async function permanentDeletePost(id: string) {
@@ -310,6 +333,13 @@ export async function reorderProject(id: string, direction: 'up' | 'down') {
 export async function revalidateAll() {
     await requireAdmin();
     revalidatePath('/', 'layout');
+}
+
+export async function submitSitemapToIndexNow() {
+    await requireAdmin();
+    const [projects, posts] = await Promise.all([getProjects(), getPosts()]);
+    const urls = buildSitemap(projects, posts).map((entry) => entry.url);
+    return submitIndexNow(urls);
 }
 
 export async function updateProjectOrder(orderedIds: string[]) {

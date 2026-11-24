@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { PostStatus } from "@prisma/client";
 
 import { MAX_DRAFT_BODY_BYTES, parseEditFields, tokenRole } from "@/lib/drafts";
+import { scheduleIndexNow, urlsForPost } from "@/lib/indexnow";
 import { publishPost, revalidateContent, stageEdit, trashPost } from "@/lib/post-ops";
 import { prisma } from "@/lib/prisma";
 
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
   if (action === "publish") {
     const live = await publishPost(post);
     revalidateContent(post.slug, live.slug);
+    scheduleIndexNow(urlsForPost(live));
     log(200, { live: live.slug });
     return reply(200, { success: true, slug: live.slug, status: live.status, appliedEdit: post.revisionOfId !== null });
   }
@@ -55,6 +57,7 @@ export async function POST(request: NextRequest) {
     if (post.revisionOfId) return reply(409, { error: "This is a staged edit; trash it instead." });
     const draft = await prisma.post.update({ where: { id: post.id }, data: { status: PostStatus.DRAFT } });
     revalidateContent(post.slug);
+    if (post.status === PostStatus.PUBLISHED) scheduleIndexNow(urlsForPost(post));
     log(200);
     return reply(200, { success: true, slug: draft.slug, status: draft.status });
   }
@@ -62,6 +65,7 @@ export async function POST(request: NextRequest) {
   if (action === "trash") {
     await trashPost(post);
     revalidateContent(post.slug);
+    if (post.status === PostStatus.PUBLISHED) scheduleIndexNow(urlsForPost(post));
     log(200);
     return reply(200, { success: true, slug: post.slug, trashed: true });
   }

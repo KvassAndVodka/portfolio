@@ -5,8 +5,10 @@ import { auth } from "@/auth";
 import SignOutButton from "@/app/admin/SignOutButton";
 import AdminPageHead from "@/components/admin/AdminPageHead";
 import { adminPreviewUser, isAdminPreviewEnabled } from "@/lib/admin-preview";
+import { getIndexNowKey, INDEXNOW_KEY_PATH } from "@/lib/indexnow";
 import { prisma } from "@/lib/prisma";
 import { siteConfig } from "@/lib/seo";
+import IndexNowButton from "./IndexNowButton";
 import RefreshButton from "./RefreshButton";
 import ThemeSettings from "./ThemeSettings";
 
@@ -35,6 +37,10 @@ export default async function AdminSettings() {
     prisma.post.count({ where: { deletedAt: { not: null } } }).catch(() => null),
   ]);
   const host = siteConfig.origin.host;
+  const indexNowConfigured = getIndexNowKey() !== null;
+  const links = indexNowConfigured
+    ? [...publicLinks, { label: "IndexNow", path: INDEXNOW_KEY_PATH }]
+    : publicLinks;
 
   return (
     <>
@@ -55,7 +61,7 @@ export default async function AdminSettings() {
       </Section>
       <Section index={3} title="Public site">
         <ul className="settings-links">
-          {publicLinks.map((link) => (
+          {links.map((link) => (
             <li key={link.path}>
               <a href={link.path} target="_blank" rel="noreferrer">
                 <span className="admin-label site-muted">{link.label}</span>
@@ -66,8 +72,9 @@ export default async function AdminSettings() {
             </li>
           ))}
         </ul>
-        <p className="site-muted mt-6 text-sm">If a saved change doesn&apos;t show on the public site after its normal cache window, refresh it here.</p>
+        <p className="site-muted mt-6 text-sm">If a saved change doesn&apos;t show on the public site after its normal cache window, refresh it here. Publishing or editing posts notifies IndexNow automatically, or you can submit the full sitemap manually.</p>
         <RefreshButton />
+        <IndexNowButton configured={indexNowConfigured} />
       </Section>
       <Section index={4} title="Trash">
         <p className="flex items-baseline gap-3">

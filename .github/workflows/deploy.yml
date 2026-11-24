@@ -254,6 +254,36 @@ jobs:
             exit 1
           fi
 
+      - name: Notify IndexNow
+        if: success()
+        continue-on-error: true
+        run: |
+          INDEXNOW_KEY="$(grep -E '^INDEXNOW_KEY=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r\n')"
+          if [ -z "$INDEXNOW_KEY" ]; then
+            echo "INDEXNOW_KEY is not set; skipping IndexNow submission."
+            exit 0
+          fi
+
+          SITEMAP_XML="$(curl --fail --silent --show-error --max-time 15 https://portfolio.jmraut.dev/sitemap.xml)"
+          URL_LIST="$(printf '%s' "$SITEMAP_XML" | grep -oE '<loc>[^<]+</loc>' | sed -E 's|^<loc>(.*)</loc>$|\1|' | awk 'NF { printf "%s\"%s\"", (n++ ? "," : ""), $0 }')"
+
+          if [ -z "$URL_LIST" ]; then
+            echo "No URLs found in sitemap.xml; skipping IndexNow submission."
+            exit 0
+          fi
+
+          PAYLOAD="$(printf '{"host":"portfolio.jmraut.dev","key":"%s","keyLocation":"https://portfolio.jmraut.dev/indexnow-key.txt","urlList":[%s]}' "$INDEXNOW_KEY" "$URL_LIST")"
+          HTTP_CODE="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 15 \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            -d "$PAYLOAD" \
+            https://api.indexnow.org/indexnow)"
+
+          if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "202" ]; then
+            echo "IndexNow accepted sitemap submission (HTTP $HTTP_CODE)."
+          else
+            echo "::warning::IndexNow returned HTTP $HTTP_CODE"
+          fi
+
       - name: Retire Tailscale Funnel Container
         if: success()
         run: |
