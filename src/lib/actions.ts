@@ -113,6 +113,23 @@ function chosenStatus(requested: FormDataEntryValue | null, current: PostStatus)
     return Object.values(PostStatus).includes(requested as PostStatus) ? requested as PostStatus : current;
 }
 
+function adminSection(type: PostType) {
+    return type === PostType.PROJECT ? 'projects' : 'notes';
+}
+
+function notifyUpdateIndexNow(
+    existingPost: { slug: string; type: PostType; status: PostStatus; showAsBlog: boolean },
+    next: { slug: string; status: PostStatus; showAsBlog: boolean },
+) {
+    if (next.status !== PostStatus.PUBLISHED && existingPost.status !== PostStatus.PUBLISHED) return;
+    scheduleIndexNow(
+        urlsForPost(
+            { slug: next.slug, type: existingPost.type, showAsBlog: next.showAsBlog || existingPost.showAsBlog },
+            existingPost.slug,
+        ),
+    );
+}
+
 export async function updatePost(id: string, formData: FormData) {
     await requireAdmin();
     const existingPost = await prisma.post.findUniqueOrThrow({ where: { id } });
@@ -183,26 +200,20 @@ export async function updatePost(id: string, formData: FormData) {
     revalidatePath('/notes');
     revalidatePath(`/projects/${slug}`);
     revalidatePath(`/notes/${slug}`);
+    const section = adminSection(existingPost.type);
     revalidatePath('/admin');
-    revalidatePath(`/admin/${existingPost.type === PostType.PROJECT ? 'projects' : 'notes'}`);
-    revalidatePath(`/admin/${existingPost.type === PostType.PROJECT ? 'projects' : 'notes'}/${slug}`);
+    revalidatePath(`/admin/${section}`);
+    revalidatePath(`/admin/${section}/${slug}`);
     revalidatePublicContent();
 
     if (publishRevision) {
         const live = await applyRevision(await prisma.post.findUniqueOrThrow({ where: { id } }));
         revalidateContent(live.slug);
         scheduleIndexNow(urlsForPost(live));
-        redirect(`/admin/${live.type === PostType.PROJECT ? 'projects' : 'notes'}/${live.slug}`);
+        redirect(`/admin/${adminSection(live.type)}/${live.slug}`);
     }
 
-    if (status === PostStatus.PUBLISHED || existingPost.status === PostStatus.PUBLISHED) {
-        scheduleIndexNow(
-            urlsForPost(
-                { slug, type: existingPost.type, showAsBlog: showAsBlog || existingPost.showAsBlog },
-                existingPost.slug,
-            ),
-        );
-    }
+    notifyUpdateIndexNow(existingPost, { slug, status, showAsBlog });
 }
 
 export async function deletePost(id: string) {

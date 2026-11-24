@@ -74,7 +74,9 @@ async function main() {
   throw new Error(`IndexNow rejected submission with HTTP ${response.status}: ${body.trim()}`);
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
-});
+}

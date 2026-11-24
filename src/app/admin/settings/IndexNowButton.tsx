@@ -27,6 +27,19 @@ export default function IndexNowButton({ configured }: Readonly<{ configured: bo
       }
     });
 
+  let statusContent = null;
+  if (!configured) {
+    statusContent = <span className="site-muted">Set INDEXNOW_KEY in .env to enable.</span>;
+  } else if (status?.ok) {
+    statusContent = (
+      <span className="refresh-done inline-flex items-center gap-1.5 text-[var(--admin-success)]">
+        <FaCheck aria-hidden="true" /> {status.message}
+      </span>
+    );
+  } else if (status) {
+    statusContent = <span className="text-[var(--admin-danger)]">{status.message}</span>;
+  }
+
   return (
     <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
       <button
@@ -40,17 +53,7 @@ export default function IndexNowButton({ configured }: Readonly<{ configured: bo
         {pending ? "Submitting…" : "Ping IndexNow"}
       </button>
       <p className="admin-label" aria-live="polite">
-        {!configured ? (
-          <span className="site-muted">Set INDEXNOW_KEY in .env to enable.</span>
-        ) : status ? (
-          status.ok ? (
-            <span className="refresh-done inline-flex items-center gap-1.5 text-[var(--admin-success)]">
-              <FaCheck aria-hidden="true" /> {status.message}
-            </span>
-          ) : (
-            <span className="text-[var(--admin-danger)]">{status.message}</span>
-          )
-        ) : null}
+        {statusContent}
       </p>
     </div>
   );
