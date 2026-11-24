@@ -70,8 +70,7 @@ async function main() {
     return;
   }
 
-  const body = await response.text().catch(() => "");
-  throw new Error(`IndexNow rejected submission with HTTP ${response.status}: ${body.trim()}`);
+  throw new Error(`IndexNow rejected submission with HTTP ${response.status}.`);
 }
 
 try {
