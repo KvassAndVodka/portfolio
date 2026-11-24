@@ -10,7 +10,8 @@ import TechnologyStack from "@/components/TechnologyStack";
 import { getProjects, toProjectPreview } from "@/lib/projects";
 import { absoluteUrl, createPageMetadata, serializeJsonLd, siteConfig } from "@/lib/seo";
 
-export const revalidate = 60;
+// Render against live DB on request (backed by 60s unstable_cache) so builds never bake empty HTML.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   ...createPageMetadata({
