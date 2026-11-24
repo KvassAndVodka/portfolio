@@ -6,6 +6,9 @@ import SiteFooter from "@/components/SiteFooter";
 import { getPosts, toPostPreview } from "@/lib/posts";
 import { createPageMetadata } from "@/lib/seo";
 
+// Render against live DB on request (backed by 60s unstable_cache) so builds never bake empty HTML.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = createPageMetadata({
   title: "Notes",
   description: "Technical notes on software engineering, data systems, infrastructure, and active projects by Javier Raut.",
