@@ -91,15 +91,20 @@ export default function ContactForm() {
     { dependencies: [status, feedback], scope: formRef },
   );
 
+  function readFormText(data: FormData, field: ContactField): string {
+    const value = data.get(field);
+    return typeof value === "string" ? value : "";
+  }
+
   function saveDraft() {
     const form = formRef.current;
     if (!form) return;
     try {
       const data = new FormData(form);
       const draft: Record<ContactField, string> = {
-        name: String(data.get("name") ?? ""),
-        email: String(data.get("email") ?? ""),
-        message: String(data.get("message") ?? ""),
+        name: readFormText(data, "name"),
+        email: readFormText(data, "email"),
+        message: readFormText(data, "message"),
       };
       if (draft.name || draft.email || draft.message) {
         window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -142,10 +147,7 @@ export default function ContactForm() {
 
     const form = event.currentTarget;
     const data = new FormData(form);
-    const text = (field: ContactField) => {
-      const value = data.get(field);
-      return typeof value === "string" ? value.trim() : "";
-    };
+    const text = (field: ContactField) => readFormText(data, field).trim();
     const values: Record<ContactField, string> = {
       message: text("message"),
       name: text("name"),
@@ -225,9 +227,10 @@ export default function ContactForm() {
     );
 
   const remaining = 10 - messageLength;
+  const unit = remaining === 1 ? "character" : "characters";
   const messageHelper =
     messageLength > 0 && remaining > 0
-      ? `Add ${remaining} more ${remaining === 1 ? "character" : "characters"} (10 minimum).`
+      ? `Add ${remaining} more ${unit} (10 minimum).`
       : "A short note on what you are building, fixing, or trying to understand is enough.";
 
   // Natural mobile-first DOM order (To -> Name/Email -> Message -> Submit), arranged as a postcard back on desktop.

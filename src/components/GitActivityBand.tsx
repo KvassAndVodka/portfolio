@@ -151,7 +151,7 @@ export default function GitActivityBand() {
               onPointerLeave={() => setPointed(null)}
               onPointerMove={pointAt}
               preserveAspectRatio="xMaxYMid slice"
-              role="group"
+              role="application"
               tabIndex={0}
               viewBox={`0 0 ${columns * CELL} ${7 * CELL}`}
             >

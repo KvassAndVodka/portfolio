@@ -239,7 +239,8 @@ function ProjectShowcaseContent({
           <p className="project-result-count" aria-live="polite">
             Showing {filteredProjects.length} of {availableProjects.length}
           </p>
-          <div className="filter-tabs" role="group" aria-label="Filter projects by category">
+          <fieldset className="filter-tabs">
+            <legend className="sr-only">Filter projects by category</legend>
             {categories.map((category) => (
               <button
                 key={category}
@@ -251,7 +252,7 @@ function ProjectShowcaseContent({
                 {activeCategory === category && <span aria-hidden="true" className="filter-active-indicator" />}
               </button>
             ))}
-          </div>
+          </fieldset>
         </div>
 
         <div className="search-field">

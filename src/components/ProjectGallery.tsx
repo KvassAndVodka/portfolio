@@ -185,7 +185,7 @@ function GalleryCard({ project, index, total, active, className }: GalleryCardPr
             </dl>
           )}
 
-          <div className="order-5 flex flex-wrap items-end gap-2 px-6 pb-6 pt-5 lg:order-none lg:mt-auto lg:p-0" role="group" aria-label={`${project.title} links`}>
+          <nav className="order-5 flex flex-wrap items-end gap-2 px-6 pb-6 pt-5 lg:order-none lg:mt-auto lg:p-0" aria-label={`${project.title} links`}>
             <Link href={`/projects/${project.slug}`} className="postcard-button postcard-button-primary">
               Case study
               <FaArrowRight aria-hidden="true" />
@@ -202,7 +202,7 @@ function GalleryCard({ project, index, total, active, className }: GalleryCardPr
                 Code
               </a>
             )}
-          </div>
+          </nav>
         </div>
       </div>
     </article>

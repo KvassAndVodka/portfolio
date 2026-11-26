@@ -5,6 +5,10 @@ import { useRef } from "react";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
 const WORDMARK = "Javier Raut";
+const WORDMARK_GLYPHS = Array.from(WORDMARK, (char, position) => ({
+  id: char === " " ? `space-${position}` : `char-${position}-${char}`,
+  char,
+}));
 
 /**
  * The footer's sign-off. When the footer enters view, a survey datum and coordinate beam sweep across
@@ -74,15 +78,15 @@ export default function FooterWordmark() {
       <span className="wordmark-datum" />
       <span className="wordmark-beam" />
       <span className="site-footer-name">
-        {Array.from(WORDMARK).map((char, index) =>
-          char === " " ? (
-            <span className="wordmark-space" key={`space-${index}`}>
+        {WORDMARK_GLYPHS.map((glyph) =>
+          glyph.char === " " ? (
+            <span className="wordmark-space" key={glyph.id}>
               {"\u00A0"}
             </span>
           ) : (
-            <span className="wordmark-glyph" key={`${char}-${index}`}>
-              <span className="wordmark-ink">{char}</span>
-              <span className="wordmark-wire">{char}</span>
+            <span className="wordmark-glyph" key={glyph.id}>
+              <span className="wordmark-ink">{glyph.char}</span>
+              <span className="wordmark-wire">{glyph.char}</span>
               <span className="wordmark-tick">+</span>
             </span>
           ),

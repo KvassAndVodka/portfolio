@@ -1611,11 +1611,6 @@ button {
   text-transform: uppercase;
 }
 
-.back-link svg {
-  flex: none;
-  font-size: 0.95rem;
-}
-
 svg.button-external-icon {
   font-size: 0.72rem;
 }
@@ -4267,6 +4262,8 @@ a.story-place-organization:hover {
 }
 
 .back-link svg {
+  flex: none;
+  font-size: 0.95rem;
   transition: translate 200ms var(--ease-out-expo);
 }
 
@@ -4302,7 +4299,12 @@ a.story-place-organization:hover {
 .filter-tabs {
   display: flex;
   flex-wrap: wrap;
+  border: 0;
+  padding: 0;
+  margin-block: 0;
+  margin-right: 0;
   margin-left: -0.75rem;
+  min-inline-size: 0;
 }
 
 .filter-tabs button {

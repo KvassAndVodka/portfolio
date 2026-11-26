@@ -1106,7 +1106,7 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
             <div className="story-places-wash" />
           </div>
         </div>
-        <canvas className="story-cloud" ref={cloudRef} aria-hidden="true" />
+        <canvas className="story-cloud" ref={cloudRef} aria-hidden="true" tabIndex={-1} />
 
         <div className="story-overlay">
           <div className="story-frame site-shell">
