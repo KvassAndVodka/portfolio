@@ -35,6 +35,11 @@ function validateField(field: ContactField, value: string) {
   return "";
 }
 
+function readFormText(data: FormData, field: ContactField): string {
+  const value = data.get(field);
+  return typeof value === "string" ? value : "";
+}
+
 export default function ContactForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<FormStatus>("idle");
@@ -90,11 +95,6 @@ export default function ContactForm() {
     },
     { dependencies: [status, feedback], scope: formRef },
   );
-
-  function readFormText(data: FormData, field: ContactField): string {
-    const value = data.get(field);
-    return typeof value === "string" ? value : "";
-  }
 
   function saveDraft() {
     const form = formRef.current;
