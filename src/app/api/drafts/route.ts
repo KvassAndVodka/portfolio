@@ -22,43 +22,39 @@ function blockedReason(
   return null;
 }
 
-// Machine-only door for the content job: it can create or update DRAFT notes and case studies,
-// never publish. The owner keeps the publish step.
-export async function POST(request: NextRequest) {
-  const role = tokenRole(request.headers.get("authorization"));
-  if (!role) return unauthorized();
+type DraftInput = NonNullable<ReturnType<typeof parseDraftInput>>;
 
+async function parseDraftRequest(
+  request: NextRequest,
+): Promise<{ error: NextResponse } | { input: DraftInput }> {
   const raw = await request.text();
   if (Buffer.byteLength(raw) > MAX_DRAFT_BODY_BYTES) {
-    return NextResponse.json({ error: "Body too large." }, { status: 413 });
+    return { error: NextResponse.json({ error: "Body too large." }, { status: 413 }) };
   }
   let payload: unknown;
   try {
     payload = JSON.parse(raw);
   } catch {
-    return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
+    return { error: NextResponse.json({ error: "Invalid JSON." }, { status: 400 }) };
   }
   const input = parseDraftInput(payload);
   if (!input) {
-    return NextResponse.json(
-      {
-        error:
-          "Expected title (≤120), summary (≤300), content (≤50000). Notes also need weekId (YYYY-Www). Projects accept slug, category, techStack, outcome and https links.",
-      },
-      { status: 400 },
-    );
+    return {
+      error: NextResponse.json(
+        {
+          error:
+            "Expected title (≤120), summary (≤300), content (≤50000). Notes also need weekId (YYYY-Www). Projects accept slug, category, techStack, outcome and https links.",
+        },
+        { status: 400 },
+      ),
+    };
   }
+  return { input };
+}
 
+function buildDraftFields(input: DraftInput) {
   const isProject = input.type === "PROJECT";
   const slug = isProject ? input.slug ?? projectSlug(input.title) : draftSlug(input.weekId ?? "");
-  if (!slug) {
-    return NextResponse.json({ error: "Could not derive a slug. Send one explicitly." }, { status: 400 });
-  }
-
-  const existing = await prisma.post.findUnique({ where: { slug }, select: { status: true, type: true, deletedAt: true, revisionOfId: true } });
-  const blocked = existing && blockedReason(existing, isProject ? PostType.PROJECT : PostType.BLOG);
-  if (blocked) return NextResponse.json({ error: blocked }, { status: 409 });
-
   const data = {
     title: input.title,
     summary: input.summary,
@@ -75,14 +71,41 @@ export async function POST(request: NextRequest) {
       : {}),
   };
 
+  return {
+    isProject,
+    postType: isProject ? PostType.PROJECT : PostType.BLOG,
+    slug,
+    data,
+    createCategory: isProject ? input.category ?? null : "Weekly",
+  };
+}
+
+// Machine-only door for the content job: it can create or update DRAFT notes and case studies,
+// never publish. The owner keeps the publish step.
+export async function POST(request: NextRequest) {
+  const role = tokenRole(request.headers.get("authorization"));
+  if (!role) return unauthorized();
+
+  const parsed = await parseDraftRequest(request);
+  if ("error" in parsed) return parsed.error;
+
+  const { isProject, postType, slug, data, createCategory } = buildDraftFields(parsed.input);
+  if (!slug) {
+    return NextResponse.json({ error: "Could not derive a slug. Send one explicitly." }, { status: 400 });
+  }
+
+  const existing = await prisma.post.findUnique({ where: { slug }, select: { status: true, type: true, deletedAt: true, revisionOfId: true } });
+  const blocked = existing && blockedReason(existing, postType);
+  if (blocked) return NextResponse.json({ error: blocked }, { status: 409 });
+
   const post = await prisma.post.upsert({
     where: { slug },
     create: {
       ...data,
       slug,
-      type: isProject ? PostType.PROJECT : PostType.BLOG,
+      type: postType,
       status: PostStatus.DRAFT,
-      category: isProject ? input.category ?? null : "Weekly",
+      category: createCategory,
     },
     update: data,
     select: { id: true, slug: true, type: true },
@@ -91,8 +114,9 @@ export async function POST(request: NextRequest) {
   revalidatePath("/admin");
   revalidatePath(isProject ? "/admin/projects" : "/admin/notes");
   if (isProject) revalidatePath("/projects");
-  console.info(JSON.stringify({ event: "content-api", role, action: "draft", slug: post.slug, status: existing ? 200 : 201 }));
-  return NextResponse.json({ success: true, created: !existing, ...post }, { status: existing ? 200 : 201 });
+  const responseStatus = existing ? 200 : 201;
+  console.info(JSON.stringify({ event: "content-api", role, action: "draft", slug: post.slug, status: responseStatus }));
+  return NextResponse.json({ success: true, created: !existing, ...post }, { status: responseStatus });
 }
 
 // Recent note titles so the job can avoid repeating topics.
