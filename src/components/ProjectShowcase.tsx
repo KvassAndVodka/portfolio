@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { FaArrowUpRightFromSquare, FaGithub, FaRotateRight } from "react-icons/fa6";
+import { useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { FaArrowUpRightFromSquare, FaGithub, FaRotateRight, FaXmark } from "react-icons/fa6";
 
 import Pagination, { paginate } from "@/components/Pagination";
 import ProjectCard from "@/components/ProjectCard";
@@ -10,6 +10,7 @@ import { useTimedFetch } from "@/hooks/useTimedFetch";
 import { Flip, gsap, prefersReducedMotion, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { scrollBelowHeader } from "@/lib/lenis";
 import type { ProjectPreview } from "@/lib/projects";
+import { siteConfig } from "@/lib/seo";
 
 type ProjectShowcaseProps = Readonly<{
   initialProjects?: ProjectPreview[];
@@ -17,6 +18,19 @@ type ProjectShowcaseProps = Readonly<{
 }>;
 
 const PAGE_SIZE = 6;
+const QUERY_EVENT = "projects:query";
+
+const subscribeQuery = (onChange: () => void) => {
+  window.addEventListener("popstate", onChange);
+  window.addEventListener(QUERY_EVENT, onChange);
+  return () => {
+    window.removeEventListener("popstate", onChange);
+    window.removeEventListener(QUERY_EVENT, onChange);
+  };
+};
+
+const getQuerySnapshot = () => window.location.search;
+const getServerQuerySnapshot = () => "";
 
 export default function ProjectShowcase({
   loadImmediately = false,
@@ -56,33 +70,9 @@ function ProjectShowcaseContent({
 }: ProjectShowcaseProps & Readonly<{ enabled: boolean }>) {
   const rootRef = useRef<HTMLDivElement>(null);
   const layoutRef = useRef<Flip.FlipState | null>(null);
-  const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All");
+  const queryString = useSyncExternalStore(subscribeQuery, getQuerySnapshot, getServerQuerySnapshot);
   const [page, setPage] = useState(1);
 
-  // Record card positions before a filter change so Flip can animate the reflow.
-  const captureLayout = () => {
-    const cards = rootRef.current?.querySelectorAll(".project-card");
-    if (!cards?.length || prefersReducedMotion()) return;
-    finishReveals(cards);
-    layoutRef.current = Flip.getState(cards);
-  };
-  // A new filter starts from the first page.
-  const changeCategory = (category: string) => {
-    captureLayout();
-    setActiveCategory(category);
-    setPage(1);
-  };
-  const changeSearch = (value: string) => {
-    captureLayout();
-    setSearch(value);
-    setPage(1);
-  };
-  // A new page jumps back to the top of the list: no reflow animation, it's a different set of cards.
-  const changePage = (next: number) => {
-    setPage(next);
-    if (rootRef.current) scrollBelowHeader(rootRef.current);
-  };
   const { data, retry, status } = useTimedFetch<{ projects: ProjectPreview[] }>(
     "/api/projects",
     3_500,
@@ -101,6 +91,47 @@ function ProjectShowcaseContent({
     ],
     [availableProjects],
   );
+
+  const params = useMemo(() => new URLSearchParams(queryString), [queryString]);
+  const search = params.get("q") ?? "";
+  const rawCategory = params.get("category") ?? "All";
+  const activeCategory = categories.includes(rawCategory) ? rawCategory : "All";
+
+  const updateQuery = (nextCategory: string, nextSearch: string) => {
+    const next = new URLSearchParams(window.location.search);
+    if (nextCategory && nextCategory !== "All") next.set("category", nextCategory);
+    else next.delete("category");
+    if (nextSearch.trim()) next.set("q", nextSearch);
+    else next.delete("q");
+    const serialized = next.toString();
+    const target = serialized ? `${window.location.pathname}?${serialized}` : window.location.pathname;
+    window.history.replaceState(null, "", target);
+    window.dispatchEvent(new Event(QUERY_EVENT));
+  };
+
+  // Record card positions before a filter change so Flip can animate the reflow.
+  const captureLayout = () => {
+    const cards = rootRef.current?.querySelectorAll(".project-card");
+    if (!cards?.length || prefersReducedMotion()) return;
+    finishReveals(cards);
+    layoutRef.current = Flip.getState(cards);
+  };
+  // A new filter starts from the first page.
+  const changeCategory = (category: string) => {
+    captureLayout();
+    updateQuery(category, search);
+    setPage(1);
+  };
+  const changeSearch = (value: string) => {
+    captureLayout();
+    updateQuery(activeCategory, value);
+    setPage(1);
+  };
+  // A new page jumps back to the top of the list: no reflow animation, it's a different set of cards.
+  const changePage = (next: number) => {
+    setPage(next);
+    if (rootRef.current) scrollBelowHeader(rootRef.current);
+  };
 
   const filteredProjects = availableProjects.filter((project) => {
     const query = search.trim().toLowerCase();
@@ -174,7 +205,7 @@ function ProjectShowcaseContent({
     return (
       <div ref={rootRef}>
         <output className="empty-state project-fallback">
-          <h3>{title}</h3>
+          <h2>{title}</h2>
           <p>
             The case studies could not be retrieved. You can still inspect the source and recent work
             on GitHub.
@@ -186,7 +217,7 @@ function ProjectShowcaseContent({
             </button>
             <a
               className="postcard-button postcard-button-primary"
-              href="https://github.com/KvassAndVodka"
+              href={siteConfig.github}
               aria-label="Javier Raut on GitHub (opens in a new tab)"
               rel="noreferrer"
               target="_blank"
@@ -208,7 +239,8 @@ function ProjectShowcaseContent({
           <p className="project-result-count" aria-live="polite">
             Showing {filteredProjects.length} of {availableProjects.length}
           </p>
-          <div className="filter-tabs" aria-label="Filter projects by category">
+          <fieldset className="filter-tabs">
+            <legend className="sr-only">Filter projects by category</legend>
             {categories.map((category) => (
               <button
                 key={category}
@@ -220,18 +252,31 @@ function ProjectShowcaseContent({
                 {activeCategory === category && <span aria-hidden="true" className="filter-active-indicator" />}
               </button>
             ))}
-          </div>
+          </fieldset>
         </div>
 
-        <label className="search-field">
-          <span>Search</span>
-          <input
-            type="search"
-            placeholder="Title, summary, or technology"
-            value={search}
-            onChange={(event) => changeSearch(event.target.value)}
-          />
-        </label>
+        <div className="search-field">
+          <label htmlFor="project-search">Search</label>
+          <span className="search-input-wrap">
+            <input
+              id="project-search"
+              type="search"
+              placeholder="Title, summary, or technology"
+              value={search}
+              onChange={(event) => changeSearch(event.target.value)}
+            />
+            {search.length > 0 && (
+              <button
+                type="button"
+                className="search-clear"
+                aria-label="Clear search"
+                onClick={() => changeSearch("")}
+              >
+                <FaXmark aria-hidden="true" />
+              </button>
+            )}
+          </span>
+        </div>
       </div>
 
       {filteredProjects.length === 0 ? (
@@ -241,8 +286,9 @@ function ProjectShowcaseContent({
             className="postcard-button mt-6"
             type="button"
             onClick={() => {
-              changeSearch("");
-              changeCategory("All");
+              captureLayout();
+              updateQuery("All", "");
+              setPage(1);
             }}
           >
             Clear filters

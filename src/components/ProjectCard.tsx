@@ -121,7 +121,7 @@ export default function ProjectCard({ index, total, position = 0, project }: Pro
           </div>
         )}
 
-        <div className="project-card-links" aria-label={`${project.title} links`}>
+        <nav className="project-card-links" aria-label={`${project.title} links`}>
           <Link className="postcard-button postcard-button-primary" href={`/projects/${project.slug}`}>
             Case study
             <FaArrowRight aria-hidden="true" />
@@ -150,7 +150,7 @@ export default function ProjectCard({ index, total, position = 0, project }: Pro
               Code
             </a>
           )}
-        </div>
+        </nav>
       </div>
     </article>
   );

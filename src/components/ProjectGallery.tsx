@@ -18,9 +18,8 @@ const DESKTOP_MOTION = "(min-width: 1024px) and (prefers-reduced-motion: no-pref
 
 /**
  * The home page's projects. On desktop the section pins over the ASCII cloud and vertical scroll moves a
- * horizontal track: a title slide, then one atlas-page card per project, each snapping to the centre. The
- * last card then holds still for half a screen of scroll, a breather before the next section, and the pin
- * releases. Phones and reduced motion get the same cards stacked vertically.
+ * horizontal track: a title slide, then one atlas-page card per project, each snapping to the centre before
+ * releasing directly to the next section. Phones and reduced motion get the same cards stacked vertically.
  */
 export default function ProjectGallery({ projects }: Readonly<{ projects: ProjectPreview[] }>) {
   const ref = useRef<HTMLDivElement>(null);
@@ -41,30 +40,16 @@ export default function ProjectGallery({ projects }: Readonly<{ projects: Projec
         // How far the track moves to centre a slide on screen.
         const centred = (slide: HTMLElement) => slide.offsetLeft + slide.offsetWidth / 2 - root.clientWidth / 2;
         const distance = () => Math.max(1, centred(slides()[slides().length - 1]));
-        // After the last card is centred, the pin holds for half a screen of scroll with nothing moving.
-        const hold = () => window.innerHeight * 0.5;
-        // The share of the pin spent moving the track; the rest is the hold. Measured on each refresh.
-        let moving = 1;
-        const measure = () => {
-          moving = distance() / (distance() + hold());
-        };
-        measure();
-        // Stops as scroll progress: the title slide where it starts, each card centred, then the end of the hold,
-        // so a small scroll there settles back on the last card and only a firm one moves on.
-        stopsRef.current = () => [
-          ...slides().map((slide, i) => (i === 0 ? 0 : moving * Math.min(1, Math.max(0, centred(slide) / distance())))),
-          1,
-        ];
+        stopsRef.current = () =>
+          slides().map((slide, i) => (i === 0 ? 0 : Math.min(1, Math.max(0, centred(slide) / distance()))));
 
         const tween = gsap.to(track, {
           x: () => -distance(),
-          // Linear while moving, then flat through the hold.
-          ease: (progress) => Math.min(1, progress / moving),
+          ease: "none",
           scrollTrigger: {
             trigger: root,
             start: "top top",
-            end: () => `+=${distance() + hold()}`,
-            onRefresh: measure,
+            end: () => `+=${distance()}`,
             pin: true,
             scrub: 0.6,
             // Measure this pin before CloudField's triggers, so their range includes the scroll it adds.
@@ -72,11 +57,12 @@ export default function ProjectGallery({ projects }: Readonly<{ projects: Projec
             invalidateOnRefresh: true,
             snap: { snapTo: (value) => gsap.utils.snap(stopsRef.current(), value), duration: { min: 0.25, max: 0.7 }, ease: "power2.out" },
             onUpdate: (self) => {
-              // The scale bar is full once the last card is centred.
-              if (bar) bar.style.transform = `scaleX(${Math.min(1, self.progress / moving)})`;
-              const stops = stopsRef.current().slice(0, -1); // the hold's end isn't a slide
-              const at = Math.min(self.progress, moving);
-              const nearest = stops.reduce((best, stop, i) => (Math.abs(stop - at) < Math.abs(stops[best] - at) ? i : best), 0);
+              if (bar) bar.style.transform = `scaleX(${self.progress})`;
+              const stops = stopsRef.current();
+              const nearest = stops.reduce(
+                (best, stop, i) => (Math.abs(stop - self.progress) < Math.abs(stops[best] - self.progress) ? i : best),
+                0,
+              );
               setActive(nearest - 1); // slide 0 is the title
             },
           },
@@ -155,9 +141,12 @@ type GalleryCardProps = Readonly<{ project: ProjectPreview; index: number; total
 function GalleryCard({ project, index, total, active, className }: GalleryCardProps) {
   const liveUrl = project.projectUrl || project.demoUrl;
   const note = `${label} text-[var(--postcard-rust)]`;
-  const action = "inline-flex min-h-11 items-center gap-2 rounded-[8px] px-4 text-sm font-semibold";
   return (
-    <article data-slide={index + 1} aria-labelledby={`project-${project.slug}`} className={`${className} flex flex-col overflow-hidden rounded-[2px] bg-[var(--postcard-paper)] text-[var(--postcard-ink)] shadow-[var(--postcard-shadow)]`}>
+    <article
+      data-slide={index + 1}
+      aria-labelledby={`project-${project.slug}`}
+      className={`${className} flex flex-col overflow-hidden rounded-[2px] bg-[var(--postcard-paper)] text-[var(--postcard-ink)] shadow-[var(--postcard-shadow)] [--line:color-mix(in_srgb,var(--postcard-ink)_12%,transparent)]`}
+    >
       <header className={`${label} flex h-11 shrink-0 items-stretch border-b border-[var(--line)]`}>
         <span className="flex items-center border-r border-[var(--line)] px-5 text-[var(--postcard-rust)]">Fig. {pad(index + 1)} / {pad(total)}</span>
         <span className="flex min-w-0 items-center truncate px-5 text-[var(--postcard-muted)]">{formatProjectCategory(project.category)}</span>
@@ -196,15 +185,24 @@ function GalleryCard({ project, index, total, active, className }: GalleryCardPr
             </dl>
           )}
 
-          <div className="order-5 flex flex-wrap items-end gap-2 px-6 pb-6 pt-5 lg:order-none lg:mt-auto lg:p-0">
-            <Link href={`/projects/${project.slug}`} className={`${action} bg-[var(--postcard-ink)] text-[var(--postcard-paper)]`}>Read the case study<FaArrowRight aria-hidden="true" className="text-[0.75em]" /></Link>
+          <nav className="order-5 flex flex-wrap items-end gap-2 px-6 pb-6 pt-5 lg:order-none lg:mt-auto lg:p-0" aria-label={`${project.title} links`}>
+            <Link href={`/projects/${project.slug}`} className="postcard-button postcard-button-primary">
+              Case study
+              <FaArrowRight aria-hidden="true" />
+            </Link>
             {liveUrl && (
-              <a href={liveUrl} rel="noreferrer" target="_blank" aria-label={`${project.title} live project (opens in a new tab)`} className={`${action} border border-[var(--postcard-ink)]`}>Live<FaArrowUpRightFromSquare aria-hidden="true" className="text-[0.7em]" /></a>
+              <a href={liveUrl} rel="noreferrer" target="_blank" aria-label={`${project.title} live project (opens in a new tab)`} className="postcard-button">
+                Live
+                <FaArrowUpRightFromSquare aria-hidden="true" />
+              </a>
             )}
             {project.githubUrl && (
-              <a href={project.githubUrl} rel="noreferrer" target="_blank" aria-label={`${project.title} code on GitHub (opens in a new tab)`} className={`${action} border border-[var(--postcard-ink)]`}><FaGithub aria-hidden="true" />Code</a>
+              <a href={project.githubUrl} rel="noreferrer" target="_blank" aria-label={`${project.title} code on GitHub (opens in a new tab)`} className="postcard-button">
+                <FaGithub aria-hidden="true" />
+                Code
+              </a>
             )}
-          </div>
+          </nav>
         </div>
       </div>
     </article>

@@ -9,17 +9,17 @@ export const metadata: Metadata = { title: "Page not found" };
 export default function NotFound() {
   return (
     <StatusPage
-      eyebrow="Error 404 · Not Found"
+      eyebrow="Page not found"
       title="This page isn't on the map."
       lead="The link may be old, or the page has moved. The work and the writing are still where they were."
     >
       <div className="status-page-actions">
-        <Link className="button-primary" href="/">
+        <Link className="postcard-button postcard-button-primary" href="/">
           Back to home
           <FaArrowRight aria-hidden="true" />
         </Link>
-        <Link className="button-secondary" href="/projects">Projects</Link>
-        <Link className="button-secondary" href="/notes">Notes</Link>
+        <Link className="postcard-button" href="/projects">Projects</Link>
+        <Link className="postcard-button" href="/notes">Notes</Link>
       </div>
     </StatusPage>
   );

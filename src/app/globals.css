@@ -783,12 +783,16 @@ body {
 
 .toast-action {
   padding-inline: 0.75rem;
-  color: var(--postcard-orange);
+  color: #ff7342;
   font-family: var(--font-mono), monospace;
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+.dark .toast-action {
+  color: #a3300e;
 }
 
 .toast-close {
@@ -1308,11 +1312,17 @@ button {
 
 /* Contact is the ticket's orange tab. */
 .primary-nav-contact {
-  min-height: 2.5rem;
+  min-height: 2.75rem;
+  gap: 0.45rem;
   margin-left: 0.5rem;
   padding-inline: 1.125rem;
   background: var(--postcard-orange);
   color: var(--postcard-on-orange);
+}
+
+.primary-nav-contact-arrow {
+  font-size: 0.72rem;
+  transition: transform 180ms var(--ease-out-expo);
 }
 
 .primary-nav-contact .primary-nav-label > span:last-child {
@@ -1601,60 +1611,8 @@ button {
   text-transform: uppercase;
 }
 
-.button-primary,
-.button-secondary {
-  display: inline-flex;
-  min-height: 3rem;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  border: 1px solid transparent;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1.15rem;
-  font-size: 0.9rem;
-  font-weight: 620;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.button-primary svg,
-.button-secondary svg,
-.back-link svg {
-  flex: none;
-  font-size: 0.95rem;
-}
-
 svg.button-external-icon {
   font-size: 0.72rem;
-}
-
-.button-primary {
-  border-color: var(--foreground);
-  background: var(--foreground);
-  color: var(--background);
-}
-
-.button-primary:hover {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-/* Glass secondary: a frosted chip that reads over both the map and plain surfaces. */
-.button-secondary {
-  border-color: color-mix(in srgb, var(--foreground) 16%, transparent);
-  background: color-mix(in srgb, var(--background) 45%, transparent);
-  color: var(--foreground);
-  -webkit-backdrop-filter: blur(10px) saturate(1.3);
-  backdrop-filter: blur(10px) saturate(1.3);
-  box-shadow:
-    inset 0 1px 0 0 rgb(255 255 255 / 35%),
-    0 8px 24px -12px color-mix(in srgb, var(--foreground) 25%, transparent);
-}
-
-.button-secondary:hover {
-  border-color: color-mix(in srgb, var(--foreground) 32%, transparent);
-  background: color-mix(in srgb, var(--background) 70%, transparent);
 }
 
 .text-link {
@@ -1668,58 +1626,6 @@ svg.button-external-icon {
 
 .text-link:hover {
   color: var(--accent);
-}
-
-.hero-field {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: var(--background);
-  pointer-events: auto;
-}
-
-.hero-field-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  touch-action: manipulation;
-}
-
-.hero-field-vignette {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      90deg,
-      var(--background) 0%,
-      color-mix(in srgb, var(--background) 96%, transparent) 26%,
-      color-mix(in srgb, var(--background) 72%, transparent) 52%,
-      transparent 82%
-    ),
-    linear-gradient(to bottom, transparent 70%, var(--background) 100%);
-  pointer-events: none;
-}
-
-.hero-kicker {
-  max-width: 31rem;
-  margin-bottom: 1.35rem;
-  color: var(--foreground);
-  font-size: clamp(1rem, 1.4vw, 1.15rem);
-  font-weight: 520;
-  letter-spacing: -0.015em;
-}
-
-.hero-kicker strong {
-  color: var(--accent);
-  font-weight: 720;
-}
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1.75rem;
 }
 
 .section-title-wide {
@@ -1779,6 +1685,7 @@ svg.button-external-icon {
 .contact-form {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
   width: min(100%, 65.25rem);
   margin: clamp(2.5rem, 5vw, 3.5rem) auto 0;
   padding: clamp(1.25rem, 3vw, 2.25rem);
@@ -1790,6 +1697,11 @@ svg.button-external-icon {
   background-size: 20px 20px;
   box-shadow: var(--postcard-shadow);
   color: var(--postcard-ink);
+}
+
+.contact-field {
+  display: grid;
+  gap: 0.375rem;
 }
 
 .contact-form label {
@@ -1804,6 +1716,8 @@ svg.button-external-icon {
 }
 
 .contact-message {
+  grid-column: 1;
+  grid-row: 1 / 4;
   padding-right: clamp(1.25rem, 3vw, 2.25rem);
 }
 
@@ -1817,7 +1731,7 @@ svg.button-external-icon {
   color: var(--postcard-ink);
   font-family: var(--font-geist-sans), sans-serif;
   font-size: 1.0625rem;
-  font-style: italic;
+  font-style: normal;
   letter-spacing: normal;
   line-height: 2rem;
   resize: vertical;
@@ -1825,18 +1739,27 @@ svg.button-external-icon {
 }
 
 /* The address side, split off by the postcard's centre line. */
-.contact-address {
+.contact-header {
   position: relative;
-  display: grid;
-  align-content: start;
-  gap: 1.25rem;
-  padding: 0 0 0 clamp(1.25rem, 3vw, 2.25rem);
+  grid-column: 2;
+  grid-row: 1;
+  padding: 0 0 1.25rem clamp(1.25rem, 3vw, 2.25rem);
   border-left: 1px solid var(--postcard-tear);
 }
 
-.contact-address .postcard-stamp {
+.contact-header .postcard-stamp {
   top: 0;
   right: 0;
+}
+
+.contact-sender {
+  display: grid;
+  align-content: start;
+  gap: 1.25rem;
+  grid-column: 2;
+  grid-row: 2;
+  padding: 0 0 1.25rem clamp(1.25rem, 3vw, 2.25rem);
+  border-left: 1px solid var(--postcard-tear);
 }
 
 .contact-to {
@@ -1870,7 +1793,7 @@ svg.button-external-icon {
   font-weight: 600;
 }
 
-.contact-address input {
+.contact-sender input {
   min-height: 2.75rem;
   padding: 0;
   border: 0;
@@ -1884,7 +1807,7 @@ svg.button-external-icon {
 }
 
 .contact-form :is(input, textarea):focus {
-  outline: 2px solid var(--postcard-orange);
+  outline: 2px solid var(--focus);
   outline-offset: 4px;
 }
 
@@ -1929,8 +1852,12 @@ svg.button-external-icon {
 
 .contact-form-submit {
   display: grid;
+  align-content: start;
   gap: 0.75rem;
-  margin-top: 0.5rem;
+  grid-column: 2;
+  grid-row: 3;
+  padding: 0.5rem 0 0 clamp(1.25rem, 3vw, 2.25rem);
+  border-left: 1px solid var(--postcard-tear);
 }
 
 .contact-submit {
@@ -1982,26 +1909,28 @@ svg.button-external-icon {
 @media (max-width: 767px) {
   .contact-form {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    gap: 1.25rem;
   }
 
+  .contact-header,
+  .contact-sender,
+  .contact-message,
+  .contact-form-submit {
+    grid-column: 1;
+    grid-row: auto;
+    padding: 0;
+    border-left: 0;
+  }
+
+  /* Message drops below sender fields; the centre line turns into a top rule. */
   .contact-message {
-    padding-right: 0;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--postcard-tear);
   }
 
   .contact-message textarea {
     min-height: 12rem;
-  }
-
-  /* The address side drops below the message; the centre line turns into a top rule. */
-  .contact-address {
-    margin-top: 1.5rem;
-    padding: 1.5rem 0 0;
-    border-top: 1px solid var(--postcard-tear);
-    border-left: 0;
-  }
-
-  .contact-address .postcard-stamp {
-    top: 1.25rem;
   }
 }
 
@@ -2137,7 +2066,7 @@ svg.button-external-icon {
 
 .site-footer-links a {
   display: inline-flex;
-  min-height: 2.25rem;
+  min-height: 2.75rem;
   align-items: center;
   gap: 0.5rem;
   color: #f8f8f2;
@@ -2153,7 +2082,9 @@ svg.button-external-icon {
 /* The wordmark closes the page and bleeds off its bottom edge: cropped just under the baseline, so it
    reads as too big for the screen while every letter stays legible. */
 .site-footer-wordmark {
-  margin: clamp(1.5rem, 3vw, 2.25rem) 0 0;
+  position: relative;
+  width: fit-content;
+  margin: clamp(2.25rem, 4vw, 3rem) 0 0;
   font-size: clamp(3.25rem, 14.5vw, 14rem);
   font-weight: 900;
   line-height: 0.8;
@@ -2162,9 +2093,104 @@ svg.button-external-icon {
   white-space: nowrap;
 }
 
+.wordmark-glyph {
+  position: relative;
+  display: inline-block;
+}
+
+.wordmark-space {
+  display: inline-block;
+  width: 0.22em;
+}
+
+.wordmark-ink {
+  display: inline-block;
+}
+
+.wordmark-wire {
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgb(248 248 242 / 78%);
+  text-shadow: none;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.wordmark-tick {
+  position: absolute;
+  top: -0.65rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ff7342;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  text-shadow: none;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.wordmark-datum {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, #ff5a24, #ff7342);
+  transform-origin: left center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.wordmark-beam {
+  position: absolute;
+  top: -0.9rem;
+  bottom: -0.35rem;
+  left: 0;
+  width: 1.5px;
+  background: linear-gradient(to bottom, transparent, #ff5a24 20%, #ff7342 80%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.wordmark-coords {
+  position: absolute;
+  top: -1.45rem;
+  left: 0;
+  color: #ff7342;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: none;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
 .site-footer-dot {
+  position: relative;
   display: inline-block;
   color: #ff5a24;
+}
+
+.wordmark-ping {
+  position: absolute;
+  bottom: -0.09em;
+  left: calc(50% - 0.17em);
+  width: 0.34em;
+  height: 0.34em;
+  border: 1.5px solid #ff5a24;
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .site-footer-bottom {
@@ -2175,7 +2201,7 @@ svg.button-external-icon {
   gap: 0.5rem 1.5rem;
   margin-top: clamp(3rem, 7vw, 5rem);
   padding-top: 1.25rem;
-  border-top: 1px dashed rgb(248 248 242 / 25%);
+  border-top: 1px solid rgb(248 248 242 / 22%);
   color: #b7b5ae;
   font-family: var(--font-geist-mono), monospace;
   font-size: 0.6875rem;
@@ -2497,6 +2523,11 @@ svg.button-external-icon {
 }
 
 @media (max-width: 767px) {
+  .brand-lockup {
+    width: auto;
+    padding-inline: 1rem;
+  }
+
   .display-title {
     max-width: 13ch;
     font-size: clamp(2.65rem, 12.5vw, 3.65rem);
@@ -2518,32 +2549,6 @@ svg.button-external-icon {
   .body-large {
     font-size: 1rem;
     line-height: 1.6;
-  }
-
-  .hero-kicker {
-    margin-bottom: 1rem;
-  }
-
-  .hero-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-top: 1.35rem;
-  }
-
-  .hero-actions .button-primary,
-  .hero-actions .button-secondary {
-    width: 100%;
-  }
-
-  .hero-field-vignette {
-    background:
-      linear-gradient(
-        to bottom,
-        color-mix(in srgb, var(--background) 94%, transparent) 0%,
-        color-mix(in srgb, var(--background) 70%, transparent) 42%,
-        transparent 68%,
-        var(--background) 100%
-      );
   }
 
   .project-technology-marks {
@@ -2570,15 +2575,13 @@ svg.button-external-icon {
 
 }
 
-@media (max-width: 359px) {
-  .hero-actions {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (hover: hover) and (pointer: fine) {
   .primary-nav-link:hover .primary-nav-label > span {
     transform: translateY(-0.85rem);
+  }
+
+  .primary-nav-contact:hover .primary-nav-contact-arrow {
+    transform: translateX(0.2rem);
   }
 
   .mobile-nav-contact:hover svg {
@@ -2613,8 +2616,6 @@ svg.button-external-icon {
 }
 
 /* Press feedback. Uses the standalone `scale` property so it never fights GSAP transforms. */
-.button-primary,
-.button-secondary,
 .text-link,
 .project-card-links a,
 .theme-toggle,
@@ -2626,8 +2627,6 @@ svg.button-external-icon {
   transition-timing-function: var(--ease-out-expo);
 }
 
-.button-primary:active,
-.button-secondary:active,
 .text-link:active,
 .project-card-links a:active,
 .theme-toggle:active,
@@ -2647,7 +2646,8 @@ svg.button-external-icon {
 .story-map,
 .story-cloud,
 .story-haze,
-.story-scroll-cue {
+.story-scroll-cue,
+.story-skip {
   display: none;
 }
 
@@ -2883,30 +2883,6 @@ html.dark {
   color: var(--postcard-orange);
 }
 
-/* GitHub, LinkedIn and email close the button row as bare logos: actions on the left, ways to reach
-   you on the right. */
-.postcard-social {
-  display: flex;
-  margin-left: auto;
-  margin-right: -0.5rem;
-}
-
-.postcard-social a {
-  display: inline-flex;
-  width: 2.75rem;
-  height: 2.75rem;
-  align-items: center;
-  justify-content: center;
-  color: var(--postcard-ink-soft);
-  font-size: 1.125rem;
-  transition: color 180ms ease;
-}
-
-/* Colour only: a CSS transition on transform would fight the entrance tween and strand the links. */
-.postcard-social a:hover {
-  color: var(--postcard-rust);
-}
-
 .postcard-role {
   margin-top: 0.75rem;
   color: var(--postcard-ink-soft);
@@ -2928,14 +2904,46 @@ html.dark {
   line-height: 1.65;
 }
 
+.postcard-current {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1.25rem;
+  max-width: 28rem;
+  margin-top: 1rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--postcard-tear);
+}
+
+.postcard-current dt {
+  color: var(--postcard-rust);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.postcard-current dd {
+  margin-top: 0.2rem;
+  color: var(--postcard-ink-soft);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
 .postcard-actions {
   position: absolute;
   right: 0.5rem;
   bottom: 0.5rem;
   left: 6.25rem;
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
+}
+
+.postcard-actions .postcard-button {
+  padding-inline: 0.5rem;
+  font-size: 0.8125rem;
+  white-space: nowrap;
 }
 
 .postcard-button {
@@ -3005,11 +3013,13 @@ html.dark {
   .postcard-place {
     top: 0.75rem;
     left: 0.875rem;
+    max-width: 9rem;
     font-size: 1rem;
+    line-height: 1.15;
   }
 
   .postcard-figure {
-    top: 2.25rem;
+    top: 3.25rem;
     left: 0.875rem;
     font-size: 0.5625rem;
     white-space: normal;
@@ -3042,22 +3052,19 @@ html.dark {
     font-size: 0.8125rem;
   }
 
-  .postcard-social {
-    grid-column: 1 / -1;
-    justify-content: center;
-    gap: 0.75rem;
-    margin: 0.375rem 0 -0.5rem;
-    padding-top: 0.25rem;
-    border-top: 1px dashed var(--postcard-tear);
-  }
-
   .postcard-summary {
     margin-top: 0.75rem;
     font-size: 0.9375rem;
     line-height: 1.55;
   }
 
-  /* Stacked cards: the two actions split the full width, and the logos centre on a footer line below. */
+  .postcard-current {
+    gap: 0.625rem 0.875rem;
+    margin-top: 0.875rem;
+    padding-top: 0.75rem;
+  }
+
+  /* Stacked cards: the four postcard actions sit as a balanced 2x2 grid. */
   .postcard-actions {
     position: static;
     display: grid;
@@ -3067,6 +3074,12 @@ html.dark {
 
   .postcard-actions .postcard-button {
     justify-content: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .postcard-current {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -3313,6 +3326,39 @@ a.story-place-organization:hover {
   50% {
     translate: 0 4px;
   }
+}
+
+.story:not([data-mode="static"]) .story-skip {
+  position: absolute;
+  top: calc(var(--header-offset) + 0.85rem);
+  right: 0;
+  z-index: 6;
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--postcard-paper);
+  color: var(--postcard-ink);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.story:not([data-mode="static"]) .story-skip:hover {
+  border-color: var(--postcard-ink);
+  background: var(--postcard-ink);
+  color: var(--postcard-paper);
 }
 
 /* Overview stop: names the city and says what the pins are, until the first chapter takes over. */
@@ -3644,6 +3690,8 @@ a.story-place-organization:hover {
 
 .story-rail button {
   display: grid;
+  min-height: 2.75rem;
+  align-content: center;
   justify-items: center;
   gap: 0.35rem;
   width: 100%;
@@ -3798,7 +3846,9 @@ a.story-place-organization:hover {
 }
 
 .story-pin-inner:focus-visible {
-  outline: none;
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: 0.55rem;
 }
 
 /* The pin and its shadow on the ground. */
@@ -3875,19 +3925,13 @@ a.story-place-organization:hover {
 
 .story .maplibregl-ctrl.maplibregl-ctrl-attrib {
   margin: 0;
-  border-radius: 0;
-  padding: 0;
-  background: none;
+  border-radius: 2px;
+  padding: 0.15rem 0.45rem;
+  background: color-mix(in srgb, var(--background) 88%, transparent);
   color: var(--muted);
   font-family: var(--font-geist-mono), monospace;
-  font-size: 0.6rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.04em;
-  opacity: 0.7;
-  transition: opacity 200ms ease;
-}
-
-.story .maplibregl-ctrl.maplibregl-ctrl-attrib:hover {
-  opacity: 1;
 }
 
 .story .maplibregl-ctrl-attrib a {
@@ -3901,7 +3945,7 @@ a.story-place-organization:hover {
 
 @media (max-width: 767px) {
   .story:not([data-mode="static"]) {
-    height: 680svh;
+    height: 520svh;
   }
 
   /* Lighter blur on phones: backdrop blur is one of the costlier things a phone composites. */
@@ -3998,13 +4042,14 @@ a.story-place-organization:hover {
     display: none;
   }
 
-  /* Years only on phones, lifted clear of the map attribution. */
+  /* Lifted clear of the map attribution, keeping distinct one-word role labels legible. */
   .story:not([data-mode="static"]) .story-rail {
-    bottom: 2.6rem;
+    bottom: 2.75rem;
   }
 
   .story-rail-label {
-    display: none;
+    font-size: 0.72rem;
+    line-height: 1.15;
   }
 
   .story-pin-label {
@@ -4079,7 +4124,7 @@ a.story-place-organization:hover {
 }
 
 /* Until the timeline takes over, keep later chapters out of the first paint. */
-.story[data-mode="loading"] :is(.story-plate, .story-places, .story-places-wash, .story-rail) {
+.story[data-mode="loading"] :is(.story-plate, .story-places, .story-places-wash, .story-rail, .story-skip) {
   visibility: hidden;
 }
 
@@ -4217,6 +4262,8 @@ a.story-place-organization:hover {
 }
 
 .back-link svg {
+  flex: none;
+  font-size: 0.95rem;
   transition: translate 200ms var(--ease-out-expo);
 }
 
@@ -4252,7 +4299,12 @@ a.story-place-organization:hover {
 .filter-tabs {
   display: flex;
   flex-wrap: wrap;
+  border: 0;
+  padding: 0;
+  margin-block: 0;
+  margin-right: 0;
   margin-left: -0.75rem;
+  min-inline-size: 0;
 }
 
 .filter-tabs button {
@@ -4287,11 +4339,18 @@ a.story-place-organization:hover {
   gap: 0.35rem;
 }
 
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .search-field input {
   min-height: 2.75rem;
   width: 100%;
   border: 0;
-  border-bottom: 1px solid var(--line-strong);
+  border-bottom: 1.5px solid var(--muted);
+  padding-right: 2.75rem;
   background: transparent;
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
@@ -4302,13 +4361,38 @@ a.story-place-organization:hover {
   transition: border-color 160ms ease;
 }
 
+.search-field input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.search-clear {
+  position: absolute;
+  right: 0;
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.search-clear:hover {
+  color: var(--foreground);
+}
+
 .search-field input::placeholder {
   color: var(--muted);
 }
 
 .search-field input:focus {
   border-bottom-color: var(--foreground);
-  outline: none;
+}
+
+.search-field input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
 }
 
 /* ---- Projects: atlas pages ---- */
@@ -4506,6 +4590,10 @@ a.story-place-organization:hover {
   cursor: default;
 }
 
+.recent-notes-stage {
+  padding-block: clamp(5.5rem, 10vw, 8rem);
+}
+
 /* ---- Notes: a numbered log on a paper sheet ---- */
 
 .notes-sheet,
@@ -4581,7 +4669,8 @@ a.story-place-organization:hover {
   color: var(--accent);
 }
 
-.archive-row h2 {
+.archive-row h2,
+.archive-row h3 {
   font-size: clamp(1.35rem, 2.4vw, 1.75rem);
   font-weight: 620;
   line-height: 1.12;
@@ -4611,7 +4700,8 @@ a.story-place-organization:hover {
   transition: translate 200ms var(--ease-out-expo);
 }
 
-.archive-row:focus-visible h2 {
+.archive-row:focus-visible h2,
+.archive-row:focus-visible h3 {
   color: var(--accent);
 }
 
@@ -4685,7 +4775,9 @@ a.story-place-organization:hover {
 
 .paper-figure {
   position: relative;
+  display: grid;
   aspect-ratio: 16 / 9;
+  place-items: center;
   margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
   overflow: hidden;
   border-radius: 2px;
@@ -4697,13 +4789,77 @@ a.story-place-organization:hover {
   padding: clamp(2rem, 7vw, 5rem) clamp(1.25rem, 7vw, 5rem);
 }
 
+.detail-footer-nav {
+  display: grid;
+  gap: 2rem;
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
+}
+
+.detail-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.detail-pager {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.detail-pager-link {
+  display: grid;
+  align-content: start;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+  padding-block: 0.25rem;
+  color: var(--foreground);
+}
+
+.detail-pager-next {
+  justify-items: end;
+  text-align: right;
+}
+
+.detail-pager-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--accent);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.detail-pager-title {
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  font-weight: 620;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  transition: color 160ms ease;
+}
+
+.detail-pager-link:hover .detail-pager-title,
+.detail-pager-link:focus-visible .detail-pager-title {
+  color: var(--accent);
+}
+
 /* Hover movement only for real pointers; a tap on a phone would leave it stuck. */
 @media (hover: hover) and (pointer: fine) {
   .back-link:hover svg {
     translate: -0.25rem 0;
   }
 
-  .archive-row:hover h2 {
+  .archive-row:hover h2,
+  .archive-row:hover h3 {
     color: var(--accent);
   }
 
@@ -4742,5 +4898,15 @@ a.story-place-organization:hover {
 
   .pagination-step span {
     display: none;
+  }
+
+  .detail-pager {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+
+  .detail-pager-next {
+    justify-items: start;
+    text-align: left;
   }
 }

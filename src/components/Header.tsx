@@ -108,6 +108,32 @@ export default function Header() {
   }, [pathname]);
 
   useEffect(() => {
+    if (pathname !== "/" || currentHash !== "#contact") return;
+    let reachedContact = false;
+    const handleScroll = () => {
+      const contact = document.getElementById("contact");
+      if (!contact) return;
+      const rect = contact.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.85) {
+        reachedContact = true;
+        return;
+      }
+      if (reachedContact && rect.top > window.innerHeight) {
+        if (window.location.hash === "#contact") {
+          window.history.replaceState(null, "", "/");
+        }
+        setCurrentHash("");
+      }
+    };
+    const frame = window.requestAnimationFrame(handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [pathname, currentHash]);
+
+  useEffect(() => {
     const desktopNavigation = window.matchMedia("(min-width: 768px)");
     const closeAtDesktopWidth = (event: MediaQueryListEvent) => {
       if (event.matches) setIsMenuOpen(false);
@@ -210,6 +236,7 @@ export default function Header() {
 
   const closeMenu = () => setIsMenuOpen(false);
   const handleHomeClick = (event: ReactMouseEvent<HTMLAnchorElement>) => {
+    setPending(null);
     closeMenu();
     if (pathname !== "/") return;
 
@@ -245,23 +272,37 @@ export default function Header() {
           className="primary-navigation relative hidden items-center md:flex"
           ref={navigationRef}
         >
-          {navigation.map((item) => (
-            <Link
-              aria-current={isActive(item.href) ? "page" : undefined}
-              className={item.href === "/#contact" ? "primary-nav-link primary-nav-contact" : "primary-nav-link"}
-              href={item.href}
-              key={item.href}
-              onClick={(event) => {
-                setPending({ href: item.href, from: pathname });
-                if (item.href === "/") handleHomeClick(event);
-              }}
-            >
-              <span className="primary-nav-label">
-                <span>{item.label}</span>
-                <span aria-hidden="true">{item.label}</span>
-              </span>
-            </Link>
-          ))}
+          {navigation.map((item) => {
+            const contact = item.href === "/#contact";
+            return (
+              <Link
+                aria-current={isActive(item.href) ? "page" : undefined}
+                className={contact ? "primary-nav-link primary-nav-contact" : "primary-nav-link"}
+                href={item.href}
+                key={item.href}
+                onClick={(event) => {
+                  if (item.href === "/") {
+                    handleHomeClick(event);
+                    return;
+                  }
+                  if (contact && pathname === "/") {
+                    setPending(null);
+                    setCurrentHash("#contact");
+                    return;
+                  }
+                  if (item.href !== pathname) {
+                    setPending({ href: item.href, from: pathname });
+                  }
+                }}
+              >
+                <span className="primary-nav-label">
+                  <span>{item.label}</span>
+                  <span aria-hidden="true">{item.label}</span>
+                </span>
+                {contact && <FaArrowRight aria-hidden="true" className="primary-nav-contact-arrow" />}
+              </Link>
+            );
+          })}
           <span aria-hidden="true" className="primary-nav-indicator" ref={indicatorRef} />
           <span className="header-theme-toggle">
             <ThemeToggle />
