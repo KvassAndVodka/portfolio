@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
-import { FaArrowLeft } from "react-icons/fa6";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 
 import { markdownComponents } from "@/components/markdownComponents";
 import SiteFooter from "@/components/SiteFooter";
@@ -51,7 +51,10 @@ export default async function NotePage({ params }: Readonly<{ params: Params }>)
 
   const pad = (value: number) => String(value).padStart(2, "0");
   // The same number the note has in the log: counted from the first note, newest last.
-  const number = posts.length - posts.findIndex((entry) => entry.slug === post.slug);
+  const currentIndex = posts.findIndex((entry) => entry.slug === post.slug);
+  const number = posts.length - currentIndex;
+  const newerNote = currentIndex > 0 ? posts[currentIndex - 1] : null;
+  const olderNote = currentIndex >= 0 && currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null;
 
   const noteUrl = absoluteUrl(canonicalPostPath(post));
   const noteJsonLd = {
@@ -124,6 +127,50 @@ export default async function NotePage({ params }: Readonly<{ params: Params }>)
               <MDXRemote source={post.content} components={markdownComponents} options={{ mdxOptions: { remarkPlugins: [remarkGfm], rehypePlugins: [[rehypeHighlight, { detect: true }]] } }} />
             </div>
           </div>
+
+          <nav className="detail-footer-nav" aria-label="Note navigation">
+            <div className="detail-footer-actions">
+              <Link className="back-link" href="/notes">
+                <FaArrowLeft aria-hidden="true" />
+                All notes
+              </Link>
+              <Link className="postcard-button" href="/#contact">
+                Get in touch
+                <FaArrowRight aria-hidden="true" />
+              </Link>
+            </div>
+
+            {(newerNote || olderNote) && (
+              <div className="detail-pager">
+                {newerNote ? (
+                  <Link className="detail-pager-link" href={`/notes/${newerNote.slug}`}>
+                    <span className="detail-pager-label">
+                      <FaArrowLeft aria-hidden="true" />
+                      Newer note
+                    </span>
+                    <span className="detail-pager-title">
+                      {newerNote.title}
+                      <span className="title-dot">.</span>
+                    </span>
+                  </Link>
+                ) : (
+                  <span />
+                )}
+                {olderNote && (
+                  <Link className="detail-pager-link detail-pager-next" href={`/notes/${olderNote.slug}`}>
+                    <span className="detail-pager-label">
+                      Older note
+                      <FaArrowRight aria-hidden="true" />
+                    </span>
+                    <span className="detail-pager-title">
+                      {olderNote.title}
+                      <span className="title-dot">.</span>
+                    </span>
+                  </Link>
+                )}
+              </div>
+            )}
+          </nav>
         </div>
       </article>
       <SiteFooter />

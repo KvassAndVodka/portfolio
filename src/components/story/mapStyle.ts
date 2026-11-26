@@ -61,10 +61,29 @@ function recolor(value: unknown, theme: MapTheme): unknown {
   return `rgba(${mix(0)}, ${mix(1)}, ${mix(2)}, ${color[3]})`;
 }
 
+const STYLE_TIMEOUT_MS = 10_000;
 let stockStyle: Promise<StyleSpecification> | null = null;
 
+async function fetchStockStyle(): Promise<StyleSpecification> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), STYLE_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(STYLE_URL, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`Failed to load map style (${response.status})`);
+    }
+    return (await response.json()) as StyleSpecification;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
 export async function buildMapStyle(theme: MapTheme, lite: boolean): Promise<StyleSpecification> {
-  stockStyle ??= fetch(STYLE_URL).then((response) => response.json());
+  stockStyle ??= fetchStockStyle().catch((error) => {
+    stockStyle = null;
+    throw error;
+  });
   const base = structuredClone(await stockStyle);
 
   const layers = base.layers

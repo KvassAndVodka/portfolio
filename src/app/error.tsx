@@ -11,16 +11,16 @@ export default function ErrorPage({ error, retry }: Readonly<{ error: unknown; r
 
   return (
     <StatusPage
-      eyebrow="Error 500 · Internal Server Error"
+      eyebrow="Temporary error"
       title="Something broke on the way here."
       lead="This page hit an error while loading. Try it again, or head back to the start."
     >
       <div className="status-page-actions">
-        <button className="button-primary" type="button" onClick={retry}>
+        <button className="postcard-button postcard-button-primary" type="button" onClick={retry}>
           <FaRotateRight aria-hidden="true" />
           Try again
         </button>
-        <Link className="button-secondary" href="/">Back to home</Link>
+        <Link className="postcard-button" href="/">Back to home</Link>
       </div>
       {digest && <p className="status-page-ref">Reference {digest}</p>}
     </StatusPage>

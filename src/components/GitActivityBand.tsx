@@ -72,6 +72,35 @@ export default function GitActivityBand() {
     setPointed(index >= 0 && index < counts.length ? index : null);
   };
 
+  const stepDay = (delta: number) => {
+    setPointed((current) => Math.max(0, Math.min(counts.length - 1, (current ?? busiest) + delta)));
+  };
+
+  const handleChartKeyDown = (event: React.KeyboardEvent<SVGSVGElement>) => {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      stepDay(-7);
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      stepDay(7);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      stepDay(-1);
+    } else if (event.key === "ArrowDown") {
+      event.preventDefault();
+      stepDay(1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      setPointed(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      setPointed(counts.length - 1);
+    } else if (event.key === "Escape" && pointed !== null) {
+      event.preventDefault();
+      setPointed(null);
+    }
+  };
+
   // Two short label lines each, so the four cells line up on a phone; `accent` marks the private share.
   const figures = [
     { value: total, text: "Contributions", sub: "Last 12 months" },
@@ -88,7 +117,7 @@ export default function GitActivityBand() {
       data-area
     >
       <header className={`${label} flex h-11 items-stretch border-b border-[var(--line)]`}>
-        <span className="flex items-center border-r-2 border-dashed border-[var(--postcard-tear)] px-5 text-[var(--postcard-rust)]">
+        <span className="flex items-center border-r border-[var(--line)] px-5 text-[var(--postcard-rust)]">
           <SiGithub aria-hidden="true" className="size-4" />
         </span>
         <h3 className="flex min-w-0 items-center truncate px-5" id="git-activity-heading">
@@ -96,12 +125,13 @@ export default function GitActivityBand() {
         </h3>
         <a
           aria-label="GitHub profile (opens in a new tab)"
-          className="ml-auto flex items-center gap-2 whitespace-nowrap px-5 text-[var(--postcard-muted)] transition-colors hover:text-[var(--postcard-orange)]"
+          className="ml-auto flex items-center gap-2 whitespace-nowrap px-5 text-[var(--postcard-muted)] transition-colors hover:text-[var(--postcard-rust)]"
           href={siteConfig.github}
           rel="noreferrer"
           target="_blank"
         >
           <span className="max-sm:hidden">{siteConfig.github.replace("https://", "")}</span>
+          <span className="sm:hidden">GitHub</span>
           <FaArrowUpRightFromSquare aria-hidden="true" />
         </a>
       </header>
@@ -112,13 +142,17 @@ export default function GitActivityBand() {
           <div className="aspect-[26/7] sm:[aspect-ratio:var(--columns)/7]" data-dots style={{ "--columns": columns } as React.CSSProperties}>
             <svg
               ref={svgRef}
-              aria-label={`${number(total)} contributions over the last 12 months, on ${activeDays} days. The busiest day was ${dateOf(busiest)}, with ${max}.`}
+              aria-describedby="git-activity-status"
+              aria-label={`${number(total)} contributions over the last 12 months, on ${activeDays} days. The busiest day was ${dateOf(busiest)}, with ${max}. Use arrow keys to inspect individual days.`}
               className="block size-full touch-pan-y"
+              onKeyDown={handleChartKeyDown}
+              onPointerCancel={() => setPointed(null)}
               onPointerDown={pointAt}
               onPointerLeave={() => setPointed(null)}
               onPointerMove={pointAt}
               preserveAspectRatio="xMaxYMid slice"
-              role="img"
+              role="group"
+              tabIndex={0}
               viewBox={`0 0 ${columns * CELL} ${7 * CELL}`}
             >
               {counts.map((count, index) => {
@@ -135,12 +169,15 @@ export default function GitActivityBand() {
               })()}
             </svg>
           </div>
-          <p className={`${label} mt-4 flex flex-wrap justify-between gap-x-6 gap-y-1 text-[var(--postcard-muted)]`}>
+          <p className={`${label} mt-4 flex flex-wrap justify-between gap-x-6 gap-y-1 text-[var(--postcard-muted)]`} id="git-activity-status" aria-live="polite">
             <span>
               {pointed === null ? "Busiest day · " : ""}
               {dateOf(shown)} · <span className="text-[var(--postcard-ink)]">{counts[shown]}</span>
             </span>
-            <span>{activeDays} active days · as of {dayFormat.format(new Date(`${asOf}T00:00:00Z`))}</span>
+            <span>
+              <span className="sm:hidden">Last 26 weeks shown · </span>
+              {activeDays} active days · as of {dayFormat.format(new Date(`${asOf}T00:00:00Z`))}
+            </span>
           </p>
 
           <div className="mt-7 border-t border-[var(--line)] pt-5">

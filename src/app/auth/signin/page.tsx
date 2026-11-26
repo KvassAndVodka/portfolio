@@ -51,7 +51,7 @@ export default function SignInPage() {
 
                     {/* Error Message */}
                     {error && (
-                        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+                        <div role="alert" className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
                             {error}
                         </div>
                     )}
@@ -63,13 +63,13 @@ export default function SignInPage() {
                                 Email
                             </label>
                             <div className="relative">
-                                <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500" />
+                                <FaEnvelope aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500" />
                                 <input
                                     id="email"
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all"
+                                    className="w-full pl-10 pr-4 py-3 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-colors"
                                     placeholder="admin@example.com"
                                     required
                                 />
@@ -81,13 +81,13 @@ export default function SignInPage() {
                                 Password
                             </label>
                             <div className="relative">
-                                <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500" />
+                                <FaLock aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500" />
                                 <input
                                     id="password"
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all"
+                                    className="w-full pl-10 pr-4 py-3 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-colors"
                                     placeholder="••••••••"
                                     required
                                 />
@@ -97,7 +97,7 @@ export default function SignInPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-black font-medium rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-black font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isLoading ? 'Signing in...' : 'Sign in'}
                         </button>
@@ -115,10 +115,11 @@ export default function SignInPage() {
 
                     {/* GitHub Login */}
                     <button
+                        type="button"
                         onClick={handleGitHubLogin}
-                        className="w-full py-3 bg-[#24292e] text-white font-medium rounded-lg hover:bg-[#1a1e22] transition-all flex items-center justify-center gap-3"
+                        className="w-full py-3 bg-[#24292e] text-white font-medium rounded-lg hover:bg-[#1a1e22] transition-colors flex items-center justify-center gap-3"
                     >
-                        <FaGithub size={20} />
+                        <FaGithub size={20} aria-hidden="true" />
                         Sign in with GitHub
                     </button>
                 </div>

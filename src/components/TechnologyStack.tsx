@@ -20,7 +20,8 @@ import {
   SiWebgl,
 } from "react-icons/si";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { FaChevronDown } from "react-icons/fa6";
 
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
@@ -174,6 +175,7 @@ const toolCount = toolkit.reduce((count, group) => count + group.tools.length, 0
  */
 export default function TechnologyStack() {
   const ref = useRef<HTMLElement>(null);
+  const [ledgerOpen, setLedgerOpen] = useState(false);
 
   useGSAP(
     () => {
@@ -184,13 +186,6 @@ export default function TechnologyStack() {
           .timeline({ scrollTrigger: { trigger: card, start: "top 88%", once: true } })
           .from(card, { y: 28, autoAlpha: 0, duration: 0.8, delay: (index % 3) * 0.08 })
           .from(card.querySelectorAll("[data-tool]"), { y: 10, autoAlpha: 0, stagger: 0.04, duration: 0.5 }, 0.25);
-      });
-      gsap.from(root.querySelectorAll("[data-ledger-row]"), {
-        autoAlpha: 0,
-        y: 10,
-        stagger: 0.05,
-        duration: 0.6,
-        scrollTrigger: { trigger: root.querySelector("[data-ledger]"), start: "top 88%", once: true },
       });
     },
     { scope: ref },
@@ -225,7 +220,7 @@ export default function TechnologyStack() {
               key={area.name}
             >
               <header className={`${label} flex h-11 items-stretch border-b border-[var(--line)]`}>
-                <span className="flex items-center border-r-2 border-dashed border-[var(--postcard-tear)] px-5 text-[var(--postcard-rust)]">
+                <span className="flex items-center border-r border-[var(--line)] px-5 text-[var(--postcard-rust)]">
                   {pad(index + 1)}
                 </span>
                 <h3 className="flex min-w-0 items-center truncate px-5" id={`area-${index}`}>
@@ -257,12 +252,24 @@ export default function TechnologyStack() {
 
         <GitActivityBand />
 
-        {/* Everything, in plain text: easy to scan, and findable with Ctrl+F. */}
+        {/* Collapsed by default so the full 81-tool ledger stays inspectable without turning into a wall. */}
         <div className="mt-16" data-ledger>
-          <h3 className={`${label} border-b border-[var(--line-strong)] pb-3`}>
-            Full toolkit · <span className="text-[var(--accent)]">{toolCount}</span>
-          </h3>
-          <dl>
+          <button
+            type="button"
+            aria-expanded={ledgerOpen}
+            aria-controls="full-toolkit-ledger"
+            onClick={() => setLedgerOpen((open) => !open)}
+            className={`${label} flex min-h-11 w-full items-center justify-between gap-4 border-b border-[var(--line-strong)] py-3 text-left transition-colors hover:text-[var(--accent)]`}
+          >
+            <span>
+              Full toolkit · <span className="text-[var(--accent)]">{toolCount}</span> tools
+            </span>
+            <span className="inline-flex items-center gap-2 text-[var(--muted)]">
+              {ledgerOpen ? "Hide" : "Inspect"}
+              <FaChevronDown aria-hidden="true" className={`transition-transform duration-200 ${ledgerOpen ? "rotate-180" : ""}`} />
+            </span>
+          </button>
+          <dl id="full-toolkit-ledger" hidden={!ledgerOpen}>
             {toolkit.map((group) => (
               <div
                 className="grid gap-x-10 gap-y-1 border-b border-[var(--line)] py-3.5 md:grid-cols-[14rem_minmax(0,1fr)]"

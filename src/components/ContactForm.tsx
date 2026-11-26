@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { FaCircleCheck, FaCircleExclamation, FaPaperPlane } from "react-icons/fa6";
 
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { siteConfig } from "@/lib/seo";
 
 import PostcardStamp from "./PostcardStamp";
 
@@ -20,6 +21,8 @@ interface ContactResponse {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 const REQUEST_TIMEOUT_MS = 12_000;
+const FIELD_ORDER: readonly ContactField[] = ["name", "email", "message"];
+const DRAFT_KEY = "portfolio-contact-draft";
 
 function validateField(field: ContactField, value: string) {
   const trimmedValue = value.trim();
@@ -37,8 +40,27 @@ export default function ContactForm() {
   const [status, setStatus] = useState<FormStatus>("idle");
   const [feedback, setFeedback] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [messageLength, setMessageLength] = useState(0);
   const isSubmitting = useRef(false);
   const errorKey = Object.keys(fieldErrors).sort((a, b) => a.localeCompare(b)).join(",");
+
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form) return;
+    try {
+      const raw = window.sessionStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as Partial<Record<ContactField, string>>;
+      FIELD_ORDER.forEach((field) => {
+        const control = form.elements.namedItem(field);
+        if ((control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && typeof saved[field] === "string" && !control.value) {
+          control.value = saved[field];
+        }
+      });
+    } catch {
+      // Ignore unavailable or malformed sessionStorage drafts.
+    }
+  }, []);
 
   // Shake newly invalid fields and lift their messages in.
   useGSAP(
@@ -69,6 +91,40 @@ export default function ContactForm() {
     { dependencies: [status, feedback], scope: formRef },
   );
 
+  function saveDraft() {
+    const form = formRef.current;
+    if (!form) return;
+    try {
+      const data = new FormData(form);
+      const draft: Record<ContactField, string> = {
+        name: String(data.get("name") ?? ""),
+        email: String(data.get("email") ?? ""),
+        message: String(data.get("message") ?? ""),
+      };
+      if (draft.name || draft.email || draft.message) {
+        window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      } else {
+        window.sessionStorage.removeItem(DRAFT_KEY);
+      }
+    } catch {
+      // Ignore private-browsing storage errors.
+    }
+  }
+
+  function handleBlur(field: ContactField, value: string) {
+    if (!value.trim() && !fieldErrors[field]) return;
+    const error = validateField(field, value);
+    setFieldErrors((current) => {
+      if (!error) {
+        if (!current[field]) return current;
+        const next = { ...current };
+        delete next[field];
+        return next;
+      }
+      return current[field] === error ? current : { ...current, [field]: error };
+    });
+  }
+
   function updateFieldError(field: ContactField, value: string) {
     setFieldErrors((current) => {
       if (!current[field]) return current;
@@ -90,10 +146,14 @@ export default function ContactForm() {
       const value = data.get(field);
       return typeof value === "string" ? value.trim() : "";
     };
-    const values = { name: text("name"), email: text("email"), message: text("message") };
+    const values: Record<ContactField, string> = {
+      message: text("message"),
+      name: text("name"),
+      email: text("email"),
+    };
     const errors: FieldErrors = {};
 
-    (Object.keys(values) as ContactField[]).forEach((field) => {
+    FIELD_ORDER.forEach((field) => {
       const error = validateField(field, values[field]);
       if (error) errors[field] = error;
     });
@@ -102,8 +162,10 @@ export default function ContactForm() {
       setFieldErrors(errors);
       setStatus("idle");
       setFeedback("");
-      const firstInvalidField = Object.keys(errors)[0] as ContactField;
-      (form.elements.namedItem(firstInvalidField) as HTMLElement | null)?.focus();
+      const firstInvalidField = FIELD_ORDER.find((field) => Boolean(errors[field]));
+      if (firstInvalidField) {
+        (form.elements.namedItem(firstInvalidField) as HTMLElement | null)?.focus();
+      }
       return;
     }
 
@@ -128,6 +190,12 @@ export default function ContactForm() {
       }
 
       form.reset();
+      setMessageLength(0);
+      try {
+        window.sessionStorage.removeItem(DRAFT_KEY);
+      } catch {
+        // Ignore private-browsing storage errors.
+      }
       setStatus("success");
       setFeedback("Message sent. I will get back to you soon.");
       void fetch("/api/track", {
@@ -156,44 +224,31 @@ export default function ContactForm() {
       </span>
     );
 
-  // The back of the hero's postcard: the message on ruled lines at left, the address side at right.
+  const remaining = 10 - messageLength;
+  const messageHelper =
+    messageLength > 0 && remaining > 0
+      ? `Add ${remaining} more ${remaining === 1 ? "character" : "characters"} (10 minimum).`
+      : "A short note on what you are building, fixing, or trying to understand is enough.";
+
+  // Natural mobile-first DOM order (To -> Name/Email -> Message -> Submit), arranged as a postcard back on desktop.
   return (
     <form className="contact-form" ref={formRef} onSubmit={handleSubmit} noValidate aria-busy={status === "sending"}>
-      <div className="contact-message">
-        <label>
-          Message{" "}
-          <textarea
-            name="message"
-            rows={7}
-            maxLength={5_000}
-            minLength={10}
-            required
-            aria-invalid={Boolean(fieldErrors.message)}
-            aria-describedby="message-error message-helper"
-            onChange={(event) => updateFieldError("message", event.currentTarget.value)}
-          />
-          <span className="contact-field-error" id="message-error" aria-live="polite" aria-atomic="true">
-            {fieldError("message")}
-          </span>
-          <span className="contact-form-helper" id="message-helper">
-            A short note on what you are building, fixing, or trying to understand is enough.
-          </span>
-        </label>
-      </div>
-
-      <div className="contact-address">
+      <div className="contact-header">
         <PostcardStamp />
 
         <p className="contact-to">
           <span>To</span>
           <strong>Javier Raut</strong>
-          <a href="mailto:javier.raut@gmail.com">javier.raut@gmail.com</a>{" "}
+          <a href={siteConfig.email}>{siteConfig.email.replace(/^mailto:/, "")}</a>{" "}
           Cagayan de Oro, Philippines
         </p>
+      </div>
 
-        <label>
-          Your name{" "}
+      <div className="contact-sender">
+        <div className="contact-field">
+          <label htmlFor="contact-name">Your name</label>
           <input
+            id="contact-name"
             name="name"
             type="text"
             autoComplete="name"
@@ -202,15 +257,20 @@ export default function ContactForm() {
             required
             aria-invalid={Boolean(fieldErrors.name)}
             aria-describedby="name-error"
-            onChange={(event) => updateFieldError("name", event.currentTarget.value)}
+            onBlur={(event) => handleBlur("name", event.currentTarget.value)}
+            onChange={(event) => {
+              updateFieldError("name", event.currentTarget.value);
+              saveDraft();
+            }}
           />
           <span className="contact-field-error" id="name-error" aria-live="polite" aria-atomic="true">
             {fieldError("name")}
           </span>
-        </label>
-        <label>
-          Your email{" "}
+        </div>
+        <div className="contact-field">
+          <label htmlFor="contact-email">Your email</label>
           <input
+            id="contact-email"
             name="email"
             type="email"
             autoComplete="email"
@@ -218,34 +278,67 @@ export default function ContactForm() {
             required
             aria-invalid={Boolean(fieldErrors.email)}
             aria-describedby="email-error"
-            onChange={(event) => updateFieldError("email", event.currentTarget.value)}
+            onBlur={(event) => handleBlur("email", event.currentTarget.value)}
+            onChange={(event) => {
+              updateFieldError("email", event.currentTarget.value);
+              saveDraft();
+            }}
           />
           <span className="contact-field-error" id="email-error" aria-live="polite" aria-atomic="true">
             {fieldError("email")}
           </span>
-        </label>
+        </div>
 
         <label className="contact-honeypot" aria-hidden="true">
           Website{" "}
           <input name="website" type="text" tabIndex={-1} autoComplete="off" />
         </label>
+      </div>
 
-        <div className="contact-form-submit">
-          <button className="contact-submit" type="submit" disabled={status === "sending"}>
-            <span className="contact-submit-icon inline-flex">
-              <FaPaperPlane aria-hidden="true" />
-            </span>
-            {status === "sending" ? "Sending..." : "Send message"}
-          </button>
-          <div className="contact-feedback-slot" aria-live="polite" aria-atomic="true">
-            {feedback && (
-              <p className={`contact-feedback contact-feedback-${status}`} key={`${status}-${feedback}`}>
-                {status === "success" && <FaCircleCheck aria-hidden="true" />}
-                {status === "error" && <FaCircleExclamation aria-hidden="true" />}
-                {feedback}
-              </p>
-            )}
-          </div>
+      <div className="contact-message">
+        <div className="contact-field">
+          <label htmlFor="contact-message">Message</label>
+          <textarea
+            id="contact-message"
+            name="message"
+            rows={7}
+            maxLength={5_000}
+            minLength={10}
+            required
+            aria-invalid={Boolean(fieldErrors.message)}
+            aria-describedby="message-error message-helper"
+            onBlur={(event) => handleBlur("message", event.currentTarget.value)}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              setMessageLength(value.trim().length);
+              updateFieldError("message", value);
+              saveDraft();
+            }}
+          />
+          <span className="contact-field-error" id="message-error" aria-live="polite" aria-atomic="true">
+            {fieldError("message")}
+          </span>
+          <span className="contact-form-helper" id="message-helper">
+            {messageHelper}
+          </span>
+        </div>
+      </div>
+
+      <div className="contact-form-submit">
+        <button className="contact-submit" type="submit" disabled={status === "sending"}>
+          <span className="contact-submit-icon inline-flex">
+            <FaPaperPlane aria-hidden="true" />
+          </span>
+          {status === "sending" ? "Sending..." : "Send message"}
+        </button>
+        <div className="contact-feedback-slot" aria-live="polite" aria-atomic="true">
+          {feedback && (
+            <p className={`contact-feedback contact-feedback-${status}`} key={`${status}-${feedback}`}>
+              {status === "success" && <FaCircleCheck aria-hidden="true" />}
+              {status === "error" && <FaCircleExclamation aria-hidden="true" />}
+              {feedback}
+            </p>
+          )}
         </div>
       </div>
     </form>

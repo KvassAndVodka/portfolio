@@ -51,6 +51,10 @@ export default function SiteFooter() {
               <Link href="/">Home</Link>
               <Link href="/projects">Projects</Link>
               <Link href="/notes">Notes</Link>
+              <Link href="/#contact">Contact</Link>
+              <a href="/resume.pdf" rel="noreferrer" target="_blank">
+                Resume<span className="sr-only"> (opens in a new tab)</span>
+              </a>
             </div>
             <div>
               <h2>Elsewhere</h2>

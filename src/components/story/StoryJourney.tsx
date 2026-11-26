@@ -8,11 +8,13 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import { preconnect } from "react-dom";
-import { FaArrowDown, FaArrowUpRightFromSquare, FaEnvelope, FaGithub, FaLinkedinIn } from "react-icons/fa6";
+import { FaArrowDown, FaArrowUpRightFromSquare, FaGithub, FaLinkedinIn } from "react-icons/fa6";
 
 import PostcardStamp from "@/components/PostcardStamp";
 import { claimWheel } from "@/components/SmoothScroll";
 import { gsap, prefersReducedMotion, ScrollTrigger, SplitText, useGSAP } from "@/lib/gsap";
+import { getLenis } from "@/lib/lenis";
+import { siteConfig } from "@/lib/seo";
 
 import { ASCII_FIELD_STRENGTH, cloudClock, createCloud, type Cloud } from "./cloud";
 import { buildMapStyle, type MapTheme } from "./mapStyle";
@@ -290,6 +292,7 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
   const styledTerrain = useRef<TerrainSpecification | null>(null);
   const terrainScale = useRef(-1);
   const jumpToPin = useRef<((placeIndexes: number[]) => void) | null>(null);
+  const skipToWork = useRef<(() => void) | null>(null);
 
   // Start the tile connections while the map code is still loading.
   preconnect("https://tiles.openfreemap.org", { crossOrigin: "anonymous" });
@@ -329,9 +332,9 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
           { y: 10, autoAlpha: 0, duration: 0.6, stagger: 0.08 },
           0.8,
         )
-        .from([".postcard-role", ".postcard-summary"], { y: 14, autoAlpha: 0, duration: 0.7, stagger: 0.08 }, 0.8)
+        .from([".postcard-role", ".postcard-summary", ".postcard-current"], { y: 14, autoAlpha: 0, duration: 0.7, stagger: 0.08 }, 0.8)
         // clearProps: GSAP leaves `scale: none` inline, which would cancel the buttons' press scale.
-        .from([".postcard-button", ".postcard-social a"], { y: 12, autoAlpha: 0, duration: 0.5, stagger: 0.06, clearProps: "all" }, 1)
+        .from(".postcard-button", { y: 12, autoAlpha: 0, duration: 0.5, stagger: 0.06, clearProps: "all" }, 1)
         .from(".postcard-stamp", { scale: 1.5, rotate: -14, autoAlpha: 0, duration: 0.55, ease: "back.out(2.2)" }, 1.15);
       return () => name.revert();
     },
@@ -376,6 +379,9 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
           attributionControl: { compact: false },
           fadeDuration: 0,
         });
+        const mapCanvas = map.getCanvas();
+        mapCanvas.setAttribute("aria-hidden", "true");
+        mapCanvas.tabIndex = -1;
         mapInstance.current = map;
 
         // One pin per location: USTP is both where I studied and where I teach.
@@ -662,7 +668,8 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         .to(".story-plate", { autoAlpha: 0, duration: 0.2, ease: "none" }, 1.45)
         .fromTo(".story-places, .story-places-wash", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 1.5)
         .fromTo(".story-places-heading", { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.4 }, 1.5)
-        .fromTo(".story-rail", { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.4 }, 1.2);
+        .fromTo(".story-rail", { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.4 }, 1.2)
+        .fromTo(".story-skip", { autoAlpha: 0, y: -8 }, { autoAlpha: 1, y: 0, duration: 0.3 }, 0.55);
 
       // Act 2: fly down to each workplace and hover there until the next scroll.
       const visitStart = 1.2;
@@ -717,7 +724,7 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         arrivalOf(0),
       );
       timeline
-        .to([".story-places", ".story-places-wash", ".story-pin-inner", ".story-rail"], { autoAlpha: 0, duration: 0.4 }, sky)
+        .to([".story-places", ".story-places-wash", ".story-pin-inner", ".story-rail", ".story-skip"], { autoAlpha: 0, duration: 0.4 }, sky)
         // The climb stays over the last place and above zoom 14.5: pulling back to the overview loaded the
         // whole region at a near-horizontal tilt and brought the terrain back, which stuttered.
         .to(view, { zoom: Math.max(closeUpZoom - 1.5, 14.6), pitch: flat ? 0 : 80, hover: 0.3, duration: 1.6 }, sky)
@@ -751,14 +758,14 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
       const handsOff = (direction: number) => !inStory() || (direction > 0 && window.scrollY >= trigger.end - 2);
       const MAX_QUEUED = 3;
       // Hero → overview covers no camera flight, only quick fades, so that hop snaps instead of gliding.
-      const INTRO_HOP = 0.35;
-      const GLIDE = 1.5;
+      const INTRO_HOP = 0.3;
+      const GLIDE = 1.0;
       // Hops between places pass through a cloud, which needs time to gather and clear.
-      const PLACE_GLIDE = 2.4;
+      const PLACE_GLIDE = 1.15;
       // Scrolling up to the cloud is the showpiece, so it flies slower than any other hop.
-      const CLOUD_GLIDE = 3;
+      const CLOUD_GLIDE = 1.5;
       // A beat at each stop when gestures are chained, so the journey doesn't blur past.
-      const CHAIN_PAUSE = 0.4;
+      const CHAIN_PAUSE = 0.25;
       // Hurry: each extra scroll made while a glide is running (or a hard flick) speeds the journey up,
       // so someone racing through skips ahead instead of sitting through every animation. Speed 1 is the
       // reading pace; it resets once the page comes to rest.
@@ -943,6 +950,7 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         }
       };
 
+      const coarseTouch = window.matchMedia("(pointer: coarse)").matches;
       let touchStartY = 0;
       let touchStartTime = 0;
       const handleTouchStart = (event: TouchEvent) => {
@@ -968,19 +976,23 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
       };
 
       const handleKey = (event: KeyboardEvent) => {
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
         const target = event.target as HTMLElement | null;
         if (target?.closest("input, textarea, select, [contenteditable]")) return;
-        const direction = KEY_DIRECTIONS[event.key] ?? 0;
-        if (!direction || (event.key === " " && event.shiftKey) || handsOff(direction)) return;
+        if (event.key === " " && target?.closest("button, a, summary, [role='button'], [role='link']")) return;
+        const direction = event.key === " " && event.shiftKey ? -1 : (KEY_DIRECTIONS[event.key] ?? 0);
+        if (!direction || handsOff(direction)) return;
         event.preventDefault();
         request(direction);
       };
 
       window.addEventListener("wheel", handleWheel, { passive: false });
       claimWheel((deltaY) => !handsOff(deltaY));
-      window.addEventListener("touchstart", handleTouchStart, { passive: true });
-      window.addEventListener("touchmove", handleTouchMove, { passive: false });
-      window.addEventListener("touchend", handleTouchEnd, { passive: true });
+      if (!coarseTouch) {
+        window.addEventListener("touchstart", handleTouchStart, { passive: true });
+        window.addEventListener("touchmove", handleTouchMove, { passive: false });
+        window.addEventListener("touchend", handleTouchEnd, { passive: true });
+      }
       window.addEventListener("keydown", handleKey);
 
       // Direct jumps (a pin, a rail stop, the Home link) cut straight to the target state instead of
@@ -999,7 +1011,9 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
           overwrite: true,
           onComplete: () => {
             root.style.scrollBehavior = "auto";
-            window.scrollTo({ top, behavior: "instant" });
+            const lenis = getLenis();
+            if (lenis) lenis.scrollTo(top, { immediate: true });
+            else window.scrollTo({ top, behavior: "instant" });
             ScrollTrigger.update();
             // Finish the scrub at once, so the timeline doesn't replay the stops in between.
             trigger.getTween()?.progress(1);
@@ -1022,6 +1036,12 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
         const position = placeIndexes.indexOf(current);
         const next = placeIndexes[(position + 1) % placeIndexes.length];
         cutTo(scrollFor(arrivalOf(next)));
+      };
+
+      skipToWork.current = () => {
+        const work = document.getElementById("work");
+        const top = work ? work.getBoundingClientRect().top + window.scrollY : trigger.end + window.innerHeight;
+        cutTo(top);
       };
 
       // The header's Home link asks the story to cut back to the intro (see Header).
@@ -1055,11 +1075,14 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
       return () => {
         stop();
         jumpToPin.current = null;
+        skipToWork.current = null;
         window.removeEventListener("wheel", handleWheel);
         claimWheel(null);
-        window.removeEventListener("touchstart", handleTouchStart);
-        window.removeEventListener("touchmove", handleTouchMove);
-        window.removeEventListener("touchend", handleTouchEnd);
+        if (!coarseTouch) {
+          window.removeEventListener("touchstart", handleTouchStart);
+          window.removeEventListener("touchmove", handleTouchMove);
+          window.removeEventListener("touchend", handleTouchEnd);
+        }
         window.removeEventListener("keydown", handleKey);
         window.removeEventListener("story:jump", handleJump);
         refreshTimers.forEach(clearTimeout);
@@ -1070,10 +1093,12 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
     { dependencies: [mode], scope: rootRef },
   );
 
+  const currentRoles = places.filter((place) => place.current);
+
   return (
     <section className="story" data-mode={mode} ref={rootRef} aria-label="Introduction and experience">
       <div className="story-stage">
-        <div className="story-map" ref={mapRef} aria-hidden="true" />
+        <div className="story-map" ref={mapRef} />
         <div className="story-haze" aria-hidden="true" />
         {/* The chapter text's wash sits under the cloud, so cloud passes drift over it; the text stays on top. */}
         <div className="story-wash" aria-hidden="true">
@@ -1081,7 +1106,7 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
             <div className="story-places-wash" />
           </div>
         </div>
-        <canvas className="story-cloud" ref={cloudRef} />
+        <canvas className="story-cloud" ref={cloudRef} aria-hidden="true" />
 
         <div className="story-overlay">
           <div className="story-frame site-shell">
@@ -1090,7 +1115,7 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
               <article className="postcard">
                 <div className="postcard-photo">
                   <span className="postcard-photo-fill" aria-hidden="true" />
-                  <p className="postcard-place">Portfolio</p>
+                  <p className="postcard-place">Northern Mindanao</p>
                   <p className="postcard-figure">{mapFacts(places).position}</p>
                   <svg className="postcard-contours" viewBox="0 0 470 564" preserveAspectRatio="xMinYMax slice" aria-hidden="true">
                     {CONTOUR_RINGS.map((ring, index) => (
@@ -1134,41 +1159,36 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
                     Software Engineer · <strong>Cagayan de Oro, Philippines</strong>
                   </p>
                   <p className="postcard-summary">
-                    I learn computing from the ground up, from software down to infrastructure. Currently
-                    working on Geographic Information Systems, and teaching Fundamentals of Database Systems
-                    on the side.
+                    I learn computing from the ground up, from software down to infrastructure.
                   </p>
+                  {currentRoles.length > 0 && (
+                    <dl className="postcard-current">
+                      {currentRoles.map((place) => (
+                        <div key={place.id}>
+                          <dt>{place.role}</dt>
+                          <dd>{place.pinLabel ?? place.organization}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
                   <div className="postcard-actions">
-                    <Link className="postcard-button postcard-button-primary" href="/#contact">
-                      Get in Touch
+                    <Link className="postcard-button postcard-button-primary" href="/projects">
+                      Projects
                     </Link>
                     <a className="postcard-button" href={RESUME_URL} rel="noreferrer" target="_blank">
                       Resume <FaArrowUpRightFromSquare aria-hidden="true" />
                       <span className="sr-only"> (opens in a new tab)</span>
                     </a>
-                  <span className="postcard-social">
-                    <a
-                      href="https://github.com/KvassAndVodka"
-                      aria-label="GitHub (opens in a new tab)"
-                      title="GitHub"
-                      rel="noreferrer"
-                      target="_blank"
-                    >
+                    <a className="postcard-button" href={siteConfig.github} rel="noreferrer" target="_blank">
                       <FaGithub aria-hidden="true" />
+                      GitHub
+                      <span className="sr-only"> (opens in a new tab)</span>
                     </a>
-                    <a
-                      href="https://www.linkedin.com/in/raut-javier-m/"
-                      aria-label="LinkedIn (opens in a new tab)"
-                      title="LinkedIn"
-                      rel="noreferrer"
-                      target="_blank"
-                    >
+                    <a className="postcard-button" href={siteConfig.linkedin} rel="noreferrer" target="_blank">
                       <FaLinkedinIn aria-hidden="true" />
+                      LinkedIn
+                      <span className="sr-only"> (opens in a new tab)</span>
                     </a>
-                    <a href="mailto:javier.raut@gmail.com" aria-label="Email javier.raut@gmail.com" title="javier.raut@gmail.com">
-                      <FaEnvelope aria-hidden="true" />
-                    </a>
-                  </span>
                   </div>
                 </div>
               </article>
@@ -1178,6 +1198,15 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
               <FaArrowDown />
               Scroll to travel
             </p>
+
+            <button
+              type="button"
+              className="story-skip"
+              onClick={() => skipToWork.current?.()}
+            >
+              Skip to projects
+              <FaArrowDown aria-hidden="true" />
+            </button>
 
             {/* The overview's map title, set like a brutalist plate: huge type, hard rules, a data strip. */}
             <div className="story-plate" aria-hidden="true">
@@ -1251,7 +1280,12 @@ export default function StoryJourney({ places }: Readonly<{ places: readonly Sto
               <ol>
                 {places.map((place, index) => (
                   <li key={place.id}>
-                    <button type="button" data-rail={index} onClick={() => jumpToPin.current?.([index])}>
+                    <button
+                      type="button"
+                      data-rail={index}
+                      aria-label={`${place.period.split(" ")[0]} — ${place.short}: ${place.role}, ${place.organization}`}
+                      onClick={() => jumpToPin.current?.([index])}
+                    >
                       <span aria-hidden="true" className="story-rail-node" />
                       <span className="story-rail-year">{place.period.split(" ")[0]}</span>
                       <span className="story-rail-label">{place.short}</span>

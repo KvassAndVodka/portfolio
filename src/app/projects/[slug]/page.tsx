@@ -5,8 +5,9 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
+import AsciiPlate, { PLATE_TONES } from "@/components/AsciiPlate";
 import { markdownComponents } from "@/components/markdownComponents";
-import { FaArrowLeft, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6";
+import { FaArrowLeft, FaArrowRight, FaArrowUpRightFromSquare, FaGithub } from "react-icons/fa6";
 
 import { formatProjectCategory } from "@/lib/projectCategory";
 import SiteFooter from "@/components/SiteFooter";
@@ -58,7 +59,10 @@ export default async function ProjectPage({
 
   const pad = (value: number) => String(value).padStart(2, "0");
   // The same figure number the project has on the index.
-  const figure = projects.findIndex((entry) => entry.slug === project.slug) + 1;
+  const currentIndex = projects.findIndex((entry) => entry.slug === project.slug);
+  const figure = currentIndex + 1;
+  const previousProject = currentIndex > 0 ? projects[currentIndex - 1] : null;
+  const nextProject = currentIndex >= 0 && currentIndex < projects.length - 1 ? projects[currentIndex + 1] : null;
   const liveProjectUrl = project.projectUrl || project.demoUrl;
   const projectUrl = absoluteUrl(`/projects/${project.slug}`);
   const projectJsonLd = {
@@ -157,8 +161,8 @@ export default async function ProjectPage({
         </header>
 
         <div className="site-shell max-w-5xl pb-20 md:pb-28">
-          {project.thumbnail && (
-            <div className="paper-figure">
+          <div className="paper-figure">
+            {project.thumbnail ? (
               <Image
                 src={project.thumbnail}
                 alt={`${project.title} project preview`}
@@ -168,13 +172,77 @@ export default async function ProjectPage({
                 className="object-cover"
                 priority
               />
-            </div>
-          )}
+            ) : (
+              <AsciiPlate
+                pattern={Math.max(0, currentIndex)}
+                color={PLATE_TONES[Math.max(0, currentIndex) % PLATE_TONES.length]}
+                className="text-[clamp(4px,0.85vw,10px)] max-md:text-[clamp(4px,1.4vw,8px)]"
+              />
+            )}
+          </div>
           <div className="paper-sheet">
             <div className="prose prose-lg article-prose max-w-none">
               <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]} rehypePlugins={[[rehypeHighlight, { detect: true }]]}>{project.content}</ReactMarkdown>
             </div>
           </div>
+
+          <nav className="detail-footer-nav" aria-label="Project navigation">
+            <div className="detail-footer-actions">
+              <Link className="back-link" href="/projects">
+                <FaArrowLeft aria-hidden="true" />
+                All projects
+              </Link>
+              {(liveProjectUrl || project.githubUrl) && (
+                <div className="project-spec-links">
+                  {liveProjectUrl && (
+                    <a className="postcard-button postcard-button-primary" href={liveProjectUrl} rel="noreferrer" target="_blank">
+                      Live project
+                      <FaArrowUpRightFromSquare aria-hidden="true" />
+                      <span className="sr-only"> (opens in a new tab)</span>
+                    </a>
+                  )}
+                  {project.githubUrl && (
+                    <a className="postcard-button" href={project.githubUrl} rel="noreferrer" target="_blank">
+                      <FaGithub aria-hidden="true" />
+                      Source code
+                      <span className="sr-only"> (opens in a new tab)</span>
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {(previousProject || nextProject) && (
+              <div className="detail-pager">
+                {previousProject ? (
+                  <Link className="detail-pager-link" href={`/projects/${previousProject.slug}`}>
+                    <span className="detail-pager-label">
+                      <FaArrowLeft aria-hidden="true" />
+                      Previous project
+                    </span>
+                    <span className="detail-pager-title">
+                      {previousProject.title}
+                      <span className="title-dot">.</span>
+                    </span>
+                  </Link>
+                ) : (
+                  <span />
+                )}
+                {nextProject && (
+                  <Link className="detail-pager-link detail-pager-next" href={`/projects/${nextProject.slug}`}>
+                    <span className="detail-pager-label">
+                      Next project
+                      <FaArrowRight aria-hidden="true" />
+                    </span>
+                    <span className="detail-pager-title">
+                      {nextProject.title}
+                      <span className="title-dot">.</span>
+                    </span>
+                  </Link>
+                )}
+              </div>
+            )}
+          </nav>
         </div>
       </article>
       <SiteFooter />

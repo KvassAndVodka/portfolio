@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import ContactForm from "@/components/ContactForm";
 import ProjectGallery from "@/components/ProjectGallery";
+import RecentNotesSection from "@/components/RecentNotesSection";
 import ScrollReveal from "@/components/ScrollReveal";
 import SiteFooter from "@/components/SiteFooter";
 import CloudField from "@/components/story/CloudField";
 import { places } from "@/components/story/places";
 import StoryJourney from "@/components/story/StoryJourney";
 import TechnologyStack from "@/components/TechnologyStack";
+import { getPosts, toPostPreview } from "@/lib/posts";
 import { getProjects, toProjectPreview } from "@/lib/projects";
 import { absoluteUrl, createPageMetadata, serializeJsonLd, siteConfig } from "@/lib/seo";
 
@@ -33,7 +35,9 @@ const profileJsonLd = {
 };
 
 export default async function Home() {
-  const projects = (await getProjects()).map(toProjectPreview);
+  const [allProjects, allPosts] = await Promise.all([getProjects(), getPosts()]);
+  const projects = allProjects.map(toProjectPreview);
+  const recentNotes = allPosts.slice(0, 3).map(toPostPreview);
   // Featured on the home page: the pinned projects, or the three latest when none are pinned.
   const pinned = projects.filter((project) => project.isPinned);
   const featured = pinned.length > 0 ? pinned : projects.slice(0, 3);
@@ -48,6 +52,8 @@ export default async function Home() {
       </CloudField>
 
       <TechnologyStack />
+
+      <RecentNotesSection notes={recentNotes} totalCount={allPosts.length} />
 
       <section id="contact" className="contact-stage">
         <div className="site-shell">

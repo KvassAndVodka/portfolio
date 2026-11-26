@@ -17,7 +17,7 @@ type PageHeadProps = Readonly<{
 /** The head of an index page: mono labels, the title with the orange full stop, the lead, and a contour corner. */
 export default function PageHead({ labels, title, lead }: PageHeadProps) {
   return (
-    <header className="page-head">
+    <div className="page-head">
       <svg className="page-head-contours" viewBox="0 0 640 420" preserveAspectRatio="xMaxYMin slice" aria-hidden="true">
         {TERRAIN.map((level) => (
           <path className={level.index ? "is-index" : undefined} d={level.d} key={level.elevation} />
@@ -35,6 +35,6 @@ export default function PageHead({ labels, title, lead }: PageHeadProps) {
         </h1>
         <p className="body-large mt-7">{lead}</p>
       </div>
-    </header>
+    </div>
   );
 }
